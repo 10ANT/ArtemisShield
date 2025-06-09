@@ -34,7 +34,6 @@
                                 {{ $session->agent->platform() ? $session->agent->platform() : __('Unknown') }} - {{ $session->agent->browser() ? $session->agent->browser() : __('Unknown') }}
                             </div>
 
-                            
                             <div>
                                 <div class="text-xs text-gray-500">
                                     {{ $session->ip_address }},
