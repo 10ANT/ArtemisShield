@@ -1,0 +1,185 @@
+/* Only Sidebar dark Area Style
+============================================*/
+[sidebar-dark-light-data-theme=sidebar-dark] {
+    .sidebar-burger-menu  {
+        svg {
+            stroke: $white;
+        }
+    }
+    .sidebar-area {
+        background-color: $dark-card-bg;
+        .logo {
+            border-color: $dark-border;
+            .logo-text {
+                color: $white !important;
+            }
+        }
+        .admin {
+            .admin-info {
+                .name {
+                    color: $white;
+                }
+            }
+        }
+    }
+    .menu-vertical {
+        .menu-item {
+            .menu-link {
+                .title {
+                    color: $white;
+                }
+                .material-symbols-outlined {
+                    color: $white;
+                }
+                &:hover {
+                    background-color: $dark-input-bg;
+                }
+                &.logout {
+                    background-color: $dark-input-bg !important;
+                }
+            }
+            &.open {
+                .menu-link {
+                    &.active {
+                        background-color: $dark-input-bg;
+                        color: $primary;
+                        .title {
+                            color: $white;
+                        }
+                        &::before {
+                            border-color: $primary;
+                        }
+                    }
+                }
+            }
+        }
+        .menu-title {
+            .menu-title-text {
+                color: $dark-body-color;
+            }
+        }
+        .menu-sub {
+            .menu-item {
+                .menu-link {
+                    color: #c5c5c5;
+                    &::before {
+                        border-color: $dark-body-color;
+                    }
+                    &.active {
+                        color: $white;
+                    }
+                    &:hover {
+                        &::before {
+                            border-color: $primary;
+                            background-color: transparent;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+.only-dark-sidebar-menu {
+    .sidebar-burger-menu  {
+        svg {
+            stroke: $white;
+        }
+    }
+    &.sidebar-area {
+        background-color: $secondary-50;
+        .logo {
+            border-color: $secondary;
+            .logo-text {
+                color: $white !important;
+            }
+        }
+        .admin {
+            .admin-info {
+                .name {
+                    color: $white;
+                }
+            }
+        }
+    }
+    .menu-vertical {
+        .menu-item {
+            .menu-link {
+                .title {
+                    color: $body-color-60;
+                }
+                .material-symbols-outlined {
+                    color: $body-color-60;
+                    transition: $transition;
+                }
+                &:hover {
+                    background-color: $body-color-50;
+                    .title {
+                        color: $white;
+                    }
+                    .material-symbols-outlined {
+                        color: $white;
+                    }
+                }
+            }
+            &.open {
+                .menu-link {
+                    &.active {
+                        background-color: $primary;
+                        color: $primary;
+                        .title {
+                            color: $white;
+                        }
+                        &::before {
+                            border-color: $white;
+                        }
+                    }
+                    &.menu-toggle {
+                        &.active {
+                            background-color: $body-color-50;
+                            .menu-icon {
+                                color: $white;
+                            }
+                        }
+                    }
+                }
+                .menu-sub {
+                    .menu-item {
+                        .menu-link {
+                            &:hover {
+                                background-color: $primary;
+                                color: $white;
+                                &::before {
+                                    border-color: $white;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .menu-title {
+            .menu-title-text {
+                color: $dark-body-color;
+            }
+        }
+        .menu-sub {
+            .menu-item {
+                .menu-link {
+                    color: $body-color-60;
+                    &::before {
+                        border-color: $dark-body-color;
+                    }
+                    &.active {
+                        color: $white;
+                    }
+                    &:hover {
+                        &::before {
+                            border-color: $primary;
+                            background-color: transparent;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

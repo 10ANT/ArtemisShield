@@ -1,0 +1,508 @@
+/*
+Theme Settings Style
+============================================*/
+.offcanvas-backdrop {
+    background-color: transparent;
+}
+.light {
+    display: none;
+}
+.fluid {
+    display: none;
+}
+
+.settings-box {
+    width: 140px;
+    height: 100px;
+    border-radius: 5px;
+    border: 1px solid $light-40;
+    position: relative;
+    transition: $transition;
+    span {
+        &:nth-child(1) {
+            top: 0;
+            right: 0;
+            width: 96px;
+            height: 11px;
+            position: absolute;
+            background: $light-40;
+            border-radius: 0 5px;
+        }
+        &:nth-child(2) {
+            right: 0;
+            bottom: 0;
+            width: 96px;
+            height: 11px;
+            position: absolute;
+            background: $light-40;
+            border-radius: 5px 0;
+        }
+        &:nth-child(3) {
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 36px;
+            position: absolute;
+            background: $light-40;
+            border-radius: 5px 0 0 5px;
+        }
+        &:nth-child(4) {
+            top: 14px;
+            left: 7px;
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            border-radius: 50%;
+            background: #d6d2df;
+        }
+        &:nth-child(5) {
+            left: 7px;
+            top: 45px;
+            width: 20px;
+            height: 5px;
+            position: absolute;
+            border-radius: 30px;
+            background: #d6d2df;
+        }
+        &:nth-child(6) {
+            left: 7px;
+            top: 55px;
+            width: 20px;
+            height: 5px;
+            position: absolute;
+            border-radius: 30px;
+            background: #d6d2df;
+        }
+        &:nth-child(7) {
+            left: 7px;
+            top: 65px;
+            width: 20px;
+            height: 5px;
+            position: absolute;
+            border-radius: 30px;
+            background: #d6d2df;
+        }
+        &:nth-child(8) {
+            top: 35px;
+            left: 46px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+        &:nth-child(9) {
+            top: 35px;
+            left: 78px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+        &:nth-child(10) {
+            top: 35px;
+            left: 110px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+        &:nth-child(11) {
+            top: 55px;
+            left: 46px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+        &:nth-child(12) {
+            top: 55px;
+            left: 78px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+        &:nth-child(13) {
+            top: 55px;
+            left: 110px;
+            width: 20px;
+            height: 11px;
+            position: absolute;
+            background: #f1f0f3;
+            border: 1px solid #F1F0F3;
+        }
+    }
+    &.for-rtl {
+        span {
+            &:nth-child(1) {
+                left: 0;
+                right: auto;
+                border-radius: 5px 0;
+            }
+            &:nth-child(2) {
+                left: 0;
+                right: auto;
+                border-radius: 0 5px;
+            }
+            &:nth-child(3) {
+                right: 0;
+                left: auto;
+                border-radius: 0 5px 5px 0;
+            }
+            &:nth-child(4) {
+                left: auto;
+                right: 7px;
+            }
+            &:nth-child(5) {
+                left: auto;
+                right: 7px;
+            }
+            &:nth-child(6) {
+                left: auto;
+                right: 7px;
+            }
+            &:nth-child(7) {
+                left: auto;
+                right: 7px;
+            }
+        }
+    }
+}
+.settings-box-wrap {
+    .active-wrap2 {
+        .settings-box {
+            border-color: $primary;
+        }
+    }
+    .active-wrap1 {
+        .opacity-1 {
+            opacity: 0 !important;
+        }
+        .opacity-0 {
+            opacity: 1 !important;
+        }
+    }
+    .settings-btn {
+        position: absolute;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        opacity: 0;
+    }
+    // &:hover {
+    //     .settings-box {
+    //         border-color: $primary !important;
+    //     }
+    // }
+    &.for-sidebar-dark {
+        .active-wrap1 {
+            .settings-box {
+                span {
+                    &:nth-child(3) {
+                        background: #333333;
+                    }
+                    &:nth-child(4) {
+                        background: #848289;
+                    }
+                    &:nth-child(5) {
+                        background: #848289;
+                    }
+                    &:nth-child(6) {
+                        background: #848289;
+                    }
+                    &:nth-child(7) {
+                        background: #848289;
+                    }
+                }
+            }
+        }
+    }
+    &.for-header-dark {
+        .active-wrap1 {
+            .settings-box {
+                span {
+                    &:nth-child(1) {
+                        background: #333333;
+                    }
+                }
+            }
+        }
+    }
+    &.for-footer-dark {
+        .active-wrap1 {
+            .settings-box {
+                span {
+                    &:nth-child(2) {
+                        background: #333333;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* RTL Area Style
+============================================*/
+.rtl {
+    .settings-box-wrap {
+        direction: ltr !important;
+        .switch-for-rtl {
+            .end-0 {
+                right: 0 !important;
+            }
+            .start-0 {
+                left: 0 !important;
+            }
+        }
+        &.for-rtl-mode {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+    
+}
+
+/* Only Sidebar dark Area Style
+============================================*/
+[sidebar-dark-light-data-theme=sidebar-dark] {
+
+    .settings-box-wrap {
+        &.for-sidebar-dark {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+
+}
+
+/* Only Header dark Area Style
+============================================*/
+[header-dark-light-data-theme=header-dark] {
+
+    .settings-box-wrap {
+        &.for-header-dark {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+
+}
+
+/* Only Footer dark Area Style
+============================================*/
+[footer-dark-light-data-theme=footer-dark] {
+
+    .settings-box-wrap {
+        &.for-footer-dark {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+
+}
+
+/* Only Radius Square Area Style
+============================================*/
+[card-radius-square-data-theme=card-radius] {
+
+    .settings-box-wrap {
+        &.for-card-radius {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+    .card {
+        border-radius: 0 !important;
+    }
+    .btn {
+        border-radius: 0;
+    }
+    .rounded {
+        border-radius: 0 !important;
+    }
+    .header-area {
+        border-radius: 0 !important;
+    }
+    .rounded-top-7 {
+        border-radius: 0 !important;
+    }
+    .pagination {
+        .page-item {
+            .page-link {
+                border-radius: 0;
+            }
+        }
+    }
+    .form-control {
+        border-radius: 0 !important;
+    }
+    .right-header-content .header-right-item .notifications.dropdown .btn-secondary {
+        border-radius: 0;
+    }
+    .menu-vertical .menu-item .menu-link {
+        border-radius: 0;
+    }
+
+}
+
+/* Only Card Background Area Style
+============================================*/
+[card-bg-data-theme=card-bg-gray] {
+    background-color: $white !important;
+    .settings-box-wrap {
+        &.for-card-bg-gray {
+            .active-wrap2 {
+                .settings-box {
+                    border-color: $light-40;
+                }
+                .opacity-1 {
+                    opacity: 0 !important;
+                }
+                .opacity-0 {
+                    opacity: 1 !important;
+                }
+            }
+            .active-wrap1 {
+                .settings-box {
+                    border-color: $primary;
+                }
+                .opacity-1 {
+                    opacity: 1 !important;
+                }
+                .opacity-0 {
+                    opacity: 0 !important;
+                }
+            }
+        }
+    }
+    .card {
+        background-color: $body-bg !important;
+        &.bg-primary-div {
+            background-color: $primary !important;
+        }
+        &.bg-primary {
+            background-color: $primary !important;
+        }
+    }
+    .header-area {
+        background-color: $body-bg !important;
+    }
+    .sidebar-area {
+        background-color: $body-bg !important;
+    }
+    .footer-area {
+        background-color: $body-bg !important;
+    }
+    .sidebar-area .admin .admin-info {
+        background-color: $body-bg !important;
+    }
+    .offcanvas {
+        background-color: $body-bg !important;
+    }
+}

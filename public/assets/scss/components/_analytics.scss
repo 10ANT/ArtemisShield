@@ -1,0 +1,82 @@
+/* Analytics Dashboard Area Style
+============================================*/
+.analytics-tabs {
+    border: 1px solid $border-color;
+    border-radius: 7px;
+    li {
+        button {
+            padding: 3px 15px;
+            border: 0;
+            background-color: transparent;
+            color: $body-color;
+            &.active {
+                background-color: #ECF0FF;
+            }
+            &:hover {
+                background-color: #ECF0FF;
+            }
+        }
+        &:nth-child(2) {
+            button {
+                border-left: 1px solid $border-color;
+                border-right: 1px solid $border-color;
+            }
+        }
+    }
+}
+.cryptocurrency-controller {
+    .controller-icon {
+        width: 30px;
+        height: 30px;
+        line-height: 29px;
+        text-align: center;
+        border: 1px solid #ECEEF2;
+        display: inline-block;
+        font-size: 17px;
+        border-radius: 4px;
+        transition: $transition;
+        &:hover {
+            background-color: $primary-div;
+            color: $white;
+        }
+    }
+}
+
+/* Max width 767px */
+@media only screen and (max-width : 767px) {
+
+    .analytics-tabs {
+        li {
+            button {
+                padding: 3px 11px;
+            }
+        }
+    }
+
+}
+
+/* Min width 1400px to Max width 1799px */
+@media only screen and (min-width : 1400px) and (max-width : 1799px) {
+
+    .ms-minus-27 {
+        margin-left: -27px;
+    }
+    .me-plus-27 {
+        margin-right: 27px;
+    }
+    .ms-plus-21 {
+        margin-left: 21px;
+    }
+
+}
+
+/* Min width 992px to Max width 1199px */
+@media only screen and (min-width : 992px) and (max-width : 1199px)  {
+    .analytics-tabs {
+        li {
+            button {
+                padding: 3px 9px;
+            }
+        }
+    }
+}

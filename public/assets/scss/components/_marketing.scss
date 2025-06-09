@@ -1,0 +1,183 @@
+/* Marketing Area Style
+============================================*/
+/* Marketing Dashboard CSS */
+.create-campaigns-tabs {
+    max-width: 960px;
+    margin: auto;
+    margin-bottom: 60px;
+    .tab {
+        button {
+            position: relative;
+            padding: 0;
+            padding-bottom: 5px;
+            letter-spacing: 2px;
+            &::before {
+                content: "";
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 0;
+                height: 2px;
+                background-color: $primary;
+                transition: $transition;
+            }
+        }
+        &.active {
+            button {
+                color: $primary !important;
+                &::before {
+                    width: 100%;
+                    right: auto;
+                    left: 0;
+                }
+            }
+        }
+    }
+}
+.custom-radio {
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+    input[type="radio"] {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #e2e4e7;
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+        &:checked + .radio-content:after {
+            content: "";
+            position: absolute;
+            height: 20px;
+            width: 20px;
+            background: $primary;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 100%;
+            border: 3px solid $white;
+            box-shadow: 0px 0px 0px 2px $primary;
+          }
+          &:checked + .radio-content {
+            border: 2px dashed $primary;
+            background: #ECEEF2;
+            transition: ease-in 0.3s;
+        }
+        &:focus {
+            box-shadow: none;
+        }
+    }
+    .radio-content {
+        border: 2px dashed #e2e4e7;
+        border-radius: 10px;
+        position: relative;
+        padding: 18px;
+        padding-left: 55px;
+    }
+    &.style-two {
+        input[type="radio"] {
+            left: 0;
+            width: 30px;
+            height: 30px;
+            margin-top: -9px;
+            &:checked + .radio-content:after {
+                left: 0;
+                width: 30px;
+                height: 30px;
+            }
+            &:checked + .radio-content {
+                border: none;
+                background-color: transparent;
+            }
+        }
+        .radio-content {
+            padding: 0;
+            border: none;
+            padding-left: 45px;
+        }
+    }
+}
+.tab-content-wrap {
+    overflow: hidden;
+    .tab-contents {
+        display: none;
+        &.active {
+            display: block;
+        }
+        &.back-none {
+            position: relative;
+            &::before {
+                content: "";
+                position: absolute;
+                bottom: -88px;
+                left: -560px;
+                right: 0;
+                margin: auto;
+                width: 625px;
+                height: 50px;
+                background-color: #f6f7f9;
+            }
+        }
+        &.continue-none {
+            position: relative;
+            &::before {
+                content: "";
+                position: absolute;
+                bottom: -42px;
+                right: -560px;
+                left: 0;
+                margin: auto;
+                width: 625px;
+                height: 50px;
+                background-color: #f6f7f9;
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+  
+
+  
+
+  
+ 
+  
+
+  
+
+
+  
+ 
+  
+
+  
+
+  
+  
+  
+  
+  
+  
+  
+ 
+  
+
+
+
+
+
+
+/* Max width 767px */
+@media only screen and (max-width : 767px) {
+    .create-campaigns-tabs {
+        margin-bottom: 25px;
+    }
+}

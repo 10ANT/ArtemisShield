@@ -1,0 +1,105 @@
+/**
+
+
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+// Required
+@import "../../../node_modules/bootstrap/scss/functions";
+
+// Default variable overrides
+@import "./variables";
+
+@import "../../../node_modules/bootstrap/scss/variables";
+@import "../../../node_modules/bootstrap/scss/variables-dark";
+@import "../../../node_modules/bootstrap/scss/mixins";
+
+// Create your own map
+$custom-colors: (
+    "primary-div": $primary-div,
+    "primary-div-50": $primary-div-50,
+    "primary-div-60": $primary-div-60,
+    "primary-50": $primary-50,
+    "primary-60": $primary-60,
+    "primary-70": $primary-70,
+    "success-50": $success-50,
+    "success-60": $success-60,
+    "success-70": $success-70,
+    "success-80": $success-80,
+    "body-bg": $body-bg,
+    "danger-div": $danger-div,
+    "danger-40": $danger-40,
+    "danger-50": $danger-50,
+    "danger-60": $danger-60,
+    "danger-70": $danger-70,
+    "rating-color": $rating-color,
+    "card-bg-c": $card-bg-c,
+    "card-text-c": $card-text-c,
+    "gary-light": $gary-light,
+    "light-40": $light-40,
+    "border-color": $border-color,
+    "border-color-50": $border-color-50,
+    "body-color-50": $body-color-50,
+    "body-color-60": $body-color-60,
+    "secondary-50": $secondary-50,
+);
+
+// Merge the maps
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+$font-sizes: (
+    1: $h1-font-size,
+    2: $h2-font-size,
+    3: $h3-font-size,
+    4: $h4-font-size,
+    5: $h5-font-size,
+    6: $h6-font-size,
+);
+
+// Required Utilities Parts
+$utilities: (
+    "font-size": (rfs: true,
+        property: font-size,
+        class: fs,
+        values: $font-sizes ),
+
+);
+
+// Required
+@import "../../../node_modules/bootstrap/scss/maps";
+@import "../../../node_modules/bootstrap/scss/root";
+
+// Optional Bootstrap components here
+@import "../../../node_modules/bootstrap/scss/reboot";
+@import "../../../node_modules/bootstrap/scss/type";
+
+// Required
+@import "../../../node_modules/bootstrap/scss/bootstrap";
+
+// Components
+@import "./components/global";
+@import "./components/sidebar-menu";
+@import "./components/main-content";
+@import "./components/header-area";
+@import "./components/footer-area";
+@import "./components/status-box";
+@import "./components/sales-by-locations";
+@import "./components/default-table";
+@import "./components/pagination";
+@import "./components/calendar";
+@import "./components/chat";
+@import "./components/timeline";
+@import "./components/pricing";
+@import "./components/products";
+@import "./components/rtl";
+@import "./components/dark-mode";
+@import "./components/sidebar-dark";
+@import "./components/header-dark";
+@import "./components/footer-dark";
+@import "./components/fluid-boxed-style";
+@import "./components/landing-page";
+@import "./components/analytics";
+@import "./components/nft";
+@import "./components/marketing";
+@import "./components/navbar";
+@import "./components/theme-settings";

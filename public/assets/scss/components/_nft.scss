@@ -1,0 +1,210 @@
+/* FNT Area Style
+============================================*/
+/* NFT Dashboard CSS */
+.place-bid {
+    .opacity-0 {
+        transition: $transition;
+    }
+    &:hover {
+        .opacity-0 {
+            opacity: 1 !important;
+        }
+    }
+}
+.nft-controller {
+    .controller-icon {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        text-align: center;
+        display: inline-block;
+        background-color: $secondary;
+        color: #C2CDFF;
+        font-size: 18px;
+        border-radius: 50px;
+        transition: $transition;
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        z-index: 2;
+        &.next {
+            left: auto;
+            right: 0;
+        }
+        &:hover {
+            background-color: $primary;
+        }
+    }
+}
+.nft-slide {
+    margin-top: -95px;
+}
+.ethereum-rate-tabs {
+    margin-bottom: 30px;
+    border: 0;
+    .nav-item {
+        .nav-link {
+            width: 47px;
+            height: 32px;
+            padding: 0;
+            border: 0;
+            font-weight: 600;
+            font-size: 12px;
+            border-radius: 4px;
+            color: #64748B;
+            &.active {
+                background-color: $primary !important;
+                color: $white !important;
+            }
+        }
+    }
+}
+.swiper-pagination-top-collections {
+    &.swiper-pagination-clickable .swiper-pagination-bullet {
+        background-color: #526077;
+    }
+}
+.live-auction {
+    .nav-item {
+        .nav-link {
+            padding: 0;
+            &.active {
+                color: $primary !important;
+            }
+        }
+    }
+}
+.clockdiv {
+    background: rgba(255, 255, 255, 0.60);
+    backdrop-filter: blur(12px);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px;
+    margin: 6px;
+    .time {
+        color: $secondary;
+        font-size: 14px;
+        font-weight: 700;
+        position: relative;
+        &::before {
+            content: ":";
+            position: absolute;
+            right: -10px;
+
+        }
+        &:last-child {
+            &::before {
+                display: none;
+            }
+        }
+    }
+    .days {
+        position: relative;
+        padding-right: 10px;
+        &::before {
+            content: "d";
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+    }
+    .hours {
+        position: relative;
+        padding-right: 10px;
+        &::before {
+            content: "h";
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+    }
+    .minutes {
+        position: relative;
+        padding-right: 15px;
+        &::before {
+            content: "m";
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+    }
+    .seconds {
+        position: relative;
+        padding-right: 10px;
+        &::before {
+            content: "s";
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+/* Max width 767px */
+@media only screen and (max-width : 767px) {
+    .manage-nft {
+        padding: 20px !important;
+        padding-bottom: 120px !important;
+    }
+    .nft-detail-tabs {
+        .nav-item {
+            .nav-link {
+                width: 50px !important;
+            }
+        }
+    }
+}
+
+/* Min width 768px to Max width 992px */
+@media only screen and (min-width : 768px) and (max-width : 991px) {
+
+}
+
+/* Min width 992px to Max width 1199px */
+@media only screen and (min-width : 992px) and (max-width : 1199px)  {
+
+    .nft-detail-tabs {
+        .nav-item {
+            .nav-link {
+                width: 50px !important;
+            }
+        }
+    }
+
+}
+
+/* Min width 1200px to Max width 1399px */
+@media only screen and (min-width : 1200px) and (max-width : 1399px) {
+
+    .nft-detail-tabs {
+        .nav-item {
+            .nav-link {
+                width: 60px !important;
+            }
+        }
+    }
+
+}
+
+/* Min width 1400px to Max width 1799px */
+@media only screen and (min-width : 1400px) and (max-width : 1799px) {
+
+}
+
+@media only screen and (max-width : 1199px) {
+
+}
