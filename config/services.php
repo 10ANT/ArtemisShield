@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'nasa' => [
+    'api_key' => env('NASA_API_KEY'),
+],
+'openweather' => [
+    'api_key' => env('OPENWEATHER_API_KEY'),
+],
+
 ];

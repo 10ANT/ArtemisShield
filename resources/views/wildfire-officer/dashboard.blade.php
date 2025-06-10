@@ -1,9 +1,10 @@
-]<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ArtemisShield - Wildfire Protection Dashboard</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,24 +12,18 @@
 
     @include('partials.styles')
     <style>
-        /*
-         * This CSS is for STRUCTURE and LAYOUT only. 
-         * All colors and theming are handled by Bootstrap variables for light/dark mode compatibility.
-        */
         .main-content {
-            /* Ensures the content area fills the viewport height below the header */
             flex-grow: 1;
         }
 
         .wildfire-dashboard-container {
-            /* This container will hold the map and sidebar, ensuring it fills its parent's height */
             height: 100%;
         }
 
         #map {
             width: 100%;
             height: 100%;
-            min-height: 500px; /* Provides a minimum height on smaller screens */
+            min-height: 500px;
             background-color: var(--bs-tertiary-bg);
         }
 
@@ -37,7 +32,6 @@
             height: 100%;
         }
 
-        /* Styles for the panels overlaid on the map */
         .map-overlay {
             position: absolute;
             z-index: 1000;
@@ -50,7 +44,6 @@
         .layers-panel { top: 0; left: 0; }
         .weather-widget { top: 0; right: 0; }
 
-        /* Full-height sidebar with scrollable content */
         .sidebar-wrapper {
             height: 100%;
             display: flex;
@@ -61,7 +54,6 @@
             overflow-y: auto;
         }
 
-        /* Full-height chat container */
         .chat-container {
             height: 100%;
             display: flex;
@@ -72,9 +64,16 @@
             overflow-y: auto;
         }
         
-        /* Custom icon for fire markers to make them stand out */
         .fire-marker i {
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .loading .loading-spinner {
+            display: inline-block;
         }
     </style>
 </head>
@@ -94,36 +93,64 @@
 
                         <div class="map-overlay layers-panel card shadow-sm">
                             <div class="card-body p-3">
-                                <h6 class="card-title d-flex align-items-center mb-2"><i class="fas fa-layer-group fa-fw me-2"></i>Map Layers</h6>
+                                <h6 class="card-title d-flex align-items-center mb-2">
+                                    <i class="fas fa-layer-group fa-fw me-2"></i>Fire Data Layers
+                                    <div class="loading-spinner spinner-border spinner-border-sm ms-auto" role="status"></div>
+                                </h6>
                                 <hr class="my-2">
+                                
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="active-incidents" checked>
-                                    <label class="form-check-label" for="active-incidents">Active Incidents</label>
+                                    <input class="form-check-input layer-toggle" type="checkbox" role="switch" id="viirs-snpp" data-source="VIIRS_SNPP_NRT" checked>
+                                    <label class="form-check-label" for="viirs-snpp">VIIRS S-NPP (Real-Time)</label>
                                 </div>
+                                
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="viirs-24" checked>
-                                    <label class="form-check-label" for="viirs-24">VIIRS Hotspots (24h)</label>
+                                    <input class="form-check-input layer-toggle" type="checkbox" role="switch" id="viirs-noaa20" data-source="VIIRS_NOAA20_NRT">
+                                    <label class="form-check-label" for="viirs-noaa20">VIIRS NOAA-20 (Real-Time)</label>
                                 </div>
+                                
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="infrastructure">
-                                    <label class="form-check-label" for="infrastructure">Infrastructure</label>
+                                    <input class="form-check-input layer-toggle" type="checkbox" role="switch" id="modis-nrt" data-source="MODIS_NRT">
+                                    <label class="form-check-label" for="modis-nrt">MODIS (Real-Time)</label>
                                 </div>
+
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="evacuation">
-                                    <label class="form-check-label" for="evacuation">Evac Routes</label>
+                                    <input class="form-check-input layer-toggle" type="checkbox" role="switch" id="modis-sp" data-source="MODIS_SP">
+                                    <label class="form-check-label" for="modis-sp">MODIS Standard</label>
                                 </div>
+
+                                <hr class="my-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    <span id="fire-count">Loading fire data...</span>
+                                </small>
                             </div>
                         </div>
 
                         <div class="map-overlay weather-widget card shadow-sm">
                             <div class="card-body p-3">
-                                <h6 class="card-title d-flex align-items-center mb-2"><i class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather</h6>
+                                <h6 class="card-title d-flex align-items-center mb-2">
+                                    <i class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather
+                                    <div class="loading-spinner spinner-border spinner-border-sm ms-auto" role="status"></div>
+                                </h6>
                                 <hr class="my-2">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Temperature <span class="badge text-bg-primary" id="temp">28°C</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Wind <span class="badge text-bg-primary" id="wind">15 km/h</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Humidity <span class="badge text-bg-primary" id="humidity">45%</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Fire Risk <span class="badge text-bg-danger" id="fire-risk">High</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
+                                        Temperature 
+                                        <span class="badge text-bg-primary" id="temp">--°C</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
+                                        Wind 
+                                        <span class="badge text-bg-primary" id="wind">-- km/h</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
+                                        Humidity 
+                                        <span class="badge text-bg-primary" id="humidity">--%</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
+                                        Fire Risk 
+                                        <span class="badge text-bg-danger" id="fire-risk">--</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -135,12 +162,12 @@
                         <div class="card-header p-2">
                             <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true">
+                                    <button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab">
                                         <i class="fas fa-comments me-1"></i> Ask Artemis
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="control-tab-btn" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab" aria-controls="control-content" aria-selected="false">
+                                    <button class="nav-link" id="control-tab-btn" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab">
                                         <i class="fas fa-cogs me-1"></i> Control Panel
                                     </button>
                                 </li>
@@ -154,12 +181,12 @@
                                             <div class="mb-3 text-start">
                                                 <small class="text-body-secondary">Artemis AI Assistant</small>
                                                 <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                                                    Hello! I'm Artemis. Ask me about active fires, resource status, or weather conditions.
+                                                    Hello! I'm monitoring <span id="active-fires-chat">loading...</span> active fire detections using VIIRS real-time data. Ask me about fire locations, weather conditions, or resource deployment.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="chat-input-group d-flex gap-2">
-                                            <input type="text" class="form-control" placeholder="Ask a question..." id="chat-input">
+                                            <input type="text" class="form-control" placeholder="Ask about fire conditions..." id="chat-input">
                                             <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                                         </div>
                                     </div>
@@ -176,22 +203,22 @@
                                     
                                     <h6 class="text-body-secondary">Live Data</h6>
                                     <ul class="list-group mb-3">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">Active Fires <span class="badge text-bg-danger" id="active-fires-count">12</span></li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">Resources Deployed <span class="badge text-bg-info" id="resources-count">45</span></li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">Properties at Risk <span class="badge text-bg-warning" id="properties-count">234</span></li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Active Fires 
+                                            <span class="badge text-bg-danger" id="active-fires-count">--</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            High Confidence 
+                                            <span class="badge text-bg-warning" id="high-confidence-count">--</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Last Updated 
+                                            <span class="badge text-bg-info" id="last-updated">--</span>
+                                        </li>
                                     </ul>
 
-                                    <h6 class="text-body-secondary">Recent Reports</h6>
-                                    <div class="card bg-body-tertiary">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between">
-                                                <h6 class="card-title mb-1">Fire Containment</h6>
-                                                <span class="badge text-bg-success">Success</span>
-                                            </div>
-                                            <p class="card-text mb-1">North Ridge Area containment line holding.</p>
-                                            <small class="text-body-secondary">10 min ago</small>
-                                        </div>
-                                    </div>
+                                    <h6 class="text-body-secondary">Recent Detections</h6>
+                                    <div id="recent-fires" class=""></div>
                                 </div>
                             </div>
                         </div>
@@ -199,88 +226,351 @@
                 </div>
             </div>
             @include('partials.footer')
-            </div>
+        </div>
     </div>
 
     @include('partials.theme_settings')
     @include('partials.scripts')
     
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
     <script>
+        // Global variables
+        let map;
+        let fireLayerGroups = {};
+        let weatherInterval;
+        let fireDataInterval;
+        let currentLat = 34.0522; // Default LA coordinates
+        let currentLon = -118.2437;
+
+        // API Configuration
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Using a timeout to ensure the map container is rendered and has a size, preventing a common Leaflet error.
             setTimeout(() => {
-                const map = L.map('map').setView([34.0522, -118.2437], 10);
+                initializeMap();
+                loadInitialData();
+                setupEventListeners();
+                startPeriodicUpdates();
+            }, 250);
+        });
 
-                // Using a neutral tile layer that works well in both light and dark themes
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }).addTo(map);
+        function initializeMap() {
+            map = L.map('map').setView([currentLat, currentLon], 6);
 
-                // Layer groups, icon definitions, and data loading functions would go here
-                // ...
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                maxZoom: 19
+            }).addTo(map);
 
-                // Custom fire icon
-                const fireIcon = L.divIcon({
-                    className: 'fire-marker', // This class is for reference; the style is applied directly
-                    html: '<i class="fas fa-fire" style="color: #FF4136; font-size: 24px;"></i>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]
+            // Initialize layer groups
+            fireLayerGroups = {
+                'VIIRS_SNPP_NRT': L.layerGroup().addTo(map),
+                'VIIRS_NOAA20_NRT': L.layerGroup(),
+                'MODIS_NRT': L.layerGroup(),
+                'MODIS_SP': L.layerGroup()
+            };
+
+            // Update coordinates when map is moved
+            map.on('moveend', function() {
+                const center = map.getCenter();
+                currentLat = center.lat;
+                currentLon = center.lng;
+                loadWeatherData();
+            });
+        }
+
+        function setupEventListeners() {
+            // Layer toggle switches
+            document.querySelectorAll('.layer-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const source = this.dataset.source;
+                    const layerGroup = fireLayerGroups[source];
+                    
+                    if (this.checked) {
+                        if (!map.hasLayer(layerGroup)) {
+                            map.addLayer(layerGroup);
+                            loadFireData(source);
+                        }
+                    } else {
+                        if (map.hasLayer(layerGroup)) {
+                            map.removeLayer(layerGroup);
+                        }
+                    }
+                });
+            });
+
+            // Chat input
+            document.getElementById('chat-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        }
+
+        function loadInitialData() {
+            loadFireData('VIIRS_SNPP_NRT'); // Load default layer (changed from MODIS_SP)
+            loadWeatherData();
+        }
+
+        function startPeriodicUpdates() {
+            // Update fire data every 5 minutes
+            fireDataInterval = setInterval(() => {
+                document.querySelectorAll('.layer-toggle:checked').forEach(toggle => {
+                    loadFireData(toggle.dataset.source);
+                });
+            }, 300000);
+
+            // Update weather every 5 minutes
+            weatherInterval = setInterval(loadWeatherData, 300000);
+        }
+
+        async function loadFireData(source) {
+            const layersPanel = document.querySelector('.layers-panel');
+            layersPanel.classList.add('loading');
+
+            try {
+                // Get yesterday's date
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const dateStr = yesterday.toISOString().split('T')[0];
+
+                const response = await axios.get('/api/v1/fire-data', {
+                    params: {
+                        source: source,
+                        area: 'world',
+                        day_range: 1,
+                        date: dateStr
+                    }
                 });
 
-                // Example: Add a marker
-                L.marker([34.15, -118.30], { icon: fireIcon }).addTo(map)
-                    .bindPopup('<b>Griffith Park Fire</b><br>Active Incident.');
-
-            }, 250); // A small delay is often sufficient
-        });
-
-        // Your existing sendMessage function and other logic remains the same
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const messageContainer = document.getElementById('chat-messages');
-            const messageText = input.value.trim();
-
-            if (messageText) {
-                // Add user message
-                messageContainer.innerHTML += `
-                    <div class="mb-3 text-end">
-                        <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
-                            ${messageText}
-                        </div>
-                    </div>`;
-                input.value = '';
-
-                // Simulate AI response
-                setTimeout(() => {
-                    const responses = [
-                        "I've found 3 active fires in the northern region. The largest is the Canyon Fire with 45% containment.",
-                        "Current resources deployed: 12 fire engines, 3 helicopters, and 45 firefighters across all active incidents.",
-                        "Weather conditions show high wind speeds from the northwest, which may affect fire spread patterns.",
-                        "I've identified 5 properties at high risk in the evacuation zone. Emergency services have been notified."
-                    ];
-                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                    
-                    messageContainer.innerHTML += `
-                        <div class="mb-3 text-start">
-                            <small class="text-body-secondary">Artemis AI Assistant</small>
-                            <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                                ${randomResponse}
-                            </div>
-                        </div>`;
-                    messageContainer.scrollTop = messageContainer.scrollHeight;
-                }, 1000);
-
-                messageContainer.scrollTop = messageContainer.scrollHeight;
+                if (response.data.success) {
+                    updateFireLayer(source, response.data.data);
+                    updateFireStats(response.data.data);
+                    updateRecentFires(response.data.data.slice(0, 5)); // Show 5 most recent
+                    console.log(`Loaded ${response.data.count} fires from ${source} for ${dateStr}`);
+                } else {
+                    console.error('API returned error:', response.data.error);
+                }
+            } catch (error) {
+                console.error('Failed to load fire data:', error);
+                if (error.response) {
+                    console.error('Response data:', error.response.data);
+                }
+            } finally {
+                layersPanel.classList.remove('loading');
             }
         }
-        
-        // Add event listener for Enter key
-        document.getElementById('chat-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    </script>
-</body>
 
+        function updateFireLayer(source, fires) {
+            const layerGroup = fireLayerGroups[source];
+            layerGroup.clearLayers();
+
+            fires.forEach(fire => {
+                const marker = createFireMarker(fire);
+                layerGroup.addLayer(marker);
+            });
+        }
+
+        function createFireMarker(fire) {
+            const icon = L.divIcon({
+                className: 'fire-marker',
+                html: `<i class="fas fa-fire" style="color: ${fire.intensity_color}; font-size: 16px;"></i>`,
+                iconSize: [16, 16],
+                iconAnchor: [8, 16]
+            });
+
+            const marker = L.marker([fire.latitude, fire.longitude], { icon: icon });
+            
+            const popupContent = `
+                <div class="fire-popup">
+                    <h6><i class="fas fa-fire me-1"></i> Fire Detection</h6>
+                    <hr class="my-2">
+                    <p class="mb-1"><strong>Satellite:</strong> ${fire.satellite}</p>
+                    <p class="mb-1"><strong>Confidence:</strong> <span class="badge text-bg-${fire.confidence_level === 'high' ? 'success' : fire.confidence_level === 'medium' ? 'warning' : 'secondary'}">${fire.confidence}${typeof fire.confidence === 'number' ? '%' : ''}</span></p>
+                    <p class="mb-1"><strong>Brightness:</strong> ${fire.brightness}K</p>
+                    <p class="mb-1"><strong>FRP:</strong> ${fire.frp} MW</p>
+                    <p class="mb-1"><strong>Detected:</strong> ${fire.acq_date} ${String(fire.acq_time).padStart(4, '0').replace(/(\d{2})(\d{2})/, '$1:$2')}</p>
+                    <p class="mb-0"><strong>Source:</strong> ${fire.source}</p>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            return marker;
+        }
+
+        async function loadWeatherData() {
+            const weatherWidget = document.querySelector('.weather-widget');
+            weatherWidget.classList.add('loading');
+
+            try {
+                const response = await axios.get('/api/v1/weather-data', {
+                    params: {
+                        lat: currentLat,
+                        lon: currentLon
+                    }
+                });
+
+                if (response.data.success) {
+                    const weather = response.data.data;
+                    document.getElementById('temp').textContent = `${weather.temperature}°C`;
+                    document.getElementById('wind').textContent = `${weather.wind_speed} km/h`;
+                    document.getElementById('humidity').textContent = `${weather.humidity}%`;
+                    
+                    const fireRiskBadge = document.getElementById('fire-risk');
+                    fireRiskBadge.textContent = weather.fire_risk;
+                    
+                    // Update fire risk badge color
+                    fireRiskBadge.className = 'badge ' + getFireRiskBadgeClass(weather.fire_risk);
+                }
+            } catch (error) {
+                console.error('Failed to load weather data:', error);
+            } finally {
+                weatherWidget.classList.remove('loading');
+            }
+        }
+
+        function getFireRiskBadgeClass(risk) {
+            switch(risk.toLowerCase()) {
+                case 'extreme': return 'text-bg-danger';
+                case 'high': return 'text-bg-warning';
+                case 'medium': return 'text-bg-info';
+                default: return 'text-bg-success';
+            }
+        }
+
+        function updateFireStats(fires) {
+            const totalFires = fires.length;
+            const highConfidenceFires = fires.filter(f => 
+                (typeof f.confidence === 'number' && f.confidence >= 80) || 
+                (typeof f.confidence === 'string' && f.confidence.toLowerCase() === 'high')
+            ).length;
+            
+            document.getElementById('fire-count').textContent = `${totalFires} active detections`;
+            document.getElementById('active-fires-count').textContent = totalFires;
+            document.getElementById('high-confidence-count').textContent = highConfidenceFires;
+            document.getElementById('active-fires-chat').textContent = `${totalFires}`;
+            document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+       }
+
+       function updateRecentFires(recentFires) {
+           const container = document.getElementById('recent-fires');
+           container.innerHTML = '';
+
+           recentFires.forEach(fire => {
+               const fireCard = document.createElement('div');
+               fireCard.className = 'card bg-body-tertiary mb-2';
+               fireCard.innerHTML = `
+                   <div class="card-body p-2">
+                       <div class="d-flex justify-content-between align-items-start">
+                           <div>
+                               <h6 class="card-title mb-1">${fire.satellite} Detection</h6>
+                               <p class="card-text mb-1 small">
+                                   <i class="fas fa-map-marker-alt me-1"></i>
+                                   ${fire.latitude.toFixed(4)}, ${fire.longitude.toFixed(4)}
+                               </p>
+                               <small class="text-body-secondary">${fire.acq_date} ${String(fire.acq_time).padStart(4, '0').replace(/(\d{2})(\d{2})/, '$1:$2')}</small>
+                           </div>
+                           <span class="badge text-bg-${fire.confidence_level === 'high' ? 'success' : fire.confidence_level === 'medium' ? 'warning' : 'secondary'}">${fire.confidence}${typeof fire.confidence === 'number' ? '%' : ''}</span>
+                       </div>
+                   </div>
+               `;
+               
+               // Add click event to zoom to fire location
+               fireCard.addEventListener('click', () => {
+                   map.setView([fire.latitude, fire.longitude], 12);
+               });
+               
+               container.appendChild(fireCard);
+           });
+       }
+
+       function sendMessage() {
+           const input = document.getElementById('chat-input');
+           const messageContainer = document.getElementById('chat-messages');
+           const messageText = input.value.trim();
+
+           if (messageText) {
+               // Add user message
+               messageContainer.innerHTML += `
+                   <div class="mb-3 text-end">
+                       <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
+                           ${messageText}
+                       </div>
+                   </div>`;
+               input.value = '';
+
+               // Get current fire data for context-aware responses
+               const activeFires = document.getElementById('active-fires-count').textContent;
+               const fireRisk = document.getElementById('fire-risk').textContent;
+               const temp = document.getElementById('temp').textContent;
+               const wind = document.getElementById('wind').textContent;
+
+               // Simulate AI response with real data
+               setTimeout(() => {
+                   let response = generateContextualResponse(messageText.toLowerCase(), {
+                       activeFires,
+                       fireRisk,
+                       temp,
+                       wind
+                   });
+                   
+                   messageContainer.innerHTML += `
+                       <div class="mb-3 text-start">
+                           <small class="text-body-secondary">Artemis AI Assistant</small>
+                           <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
+                               ${response}
+                           </div>
+                       </div>`;
+                   messageContainer.scrollTop = messageContainer.scrollHeight;
+               }, 1000);
+
+               messageContainer.scrollTop = messageContainer.scrollHeight;
+           }
+       }
+
+       function generateContextualResponse(message, data) {
+           if (message.includes('fire') || message.includes('hotspot') || message.includes('viirs')) {
+               return `Currently monitoring ${data.activeFires} active fire detections using VIIRS real-time data. The largest concentrations are visible on the map with high-confidence detections marked in red. VIIRS provides more frequent updates than MODIS.`;
+           }
+           
+           if (message.includes('weather') || message.includes('wind') || message.includes('temperature')) {
+               return `Current conditions: ${data.temp}, wind at ${data.wind}, fire risk level is ${data.fireRisk}. ${data.fireRisk === 'High' || data.fireRisk === 'Extreme' ? 'Recommend increased monitoring due to elevated fire risk.' : 'Conditions are relatively stable for fire management operations.'}`;
+           }
+           
+           if (message.includes('risk') || message.includes('danger')) {
+               return `Fire risk assessment: ${data.fireRisk}. Based on current temperature (${data.temp}), wind conditions (${data.wind}), and ${data.activeFires} active detections from VIIRS satellites, ${data.fireRisk === 'High' ? 'enhanced precautions recommended' : 'standard monitoring protocols apply'}.`;
+           }
+           
+           if (message.includes('resource') || message.includes('deploy')) {
+               return `Resource deployment analysis: With ${data.activeFires} active fires detected by VIIRS and ${data.fireRisk} risk conditions, I recommend prioritizing high-confidence detections shown in red markers. Consider wind direction (${data.wind}) for tactical positioning.`;
+           }
+           
+           if (message.includes('evacuation') || message.includes('evacuate')) {
+               return `Evacuation assessment: VIIRS satellites are monitoring ${data.activeFires} fire detections with real-time updates. Current fire risk is ${data.fireRisk}. I recommend establishing evacuation routes away from high-confidence fire clusters (red markers on map).`;
+           }
+           
+           if (message.includes('satellite') || message.includes('data') || message.includes('source')) {
+               return `Using VIIRS (Visible Infrared Imaging Radiometer Suite) real-time data from S-NPP and NOAA-20 satellites. VIIRS provides higher resolution and more frequent fire detection updates compared to MODIS. Currently tracking ${data.activeFires} active detections.`;
+           }
+           
+           // Default responses
+           const responses = [
+               `VIIRS real-time monitoring active: ${data.activeFires} fire detections, current fire risk at ${data.fireRisk} level. What specific information do you need?`,
+               `Current fire situation from VIIRS satellites: ${data.activeFires} detections, weather conditions show ${data.temp} and ${data.wind} winds. How can I assist with your operations?`,
+               `Real-time fire monitoring: ${data.activeFires} hotspots detected by VIIRS, risk level ${data.fireRisk}. I can provide details on any specific fire location or weather conditions.`,
+               `Operational status: ${data.activeFires} active detections from VIIRS real-time feed, environmental conditions: ${data.temp}, wind ${data.wind}, risk ${data.fireRisk}. What analysis do you need?`
+           ];
+           
+           return responses[Math.floor(Math.random() * responses.length)];
+       }
+
+       // Cleanup intervals when page unloads
+       window.addEventListener('beforeunload', function() {
+           if (fireDataInterval) clearInterval(fireDataInterval);
+           if (weatherInterval) clearInterval(weatherInterval);
+       });
+   </script>
+</body>
 </html>
