@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\FireHydrantController; // Ensure this is imported
 use App\Http\Controllers\ApiController; // Ensure this is imported if you use it for /fire-data
+use App\Http\Controllers\Api\FireStationController; // Import FireStationController
 
 /*
 |--------------------------------------------------------------------------
@@ -23,3 +24,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // Your API routes should be here:
 Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
 Route::get('/fire-data', [ApiController::class, 'getFireData']); // Assuming ApiController is also in Api namespace or adjust
+Route::get('/fire_stations', [FireStationController::class, 'index']);
