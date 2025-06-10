@@ -38,7 +38,7 @@ class FireDataController extends Controller
                 $fires = $this->parseCsvData($csvData, $source);
 
                 // Limit the number of fire detections to prevent large payloads
-                $fires = array_slice($fires, 0, 1000); // Increased limit for better coverage
+                $fires = array_slice($fires, 0,1000); // Increased limit for better coverage
 
                 return response()->json([
                     'success' => true,
