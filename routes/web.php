@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WildfireOfficerController;
 use App\Http\Controllers\ApiController;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Api\FireHydrantController;
 
 Route::get('/', function () {
     return view('main');
@@ -31,10 +32,6 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
     Route::get('/api/dashboard-data', [WildfireOfficerController::class, 'getDashboardData']);
 });
 
-// API Routes
-Route::prefix('api')->group(function () {
-    Route::get('/fire-data', [ApiController::class, 'getFireData']);
-});
 
 
 

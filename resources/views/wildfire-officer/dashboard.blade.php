@@ -1,11 +1,10 @@
-]<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ArtemisShield - Wildfire Protection Dashboard</title>
     
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,24 +12,19 @@
 
     @include('partials.styles')
     <style>
-        /*
-         * This CSS is for STRUCTURE and LAYOUT only. 
-         * All colors and theming are handled by Bootstrap variables for light/dark mode compatibility.
-        */
+        /* Your existing CSS */
         .main-content {
-            /* Ensures the content area fills the viewport height below the header */
             flex-grow: 1;
         }
 
         .wildfire-dashboard-container {
-            /* This container will hold the map and sidebar, ensuring it fills its parent's height */
             height: 100%;
         }
 
         #map {
             width: 100%;
             height: 100%;
-            min-height: 500px; /* Provides a minimum height on smaller screens */
+            min-height: 500px;
             background-color: var(--bs-tertiary-bg);
         }
 
@@ -39,7 +33,6 @@
             height: 100%;
         }
 
-        /* Styles for the panels overlaid on the map */
         .map-overlay {
             position: absolute;
             z-index: 1000;
@@ -52,7 +45,6 @@
         .layers-panel { top: 0; left: 0; }
         .weather-widget { top: 0; right: 0; }
 
-        /* Full-height sidebar with scrollable content */
         .sidebar-wrapper {
             height: 100%;
             display: flex;
@@ -63,7 +55,6 @@
             overflow-y: auto;
         }
 
-        /* Full-height chat container */
         .chat-container {
             height: 100%;
             display: flex;
@@ -74,9 +65,20 @@
             overflow-y: auto;
         }
         
-        /* Custom icon for fire markers to make them stand out */
         .fire-marker i {
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
+        }
+
+        /* NEW: Styles for fire hydrant icons */
+        .fire-hydrant-icon {
+            background-color: transparent;
+            border: none;
+            text-align: center;
+        }
+        .fire-hydrant-icon i {
+            color: #007bff; /* A distinct blue for hydrants */
+            font-size: 20px; /* Slightly smaller than fire icon */
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -113,6 +115,11 @@
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="evacuation">
                                     <label class="form-check-label" for="evacuation">Evac Routes</label>
+                                </div>
+                                {{-- NEW: Fire Hydrants Layer Toggle --}}
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked>
+                                    <label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label>
                                 </div>
                             </div>
                         </div>
@@ -208,81 +215,166 @@
     @include('partials.scripts')
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Using a timeout to ensure the map container is rendered and has a size, preventing a common Leaflet error.
-            setTimeout(() => {
-                const map = L.map('map').setView([34.0522, -118.2437], 10);
+        // Global map instance (make it accessible)
+let map;
+// Layer group for fire hydrants
+let fireHydrantsLayer;
+let isHydrantsVisible = true; // Default visibility
 
-                // Using a neutral tile layer that works well in both light and dark themes
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                }).addTo(map);
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        // Initialize map centered on Chicago
+        map = L.map('map').setView([41.8781, -87.6298], 12); // Centered on Chicago, zoom level 12
 
-                // Layer groups, icon definitions, and data loading functions would go here
-                // ...
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-                // Custom fire icon
-                const fireIcon = L.divIcon({
-                    className: 'fire-marker', // This class is for reference; the style is applied directly
-                    html: '<i class="fas fa-fire" style="color: #FF4136; font-size: 24px;"></i>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]
-                });
-
-                // Example: Add a marker
-                L.marker([34.15, -118.30], { icon: fireIcon }).addTo(map)
-                    .bindPopup('<b>Griffith Park Fire</b><br>Active Incident.');
-
-            }, 250); // A small delay is often sufficient
+        // Custom fire incident icon (unchanged from your original)
+        const fireIcon = L.divIcon({
+            className: 'fire-marker',
+            html: '<i class="fas fa-fire" style="color: #FF4136; font-size: 24px;"></i>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 24]
         });
 
-        // Your existing sendMessage function and other logic remains the same
-        function sendMessage() {
-            const input = document.getElementById('chat-input');
-            const messageContainer = document.getElementById('chat-messages');
-            const messageText = input.value.trim();
+        // Example: Add a static fire marker (can be removed once dynamic data is working)
+        // L.marker([34.15, -118.30], { icon: fireIcon }).addTo(map)
+        //     .bindPopup('<b>Griffith Park Fire</b><br>Active Incident.');
 
-            if (messageText) {
-                // Add user message
-                messageContainer.innerHTML += `
-                    <div class="mb-3 text-end">
-                        <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
-                            ${messageText}
-                        </div>
-                    </div>`;
-                input.value = '';
+        // --- Fire Hydrant Icon Definition ---
+        const fireHydrantIcon = L.divIcon({
+            className: 'fire-hydrant-icon',
+            html: '<i class="fas fa-faucet"></i>',
+            iconSize: [20, 20],
+            iconAnchor: [10, 20]
+        });
 
-                // Simulate AI response
-                setTimeout(() => {
-                    const responses = [
-                        "I've found 3 active fires in the northern region. The largest is the Canyon Fire with 45% containment.",
-                        "Current resources deployed: 12 fire engines, 3 helicopters, and 45 firefighters across all active incidents.",
-                        "Weather conditions show high wind speeds from the northwest, which may affect fire spread patterns.",
-                        "I've identified 5 properties at high risk in the evacuation zone. Emergency services have been notified."
-                    ];
-                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-                    
-                    messageContainer.innerHTML += `
-                        <div class="mb-3 text-start">
-                            <small class="text-body-secondary">Artemis AI Assistant</small>
-                            <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                                ${randomResponse}
-                            </div>
-                        </div>`;
-                    messageContainer.scrollTop = messageContainer.scrollHeight;
-                }, 1000);
-
-                messageContainer.scrollTop = messageContainer.scrollHeight;
+        // --- Initialize Fire Hydrants GeoJSON Layer ---
+        fireHydrantsLayer = L.geoJson(null, {
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, { icon: fireHydrantIcon });
+            },
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    let popupContent = `<strong>Fire Hydrant (OSM ID:</strong> ${feature.properties.osm_id})<br>`;
+                    if (feature.properties.fire_hydrant_type) {
+                        popupContent += `<strong>Type:</strong> ${feature.properties.fire_hydrant_type}<br>`;
+                    }
+                    if (feature.properties.color || feature.properties.colour) {
+                        popupContent += `<strong>Color:</strong> ${feature.properties.color || feature.properties.colour}<br>`;
+                    }
+                    if (feature.properties.operator) {
+                        popupContent += `<strong>Operator:</strong> ${feature.properties.operator}<br>`;
+                    }
+                    if (feature.properties.addr_street) {
+                        popupContent += `<strong>Address:</strong> ${feature.properties.addr_housenumber || ''} ${feature.properties.addr_street}<br>`;
+                    }
+                    if (feature.properties.addr_city) {
+                        popupContent += `<strong>City:</strong> ${feature.properties.addr_city}, ${feature.properties.addr_state}<br>`;
+                    }
+                    if (feature.properties.fire_hydrant_position) {
+                        popupContent += `<strong>Position:</strong> ${feature.properties.fire_hydrant_position}<br>`;
+                    }
+                    // Loop through `all_tags` for additional details if needed, but the explicit properties are better
+                    // for common attributes.
+                    if (feature.properties.all_tags) {
+                        // Example: Add only relevant tags if you don't want all of them
+                        if (feature.properties.all_tags['fire_hydrant:pressure']) {
+                            popupContent += `<strong>Pressure:</strong> ${feature.properties.all_tags['fire_hydrant:pressure']}<br>`;
+                        }
+                        if (feature.properties.all_tags['water_source']) {
+                            popupContent += `<strong>Water Source:</strong> ${feature.properties.all_tags['water_source']}<br>`;
+                        }
+                    }
+                    layer.bindPopup(popupContent);
+                }
             }
-        }
-        
-        // Add event listener for Enter key
-        document.getElementById('chat-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
+        }).addTo(map);
+
+        // --- Corrected Function to Load Fire Hydrants ---
+        const loadFireHydrants = async () => {
+            if (!isHydrantsVisible) {
+                fireHydrantsLayer.clearLayers();
+                return;
+            }
+
+            try {
+                // This now hits your Laravel backend API endpoint
+                const response = await fetch(`/api/fire_hydrants`); 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                fireHydrantsLayer.clearLayers(); // Clear existing markers
+                fireHydrantsLayer.addData(data); // Add new data to the layer
+                console.log(`Loaded ${data.features.length} fire hydrants.`);
+
+            } catch (error) {
+                console.error("Could not fetch fire hydrants:", error);
+            }
+        };
+
+        // --- Event Listener for Layer Toggle ---
+        document.getElementById('fire-hydrants-toggle').addEventListener('change', function(e) {
+            isHydrantsVisible = e.target.checked;
+            if (isHydrantsVisible) {
+                loadFireHydrants(); // Reload if turning on
+            } else {
+                fireHydrantsLayer.clearLayers(); // Clear if turning off
             }
         });
+
+        // --- Initial load of fire hydrants on map load ---
+        loadFireHydrants();
+
+    }, 250); // Small delay for map rendering
+});
+
+// Your existing sendMessage function and other chat/control panel logic remains the same
+function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const messageContainer = document.getElementById('chat-messages');
+    const messageText = input.value.trim();
+
+    if (messageText) {
+        messageContainer.innerHTML += `
+            <div class="mb-3 text-end">
+                <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
+                    ${messageText}
+                </div>
+            </div>`;
+        input.value = '';
+
+        setTimeout(() => {
+            const responses = [
+                "I've found 3 active fires in the northern region. The largest is the Canyon Fire with 45% containment.",
+                "Current resources deployed: 12 fire engines, 3 helicopters, and 45 firefighters across all active incidents.",
+                "Weather conditions show high wind speeds from the northwest, which may affect fire spread patterns.",
+                "I've identified 5 properties at high risk in the evacuation zone. Emergency services have been notified."
+            ];
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            messageContainer.innerHTML += `
+                <div class="mb-3 text-start">
+                    <small class="text-body-secondary">Artemis AI Assistant</small>
+                    <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
+                        ${randomResponse}
+                    </div>
+                </div>`;
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }, 1000);
+
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+}
+
+document.getElementById('chat-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
     </script>
 </body>
-
 </html>
