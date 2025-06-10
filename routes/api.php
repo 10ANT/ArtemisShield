@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\RouteController; 
-
+use App\Http\Controllers\Api\WildfirePerimeterController; 
+use App\Http\Controllers\Api\WeatherController;
 
 use App\Http\Controllers\Api\FireDataController;
 Route::get('/user', function (Request $request) {
@@ -17,3 +18,9 @@ Route::prefix('v1')->group(function () {
 });
 
 Route::apiResource('routes', RouteController::class)->only(['index', 'store', 'destroy']);
+
+
+// this route for fetching official wildfire perimeters
+Route::get('/wildfire-perimeters', [WildfirePerimeterController::class, 'index']);
+
+Route::get('/weather-for-point', [WeatherController::class, 'getWeatherForPoint']);

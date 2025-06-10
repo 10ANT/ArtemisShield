@@ -62,3 +62,14 @@ Route::get('/debug-csv', function() {
         'column_count' => count(str_getcsv($lines[1] ?? ''))
     ]);
 });
+
+
+Route::get('/wildfire-officer/wind-global.json', function () {
+    $filePath = storage_path('app/public/wind-global.json');
+    
+    if (!file_exists($filePath)) {
+        return response()->json(['error' => 'File not found'], 404);
+    }
+    
+    return response()->json(json_decode(file_get_contents($filePath), true));
+});

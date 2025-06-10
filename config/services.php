@@ -41,5 +41,8 @@ return [
 'openweather' => [
     'api_key' => env('OPENWEATHER_API_KEY'),
 ],
+   'cesium' => [
+        'ion_access_token' => env('CESIUM_ION_ACCESS_TOKEN'),
+    ],
 
 ];
