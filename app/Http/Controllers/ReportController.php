@@ -13,7 +13,7 @@ class ReportController extends Controller
     // PASTE YOUR FULL FFMPEG PATH HERE
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
-private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
+private const FFMPEG_PATH = 'D:\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe';
     public function process(Request $request)
     {
         // (This part remains the same)
