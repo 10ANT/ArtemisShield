@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Throwable;
+use App\Models\Notification;
+use App\Models\User;
 
 class ReportController extends Controller
 {
@@ -14,9 +17,8 @@ class ReportController extends Controller
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
 private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
-    public function process(Request $request)
+      public function process(Request $request)
     {
-        // (This part remains the same)
         $request->validate(['audio' => 'required|file']);
 
         try {
@@ -24,6 +26,33 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
             $analysis = $this->analyzeText($transcript);
             $suggestions = $this->getAiSuggestions($transcript, $analysis['entities']);
 
+            // *** ADDED: START NOTIFICATION LOGIC ***
+            $reporter = Auth::user();
+
+            // Find all teammates (assuming a team_id on the user model)
+            // This notifies everyone on the team, INCLUDING the person who made the report.
+            // You can add ->where('id', '!=', $reporter->id) if you don't want to notify the reporter.
+            $teamMembers = User::where('team_id', $reporter->team_id)->get();
+
+            $notificationData = [
+                'summary' => $analysis['summary'],
+                'suggestions' => $suggestions,
+                'transcript' => $transcript,
+                // You can add more data like location if available
+            ];
+
+            foreach ($teamMembers as $member) {
+                Notification::create([
+                    'user_id' => $member->id,
+                    'reporter_id' => $reporter->id,
+                    'type' => 'live_report_summary',
+                    'data' => $notificationData,
+                ]);
+            }
+            // *** ADDED: END NOTIFICATION LOGIC ***
+
+
+            // The original response to the reporting user remains the same
             return response()->json([
                 'transcript' => $transcript,
                 'summary' => $analysis['summary'],
@@ -32,7 +61,6 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
             ]);
         } catch (Throwable $e) {
             Log::error('Report Processing Failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            // Return a cleaner JSON error
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }

@@ -2,12 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-<<<<<<< HEAD
 use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\Api\FireStationController;
 use App\Http\Controllers\ReportController;
-=======
 use App\Http\Controllers\Api\RouteController; 
 use App\Http\Controllers\Api\WildfirePerimeterController; 
 use App\Http\Controllers\Api\WeatherController;
@@ -15,7 +13,7 @@ use App\Http\Controllers\Api\V1\ProxyController;
 use App\Http\Controllers\Api\V1\WindController;
 
 use App\Http\Controllers\Api\FireDataController;
->>>>>>> 78e0093122e852649f764ea125f3e0e58aa97151
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,16 +28,14 @@ use App\Http\Controllers\Api\FireDataController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-<<<<<<< HEAD
-});
+})->middleware('auth:sanctum');
 
 // Your API routes should be here:
 Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
 Route::get('/fire-data', [ApiController::class, 'getFireData']); // Assuming ApiController is also in Api namespace or adjust
 Route::get('/fire_stations', [FireStationController::class, 'index']);
 Route::post('/process-report', [ReportController::class, 'process']);
-=======
-})->middleware('auth:sanctum');
+
 
 
 Route::prefix('v1')->group(function () {
@@ -55,8 +51,9 @@ Route::get('/wildfire-perimeters', [WildfirePerimeterController::class, 'index']
 
 Route::get('/weather-for-point', [WeatherController::class, 'getWeatherForPoint']);
 
-Route::get('/v1/wind-data-proxy', [ProxyController::class, 'getWindData']);
+//Route::get('/v1/wind-data-proxy', [ProxyController::class, 'getWindData']);
 
 Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 
->>>>>>> 78e0093122e852649f764ea125f3e0e58aa97151
+Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');
+

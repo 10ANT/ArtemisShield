@@ -3,18 +3,18 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WildfireOfficerController;
 use App\Http\Controllers\ApiController;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
+use Illuminate\Support\Facades\Http;
+use App\Http\Controllers\WildfireOfficer\DashboardController;
+use App\Http\Controllers\NotificationController;
+
 
 Route::get('/', function () {
     return view('main');
 });
-=======
-use App\Http\Controllers\WildfireOfficer\DashboardController;
->>>>>>> 78e0093122e852649f764ea125f3e0e58aa97151
 
 
 Route::middleware([
@@ -34,14 +34,12 @@ Route::middleware([
 
 // Wildfire Officer Routes
 Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function () {
-    Route::get('/officer-dashboard', [WildfireOfficerController::class, 'dashboard'])->name('officer.dashboard');
-    Route::get('/api/dashboard-data', [WildfireOfficerController::class, 'getDashboardData']);
-<<<<<<< HEAD
+    Route::get('/officer-dashboard', [DashboardController::class, 'dashboard'])->name('officer.dashboard');
+    Route::get('/api/dashboard-data', [DashboardController::class, 'getDashboardData']);
 
     Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
 });
 
-=======
     
 // Wildfire Officer Dashboard
 Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'index'])->name('wildfire-officer.dashboard');
@@ -52,9 +50,6 @@ Route::get('/', function () {
     return view('main');
 });
 
-
-});
->>>>>>> 78e0093122e852649f764ea125f3e0e58aa97151
 
 
 
@@ -93,4 +88,10 @@ Route::get('/wildfire-officer/wind-global.json', function () {
     }
     
     return response()->json(json_decode(file_get_contents($filePath), true));
+});
+
+
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
 });
