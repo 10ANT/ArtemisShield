@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+]<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ArtemisShield - Wildfire Protection Dashboard</title>
+    
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -12,19 +13,24 @@
 
     @include('partials.styles')
     <style>
-        /* Your existing CSS */
+        /*
+         * This CSS is for STRUCTURE and LAYOUT only. 
+         * All colors and theming are handled by Bootstrap variables for light/dark mode compatibility.
+        */
         .main-content {
+            /* Ensures the content area fills the viewport height below the header */
             flex-grow: 1;
         }
 
         .wildfire-dashboard-container {
+            /* This container will hold the map and sidebar, ensuring it fills its parent's height */
             height: 100%;
         }
 
         #map {
             width: 100%;
             height: 100%;
-            min-height: 500px;
+            min-height: 500px; /* Provides a minimum height on smaller screens */
             background-color: var(--bs-tertiary-bg);
         }
 
@@ -33,6 +39,7 @@
             height: 100%;
         }
 
+        /* Styles for the panels overlaid on the map */
         .map-overlay {
             position: absolute;
             z-index: 1000;
@@ -42,70 +49,34 @@
             overflow-y: auto;
         }
 
-        .layers-panel {
-            top: 0;
-            left: 0;
-        }
+        .layers-panel { top: 0; left: 0; }
+        .weather-widget { top: 0; right: 0; }
 
-        .weather-widget {
-            top: 0;
-            right: 0;
-        }
-
+        /* Full-height sidebar with scrollable content */
         .sidebar-wrapper {
             height: 100%;
             display: flex;
             flex-direction: column;
         }
-
         .sidebar-wrapper .tab-content {
             flex-grow: 1;
             overflow-y: auto;
         }
 
+        /* Full-height chat container */
         .chat-container {
             height: 100%;
             display: flex;
             flex-direction: column;
         }
-
         .chat-messages {
             flex-grow: 1;
             overflow-y: auto;
         }
-
+        
+        /* Custom icon for fire markers to make them stand out */
         .fire-marker i {
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.7);
-        }
-
-        /* NEW: Styles for fire hydrant icons */
-        .fire-hydrant-icon {
-            background-color: transparent;
-            border: none;
-            text-align: center;
-        }
-
-        .fire-hydrant-icon i {
-            color: #007bff;
-            /* A distinct blue for hydrants */
-            font-size: 20px;
-            /* Slightly smaller than fire icon */
-            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
-        }
-
-        /* NEW: Styles for fire station icons */
-        .fire-station-icon {
-            background-color: transparent;
-            border: none;
-            text-align: center;
-        }
-
-        .fire-station-icon i {
-            color: #FFA500;
-            /* Orange for fire stations */
-            font-size: 20px;
-            /* Slightly smaller than fire icon */
-            text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -125,12 +96,10 @@
 
                         <div class="map-overlay layers-panel card shadow-sm">
                             <div class="card-body p-3">
-                                <h6 class="card-title d-flex align-items-center mb-2"><i
-                                        class="fas fa-layer-group fa-fw me-2"></i>Map Layers</h6>
+                                <h6 class="card-title d-flex align-items-center mb-2"><i class="fas fa-layer-group fa-fw me-2"></i>Map Layers</h6>
                                 <hr class="my-2">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="active-incidents"
-                                        checked>
+                                    <input class="form-check-input" type="checkbox" role="switch" id="active-incidents" checked>
                                     <label class="form-check-label" for="active-incidents">Active Incidents</label>
                                 </div>
                                 <div class="form-check form-switch">
@@ -145,35 +114,18 @@
                                     <input class="form-check-input" type="checkbox" role="switch" id="evacuation">
                                     <label class="form-check-label" for="evacuation">Evac Routes</label>
                                 </div>
-                                {{-- NEW: Fire Hydrants Layer Toggle --}}
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                        id="fire-hydrants-toggle" checked>
-                                    <label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label>
-                                </div>
-                                {{-- NEW: Fire Stations Layer Toggle --}}
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                        id="fire-stations-toggle" checked>
-                                    <label class="form-check-label" for="fire-stations-toggle">Fire Stations</label>
-                                </div>
                             </div>
                         </div>
 
                         <div class="map-overlay weather-widget card shadow-sm">
                             <div class="card-body p-3">
-                                <h6 class="card-title d-flex align-items-center mb-2"><i
-                                        class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather</h6>
+                                <h6 class="card-title d-flex align-items-center mb-2"><i class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather</h6>
                                 <hr class="my-2">
                                 <ul class="list-group list-group-flush">
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
-                                        Temperature <span class="badge text-bg-primary" id="temp">28°C</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
-                                        Wind <span class="badge text-bg-primary" id="wind">15 km/h</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
-                                        Humidity <span class="badge text-bg-primary" id="humidity">45%</span></li>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">
-                                        Fire Risk <span class="badge text-bg-danger" id="fire-risk">High</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Temperature <span class="badge text-bg-primary" id="temp">28°C</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Wind <span class="badge text-bg-primary" id="wind">15 km/h</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Humidity <span class="badge text-bg-primary" id="humidity">45%</span></li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Fire Risk <span class="badge text-bg-danger" id="fire-risk">High</span></li>
                                 </ul>
                             </div>
                         </div>
@@ -185,16 +137,12 @@
                         <div class="card-header p-2">
                             <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill"
-                                        data-bs-target="#chat-content" type="button" role="tab"
-                                        aria-controls="chat-content" aria-selected="true">
+                                    <button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true">
                                         <i class="fas fa-comments me-1"></i> Ask Artemis
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="control-tab-btn" data-bs-toggle="pill"
-                                        data-bs-target="#control-content" type="button" role="tab"
-                                        aria-controls="control-content" aria-selected="false">
+                                    <button class="nav-link" id="control-tab-btn" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab" aria-controls="control-content" aria-selected="false">
                                         <i class="fas fa-cogs me-1"></i> Control Panel
                                     </button>
                                 </li>
@@ -208,16 +156,13 @@
                                             <div class="mb-3 text-start">
                                                 <small class="text-body-secondary">Artemis AI Assistant</small>
                                                 <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                                                    Hello! I'm Artemis. Ask me about active fires, resource status, or
-                                                    weather conditions.
+                                                    Hello! I'm Artemis. Ask me about active fires, resource status, or weather conditions.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="chat-input-group d-flex gap-2">
-                                            <input type="text" class="form-control" placeholder="Ask a question..."
-                                                id="chat-input">
-                                            <button class="btn btn-primary" onclick="sendMessage()"><i
-                                                    class="fas fa-paper-plane"></i></button>
+                                            <input type="text" class="form-control" placeholder="Ask a question..." id="chat-input">
+                                            <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -225,27 +170,17 @@
                                 <div class="tab-pane fade p-3" id="control-content" role="tabpanel">
                                     <h6 class="text-body-secondary">Quick Actions</h6>
                                     <div class="row g-2 mb-3">
-                                        <div class="col-6"><button class="btn btn-primary w-100"><i
-                                                    class="fas fa-rocket me-2"></i>Deploy</button></div>
-                                        <div class="col-6"><button class="btn btn-danger w-100"><i
-                                                    class="fas fa-bullhorn me-2"></i>Evacuate</button></div>
-                                        <div class="col-6"><button class="btn btn-success w-100"><i
-                                                    class="fas fa-file-alt me-2"></i>Report</button></div>
-                                        <div class="col-6"><button class="btn btn-warning w-100"><i
-                                                    class="fas fa-hands-helping me-2"></i>Request Aid</button></div>
+                                        <div class="col-6"><button class="btn btn-primary w-100"><i class="fas fa-rocket me-2"></i>Deploy</button></div>
+                                        <div class="col-6"><button class="btn btn-danger w-100"><i class="fas fa-bullhorn me-2"></i>Evacuate</button></div>
+                                        <div class="col-6"><button class="btn btn-success w-100"><i class="fas fa-file-alt me-2"></i>Report</button></div>
+                                        <div class="col-6"><button class="btn btn-warning w-100"><i class="fas fa-hands-helping me-2"></i>Request Aid</button></div>
                                     </div>
-
+                                    
                                     <h6 class="text-body-secondary">Live Data</h6>
                                     <ul class="list-group mb-3">
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Active Fires <span class="badge text-bg-danger"
-                                                id="active-fires-count">12</span></li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Resources Deployed <span class="badge text-bg-info"
-                                                id="resources-count">45</span></li>
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Properties at Risk <span class="badge text-bg-warning"
-                                                id="properties-count">234</span></li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">Active Fires <span class="badge text-bg-danger" id="active-fires-count">12</span></li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">Resources Deployed <span class="badge text-bg-info" id="resources-count">45</span></li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">Properties at Risk <span class="badge text-bg-warning" id="properties-count">234</span></li>
                                     </ul>
 
                                     <h6 class="text-body-secondary">Recent Reports</h6>
@@ -266,217 +201,58 @@
                 </div>
             </div>
             @include('partials.footer')
-        </div>
+            </div>
     </div>
 
     @include('partials.theme_settings')
     @include('partials.scripts')
-
+    
     <script>
-        // Global map instance (make it accessible)
-        let map;
-        // Layer group for fire hydrants
-        let fireHydrantsLayer;
-        let isHydrantsVisible = true; // Default visibility
-
-        // Layer group for fire stations
-        let fireStationsLayer;
-        let isStationsVisible = true; // Default visibility
-
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Using a timeout to ensure the map container is rendered and has a size, preventing a common Leaflet error.
             setTimeout(() => {
-                // Initialize map centered on Chicago
-                map = L.map('map').setView([41.8781, -87.6298], 12); // Centered on Chicago, zoom level 12
+                const map = L.map('map').setView([34.0522, -118.2437], 10);
 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                // Using a neutral tile layer that works well in both light and dark themes
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 }).addTo(map);
 
-                // Custom fire incident icon (unchanged from your original)
+                // Layer groups, icon definitions, and data loading functions would go here
+                // ...
+
+                // Custom fire icon
                 const fireIcon = L.divIcon({
-                    className: 'fire-marker',
+                    className: 'fire-marker', // This class is for reference; the style is applied directly
                     html: '<i class="fas fa-fire" style="color: #FF4136; font-size: 24px;"></i>',
                     iconSize: [24, 24],
                     iconAnchor: [12, 24]
                 });
 
-                // Example: Add a static fire marker (can be removed once dynamic data is working)
-                // L.marker([34.15, -118.30], { icon: fireIcon }).addTo(map)
-                //     .bindPopup('<b>Griffith Park Fire</b><br>Active Incident.');
+                // Example: Add a marker
+                L.marker([34.15, -118.30], { icon: fireIcon }).addTo(map)
+                    .bindPopup('<b>Griffith Park Fire</b><br>Active Incident.');
 
-                // --- Fire Hydrant Icon Definition ---
-                const fireHydrantIcon = L.divIcon({
-                    className: 'fire-hydrant-icon',
-                    html: '<i class="fas fa-faucet"></i>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 20]
-                });
-
-                // --- Initialize Fire Hydrants GeoJSON Layer ---
-                fireHydrantsLayer = L.geoJson(null, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.marker(latlng, { icon: fireHydrantIcon });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties) {
-                            let popupContent = `<strong>Fire Hydrant (OSM ID:</strong> ${feature.properties.osm_id})<br>`;
-                            if (feature.properties.fire_hydrant_type) {
-                                popupContent += `<strong>Type:</strong> ${feature.properties.fire_hydrant_type}<br>`;
-                            }
-                            if (feature.properties.color || feature.properties.colour) {
-                                popupContent += `<strong>Color:</strong> ${feature.properties.color || feature.properties.colour}<br>`;
-                            }
-                            if (feature.properties.operator) {
-                                popupContent += `<strong>Operator:</strong> ${feature.properties.operator}<br>`;
-                            }
-                            if (feature.properties.addr_street) {
-                                popupContent += `<strong>Address:</strong> ${feature.properties.addr_housenumber || ''} ${feature.properties.addr_street}<br>`;
-                            }
-                            if (feature.properties.addr_city) {
-                                popupContent += `<strong>City:</strong> ${feature.properties.addr_city}, ${feature.properties.addr_state}<br>`;
-                            }
-                            if (feature.properties.fire_hydrant_position) {
-                                popupContent += `<strong>Position:</strong> ${feature.properties.fire_hydrant_position}<br>`;
-                            }
-                            // Loop through `all_tags` for additional details if needed, but the explicit properties are better
-                            // for common attributes.
-                            if (feature.properties.all_tags) {
-                                // Example: Add only relevant tags if you don't want all of them
-                                if (feature.properties.all_tags['fire_hydrant:pressure']) {
-                                    popupContent += `<strong>Pressure:</strong> ${feature.properties.all_tags['fire_hydrant:pressure']}<br>`;
-                                }
-                                if (feature.properties.all_tags['water_source']) {
-                                    popupContent += `<strong>Water Source:</strong> ${feature.properties.all_tags['water_source']}<br>`;
-                                }
-                            }
-                            layer.bindPopup(popupContent);
-                        }
-                    }
-                }).addTo(map);
-
-                // --- Fire Station Icon Definition ---
-                const fireStationIcon = L.divIcon({
-                    className: 'fire-station-icon',
-                    html: '<i class="fas fa-building"></i>', // Changed to building icon
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 20]
-                });
-
-                // --- Initialize Fire Stations GeoJSON Layer ---
-                fireStationsLayer = L.geoJson(null, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.marker(latlng, { icon: fireStationIcon });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        if (feature.properties) {
-                            let popupContent = `<strong>Fire Station:</strong> ${feature.properties.name || 'Unknown'}<br>`;
-                            if (feature.properties.addr_street) {
-                                popupContent += `<strong>Address:</strong> ${feature.properties.addr_housenumber || ''} ${feature.properties.addr_street}<br>`;
-                            }
-                             if (feature.properties.addr_city) {
-                                popupContent += `<strong>City:</strong> ${feature.properties.addr_city}<br>`;
-                            }
-                            if (feature.properties.phone) {
-                                popupContent += `<strong>Phone:</strong> ${feature.properties.phone}<br>`;
-                            }
-                            if (feature.properties.website) {
-                                popupContent += `<strong>Website:</strong> <a href="${feature.properties.website}" target="_blank">${feature.properties.website}</a><br>`;
-                            }
-                            layer.bindPopup(popupContent);
-                        }
-                    }
-                }).addTo(map);
-
-                // --- Corrected Function to Load Fire Hydrants ---
-                const loadFireHydrants = async () => {
-                    if (!isHydrantsVisible) {
-                        fireHydrantsLayer.clearLayers();
-                        return;
-                    }
-
-                    try {
-                        // This now hits your Laravel backend API endpoint
-                        const response = await fetch(`/api/fire_hydrants`);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        const data = await response.json();
-
-                        fireHydrantsLayer.clearLayers(); // Clear existing markers
-                        fireHydrantsLayer.addData(data); // Add new data to the layer
-                        console.log(`Loaded ${data.features.length} fire hydrants.`);
-
-                    } catch (error) {
-                        console.error("Could not fetch fire hydrants:", error);
-                    }
-                };
-
-                // --- Function to Load Fire Stations ---
-                const loadFireStations = async () => {
-                    if (!isStationsVisible) {
-                        fireStationsLayer.clearLayers();
-                        return;
-                    }
-
-                    try {
-                        // Replace with your actual API endpoint for fire stations
-                        const response = await fetch(`/api/fire_stations`);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        const data = await response.json();
-
-                        fireStationsLayer.clearLayers();
-                        fireStationsLayer.addData(data);
-                        console.log(`Loaded ${data.features.length} fire stations.`);
-
-                    } catch (error) {
-                        console.error("Could not fetch fire stations:", error);
-                    }
-                };
-
-                // --- Event Listener for Fire Hydrants Layer Toggle ---
-                document.getElementById('fire-hydrants-toggle').addEventListener('change', function (e) {
-                    isHydrantsVisible = e.target.checked;
-                    if (isHydrantsVisible) {
-                        loadFireHydrants(); // Reload if turning on
-                    } else {
-                        fireHydrantsLayer.clearLayers(); // Clear if turning off
-                    }
-                });
-
-                // --- Event Listener for Fire Stations Layer Toggle ---
-                document.getElementById('fire-stations-toggle').addEventListener('change', function (e) {
-                    isStationsVisible = e.target.checked;
-                    if (isStationsVisible) {
-                        loadFireStations(); // Load/reload if turning on
-                    } else {
-                        fireStationsLayer.clearLayers(); // Clear if turning off
-                    }
-                });
-
-                // --- Initial load of fire hydrants and fire stations on map load ---
-                loadFireHydrants();
-                loadFireStations();
-
-            }, 250); // Small delay for map rendering
+            }, 250); // A small delay is often sufficient
         });
 
-        // Your existing sendMessage function and other chat/control panel logic remains the same
+        // Your existing sendMessage function and other logic remains the same
         function sendMessage() {
             const input = document.getElementById('chat-input');
             const messageContainer = document.getElementById('chat-messages');
             const messageText = input.value.trim();
 
             if (messageText) {
+                // Add user message
                 messageContainer.innerHTML += `
-            <div class="mb-3 text-end">
-                <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
-                    ${messageText}
-                </div>
-            </div>`;
+                    <div class="mb-3 text-end">
+                        <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
+                            ${messageText}
+                        </div>
+                    </div>`;
                 input.value = '';
 
+                // Simulate AI response
                 setTimeout(() => {
                     const responses = [
                         "I've found 3 active fires in the northern region. The largest is the Canyon Fire with 45% containment.",
@@ -485,22 +261,23 @@
                         "I've identified 5 properties at high risk in the evacuation zone. Emergency services have been notified."
                     ];
                     const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
+                    
                     messageContainer.innerHTML += `
-                <div class="mb-3 text-start">
-                    <small class="text-body-secondary">Artemis AI Assistant</small>
-                    <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                        ${randomResponse}
-                    </div>
-                </div>`;
+                        <div class="mb-3 text-start">
+                            <small class="text-body-secondary">Artemis AI Assistant</small>
+                            <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
+                                ${randomResponse}
+                            </div>
+                        </div>`;
                     messageContainer.scrollTop = messageContainer.scrollHeight;
                 }, 1000);
 
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         }
-
-        document.getElementById('chat-input').addEventListener('keypress', function (e) {
+        
+        // Add event listener for Enter key
+        document.getElementById('chat-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 sendMessage();
             }

@@ -2,9 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\FireHydrantController; // Ensure this is imported
-use App\Http\Controllers\ApiController; // Ensure this is imported if you use it for /fire-data
-use App\Http\Controllers\Api\FireStationController; // Import FireStationController
+use App\Http\Controllers\Api\FireHydrantController;
+use App\Http\Controllers\ApiController;
+use App\Http\Controllers\Api\FireStationController;
+use App\Http\Controllers\ReportController;
 
 /*
 |--------------------------------------------------------------------------

@@ -13,7 +13,8 @@
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.6",
         "league/csv": "^9.23",
-        "livewire/livewire": "^3.0"
+        "livewire/livewire": "^3.0",
+        "microsoft/windowsazure": "^0.4.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
