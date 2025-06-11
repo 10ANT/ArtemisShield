@@ -26,3 +26,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
 Route::get('/fire-data', [ApiController::class, 'getFireData']); // Assuming ApiController is also in Api namespace or adjust
 Route::get('/fire_stations', [FireStationController::class, 'index']);
+Route::post('/process-report', [ReportController::class, 'process']);

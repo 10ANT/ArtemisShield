@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Add CSRF Token for Laravel POST requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>ArtemisShield - Wildfire Protection Dashboard</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -302,6 +304,13 @@
         .record-btn:hover {
             background-color: var(--bs-primary-bg-subtle);
         }
+        
+        .record-btn:disabled {
+            background-color: var(--bs-secondary-bg);
+            border-color: var(--bs-secondary);
+            color: var(--bs-secondary);
+            cursor: not-allowed;
+        }
 
         .record-btn.is-recording {
             background-color: var(--bs-danger);
@@ -473,7 +482,6 @@
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <!-- MODIFIED: Corrected tab button for Live Report -->
                                     <button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill"
                                         data-bs-target="#live-report-content" type="button" role="tab"
                                         aria-controls="live-report-content" aria-selected="false">
@@ -544,7 +552,7 @@
                                 </div>
                                 
                                 <!-- ================================================================= -->
-                                <!-- START: NEW LIVE REPORT TAB CONTENT                                -->
+                                <!-- START: FULLY FUNCTIONAL LIVE REPORT TAB CONTENT                   -->
                                 <!-- ================================================================= -->
                                 <div class="tab-pane fade p-3" id="live-report-content" role="tabpanel">
                                     <div class="recording-controls d-flex flex-column align-items-center">
@@ -553,69 +561,18 @@
                                         </button>
                                         <p class="recording-status" id="recording-status">Tap to Start Field Report</p>
                                     </div>
-
-                                    <div class="ai-analysis-container">
-                                        <!-- This container will be populated by JS after analysis -->
-                                        <!-- Example of a generated report: -->
-                                        <div class="card ai-analysis-card mb-3">
-                                            <div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div>
-                                            <div class="card-body">
-                                                <p class="card-text">Unit reports a rapidly spreading grass fire near Oak Ridge Trail, requesting immediate air support and two additional engines due to downed power lines creating a hazard.</p>
-                                            </div>
+                                
+                                    <div id="ai-analysis-results" class="ai-analysis-container">
+                                        <!-- AI results will be injected here by JavaScript -->
+                                        <div id="report-placeholder" class="text-center text-muted mt-5">
+                                            <i class="fas fa-wind fa-3x mb-3"></i>
+                                            <p>Awaiting field report...</p>
                                         </div>
-                                        <div class="card ai-analysis-card mb-3">
-                                            <div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div>
-                                            <div class="card-body">
-                                                <span class="entity-tag entity-tag-location">Oak Ridge Trail</span>
-                                                <span class="entity-tag entity-tag-resource">Air Support</span>
-                                                <span class="entity-tag entity-tag-resource">2 Engines</span>
-                                                <span class="entity-tag entity-tag-hazard">Downed Power Lines</span>
-                                                <span class="entity-tag entity-tag-other">Grass Fire</span>
-                                            </div>
-                                        </div>
-                                        <div class="card ai-analysis-card mb-3">
-                                            <div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div>
-                                            <div class="card-body p-0">
-                                                <ul class="list-unstyled mb-0">
-                                                    <li class="suggestion-item px-3">
-                                                        <i class="fas fa-helicopter suggestion-icon"></i>
-                                                        <div>
-                                                            <strong>Dispatch Air Support:</strong> Priority request to nearest available aerial unit.
-                                                        </div>
-                                                    </li>
-                                                    <li class="suggestion-item px-3">
-                                                        <i class="fas fa-fire-truck suggestion-icon"></i>
-                                                        <div>
-                                                            <strong>Allocate Resources:</strong> Assign two Type 3 engines from staging.
-                                                        </div>
-                                                    </li>
-                                                    <li class="suggestion-item px-3">
-                                                        <i class="fas fa-bolt suggestion-icon" style="color: var(--bs-warning);"></i>
-                                                        <div>
-                                                            <strong>Notify Utilities & Mark Hazard:</strong> Log downed power lines and update incident map.
-                                                        </div>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="accordion" id="transcriptAccordion">
-                                            <div class="accordion-item bg-transparent border-secondary">
-                                              <h2 class="accordion-header" id="headingOne">
-                                                <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                                                  <i class="fas fa-file-alt me-2"></i>View Full Transcript
-                                                </button>
-                                              </h2>
-                                              <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#transcriptAccordion">
-                                                <div class="accordion-body">
-                                                  This is Command, Engine 52 reporting. We are on scene at Oak Ridge Trail. We have a fast-moving grass fire, approximately five acres, spreading rapidly to the northeast. We have downed power lines across the trail, creating a significant hazard. Requesting immediate air support and two additional engines. Over.
-                                                </div>
-                                              </div>
-                                            </div>
-                                        </div>
+                                        <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
                                     </div>
                                 </div>
                                 <!-- ================================================================= -->
-                                <!-- END: NEW LIVE REPORT TAB CONTENT                                  -->
+                                <!-- END: LIVE REPORT TAB CONTENT                                      -->
                                 <!-- ================================================================= -->
 
                             </div>
@@ -631,416 +588,238 @@
     @include('partials.scripts')
 
     <script>
-        // Global map instance (make it accessible)
+        // --- MAP & ORIGINAL SCRIPT LOGIC ---
         let map;
-        // Layer group for fire hydrants
         let fireHydrantsLayer;
-        let isHydrantsVisible = true; // Default visibility
-
-        // Layer group for fire stations
+        let isHydrantsVisible = true;
         let fireStationsLayer;
-        let isStationsVisible = true; // Default visibility
+        let isStationsVisible = true;
 
         document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => {
-                // Initialize map centered on Chicago
-                map = L.map('map').setView([41.8781, -87.6298], 12); // Centered on Chicago, zoom level 12
+                map = L.map('map').setView([41.8781, -87.6298], 12);
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 }).addTo(map);
 
-                // Custom fire incident icon (unchanged from your original)
-                const fireIcon = L.divIcon({
-                    className: 'fire-marker',
-                    html: '<i class="fas fa-fire" style="color: #FF4136; font-size: 24px;"></i>',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24]
-                });
-
-                // --- Fire Hydrant Icon Definition ---
                 const fireHydrantIcon = L.divIcon({
                     className: 'fire-hydrant-icon',
-                    html: '<i class="fas fa-faucet"></i>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 20]
+                    html: '<i class="fas fa-faucet"></i>', iconSize: [20, 20], iconAnchor: [10, 20]
                 });
-
-                // --- Fire Station Icon Definition ---
                 const fireStationIcon = L.divIcon({
                     className: 'fire-station-icon',
-                    html: '<i class="fas fa-building"></i>',
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 20]
+                    html: '<i class="fas fa-building"></i>', iconSize: [20, 20], iconAnchor: [10, 20]
                 });
 
-                // --- Helper function to create detail rows ---
-                function createDetailRow(label, value, valueClass = '') {
-                    if (value === null || value === undefined || value === '') {
-                        return ''; // Don't add row if value is empty
-                    }
-                    if (label.toLowerCase().includes('website') && value.startsWith('http')) {
-                        value = `<a href="${value}" target="_blank">View Site</a>`;
-                    } else if (label.toLowerCase().includes('email') && value.includes('@')) {
-                        value = `<a href="mailto:${value}">${value}</a>`;
-                    }
-                    if (label.toLowerCase().includes('wikipedia') && value.includes('wikipedia.org/wiki/')) {
-                           const pageTitle = value.split('/').pop().replace(/_/g, ' ');
-                           value = `<a href="${value}" target="_blank">${pageTitle}</a>`;
-                    } else if (label.toLowerCase().includes('wikidata') && value.startsWith('Q')) {
-                        value = `<a href="https://www.wikidata.org/wiki/${value}" target="_blank">${value}</a>`;
-                    }
+                function createDetailRow(label, value, valueClass = '') { if (value === null || value === undefined || value === '') { return ''; } if (label.toLowerCase().includes('website') && value.startsWith('http')) { value = `<a href="${value}" target="_blank">View Site</a>`; } else if (label.toLowerCase().includes('email') && value.includes('@')) { value = `<a href="mailto:${value}">${value}</a>`; } if (label.toLowerCase().includes('wikipedia') && value.includes('wikipedia.org/wiki/')) { const pageTitle = value.split('/').pop().replace(/_/g, ' '); value = `<a href="${value}" target="_blank">${pageTitle}</a>`; } else if (label.toLowerCase().includes('wikidata') && value.startsWith('Q')) { value = `<a href="https://www.wikidata.org/wiki/${value}" target="_blank">${value}</a>`; } return ` <div class="detail-row"> <span class="detail-label">${label}:</span> <span class="detail-value ${valueClass}">${value}</span> </div> `; }
+                function formatHydrantPopupContent(props) { const allTags = props.all_tags || {}; let generalDetails = ` ${createDetailRow("OSM ID", props.osm_id)} ${createDetailRow("Type", props.fire_hydrant_type || allTags['fire_hydrant:type'])} ${createDetailRow("Color", props.color || props.colour || allTags.colour || allTags.color, 'highlight-orange')} ${createDetailRow("Operator", props.operator)} `; let locationDetails = ` ${createDetailRow("Street", props.addr_street || allTags['addr:street'])} ${createDetailRow("House No.", props.addr_housenumber || allTags['addr:housenumber'])} ${createDetailRow("City", props.addr_city || allTags['addr:city'])} ${createDetailRow("Postcode", props.addr_postcode || allTags['addr:postcode'])} ${createDetailRow("State", props.addr_state || allTags['addr:state'])} ${createDetailRow("Country", props.addr_country || allTags['addr:country'])} `; let technicalDetails = ` ${createDetailRow("Position", props.fire_hydrant_position || allTags['fire_hydrant:position'])} ${createDetailRow("Pressure", allTags['fire_hydrant:pressure'], 'highlight-blue')} ${createDetailRow("Flow Rate", allTags['fire_hydrant:flow_rate'])} ${createDetailRow("Water Source", allTags['water_source'])} ${createDetailRow("Diameter", allTags.diameter)} `; let additionalText = props.note || allTags.note; let content = ` <div class="custom-popup"> <div class="popup-header"> <h4>Fire Hydrant Details</h4> <button class="close-btn" onclick="map.closePopup()">×</button> </div> <div class="popup-body two-columns"> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-info-circle"></i> General</div> ${generalDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-map-marker-alt"></i> Location</div> ${locationDetails} </div> <div class="popup-section" style="flex: 1 1 100%;"> <div class="popup-section-title"><i class="fas fa-tools"></i> Technical Specs</div> ${technicalDetails} </div> ${additionalText ? `<div class="popup-section" style="flex: 1 1 100%;"> <div class="popup-section-title"><i class="fas fa-sticky-note"></i> Notes</div> <div class="additional-text">${additionalText}</div> </div>` : ''} </div> </div> `; return content; }
+                function formatStationPopupContent(props) { const allTags = props.all_tags || {}; let primaryDetails = ` ${createDetailRow("Name", props.name || 'Unknown')} ${createDetailRow("Official Name", props.official_name)} ${createDetailRow("Operator", props.operator)} ${createDetailRow("Station Type", props.fire_station_type || allTags['fire_station:type'])} `; let contactDetails = ` ${createDetailRow("Phone", props.phone || allTags.phone)} ${createDetailRow("Emergency", props.emergency, 'highlight-green')} ${createDetailRow("Website", props.website || allTags.website)} ${createDetailRow("Email", props.email || allTags.email)} ${createDetailRow("Opening Hours", props.opening_hours || allTags['opening_hours'])} `; let addressDetails = ` ${createDetailRow("Street", props.addr_street || allTags['addr:street'])} ${createDetailRow("House No.", props.addr_housenumber || allTags['addr:housenumber'])} ${createDetailRow("City", props.addr_city || allTags['addr:city'])} ${createDetailRow("Postcode", props.addr_postcode || allTags['addr:postcode'])} ${createDetailRow("State", props.addr_state || allTags['addr:state'])} ${createDetailRow("Country", props.addr_country || allTags['addr:country'])} `; let operationalDetails = ` ${createDetailRow("Building Levels", props.building_levels || allTags['building:levels'])} ${createDetailRow("Apparatus", props.fire_station_apparatus || allTags['fire_station:apparatus'])} ${createDetailRow("Staffing", props.fire_station_staffing || allTags['fire_station:staffing'])} ${createDetailRow("Fire Station Code", props.fire_station_code || allTags['fire_station:code'])} `; let metaDetails = ` ${createDetailRow("OSM ID", props.osm_id)} ${createDetailRow("Source", props.source)} ${createDetailRow("Building Type", props.building)} ${createDetailRow("Wheelchair Access", props.wheelchair)} ${createDetailRow("Wikipedia", props.wikipedia)} ${createDetailRow("Wikidata", props.wikidata)} `; let additionalText = props.description || allTags.description || props.note || allTags.note; let content = ` <div class="custom-popup"> <div class="popup-header"> <h4>Fire Station Details</h4> <button class="close-btn" onclick="map.closePopup()">×</button> </div> <div class="popup-body three-columns"> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-id-card-alt"></i> Identification</div> ${primaryDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-phone-alt"></i> Contact</div> ${contactDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-map-marked-alt"></i> Address</div> ${addressDetails} </div> <div class="popup-section" style="flex: 1 1 calc(50% - 10px);"> <div class="popup-section-title"><i class="fas fa-fire-extinguisher"></i> Operations</div> ${operationalDetails} </div> <div class="popup-section" style="flex: 1 1 calc(50% - 10px);"> <div class="popup-section-title"><i class="fas fa-globe"></i> Metadata</div> ${metaDetails} </div> ${additionalText ? `<div class="popup-section" style="flex: 1 1 100%;"> <div class="popup-section-title"><i class="fas fa-sticky-note"></i> Description</div> <div class="additional-text">${additionalText}</div> </div>` : ''} </div> </div> `; return content; }
 
-                    return `
-                        <div class="detail-row">
-                            <span class="detail-label">${label}:</span>
-                            <span class="detail-value ${valueClass}">${value}</span>
-                        </div>
-                    `;
-                }
+                fireHydrantsLayer = L.geoJson(null, { pointToLayer: (f, l) => L.marker(l, { icon: fireHydrantIcon }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
+                fireStationsLayer = L.geoJson(null, { pointToLayer: (f, l) => L.marker(l, { icon: fireStationIcon }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
 
-                // --- Function to format popup content for Fire Hydrant ---
-                function formatHydrantPopupContent(props) {
-                    const allTags = props.all_tags || {};
+                const loadFireHydrants = async () => { if (!isHydrantsVisible) { fireHydrantsLayer.clearLayers(); return; } try { const r = await fetch(`/api/fire_hydrants`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); fireHydrantsLayer.addData(d); } catch (e) { console.error("Could not fetch fire hydrants:", e); } };
+                const loadFireStations = async () => { if (!isStationsVisible) { fireStationsLayer.clearLayers(); return; } try { const r = await fetch(`/api/fire_stations`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); fireStationsLayer.addData(d); } catch (e) { console.error("Could not fetch fire stations:", e); } };
 
-                    let generalDetails = `
-                        ${createDetailRow("OSM ID", props.osm_id)}
-                        ${createDetailRow("Type", props.fire_hydrant_type || allTags['fire_hydrant:type'])}
-                        ${createDetailRow("Color", props.color || props.colour || allTags.colour || allTags.color, 'highlight-orange')}
-                        ${createDetailRow("Operator", props.operator)}
-                    `;
+                document.getElementById('fire-hydrants-toggle').addEventListener('change', e => { isHydrantsVisible = e.target.checked; if (isHydrantsVisible) loadFireHydrants(); else fireHydrantsLayer.clearLayers(); });
+                document.getElementById('fire-stations-toggle').addEventListener('change', e => { isStationsVisible = e.target.checked; if (isStationsVisible) loadFireStations(); else fireStationsLayer.clearLayers(); });
 
-                    let locationDetails = `
-                        ${createDetailRow("Street", props.addr_street || allTags['addr:street'])}
-                        ${createDetailRow("House No.", props.addr_housenumber || allTags['addr:housenumber'])}
-                        ${createDetailRow("City", props.addr_city || allTags['addr:city'])}
-                        ${createDetailRow("Postcode", props.addr_postcode || allTags['addr:postcode'])}
-                        ${createDetailRow("State", props.addr_state || allTags['addr:state'])}
-                        ${createDetailRow("Country", props.addr_country || allTags['addr:country'])}
-                    `;
-
-                    let technicalDetails = `
-                        ${createDetailRow("Position", props.fire_hydrant_position || allTags['fire_hydrant:position'])}
-                        ${createDetailRow("Pressure", allTags['fire_hydrant:pressure'], 'highlight-blue')}
-                        ${createDetailRow("Flow Rate", allTags['fire_hydrant:flow_rate'])}
-                        ${createDetailRow("Water Source", allTags['water_source'])}
-                        ${createDetailRow("Diameter", allTags.diameter)}
-                    `;
-
-                    let additionalText = props.note || allTags.note;
-
-                    // Build the HTML structure
-                    let content = `
-                        <div class="custom-popup">
-                            <div class="popup-header">
-                                <h4>Fire Hydrant Details</h4>
-                                <button class="close-btn" onclick="map.closePopup()">×</button>
-                            </div>
-                            <div class="popup-body two-columns">
-                                <div class="popup-section">
-                                    <div class="popup-section-title"><i class="fas fa-info-circle"></i> General</div>
-                                    ${generalDetails}
-                                </div>
-                                <div class="popup-section">
-                                    <div class="popup-section-title"><i class="fas fa-map-marker-alt"></i> Location</div>
-                                    ${locationDetails}
-                                </div>
-                                <div class="popup-section" style="flex: 1 1 100%;"> <div class="popup-section-title"><i class="fas fa-tools"></i> Technical Specs</div>
-                                    ${technicalDetails}
-                                </div>
-                                ${additionalText ? `<div class="popup-section" style="flex: 1 1 100%;">
-                                    <div class="popup-section-title"><i class="fas fa-sticky-note"></i> Notes</div>
-                                    <div class="additional-text">${additionalText}</div>
-                                </div>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    return content;
-                }
-
-                // --- Function to format popup content for Fire Station ---
-                function formatStationPopupContent(props) {
-                    const allTags = props.all_tags || {};
-
-                    let primaryDetails = `
-                        ${createDetailRow("Name", props.name || 'Unknown')}
-                        ${createDetailRow("Official Name", props.official_name)}
-                        ${createDetailRow("Operator", props.operator)}
-                        ${createDetailRow("Station Type", props.fire_station_type || allTags['fire_station:type'])}
-                    `;
-
-                    let contactDetails = `
-                        ${createDetailRow("Phone", props.phone || allTags.phone)}
-                        ${createDetailRow("Emergency", props.emergency, 'highlight-green')}
-                        ${createDetailRow("Website", props.website || allTags.website)}
-                        ${createDetailRow("Email", props.email || allTags.email)}
-                        ${createDetailRow("Opening Hours", props.opening_hours || allTags['opening_hours'])}
-                    `;
-
-                    let addressDetails = `
-                        ${createDetailRow("Street", props.addr_street || allTags['addr:street'])}
-                        ${createDetailRow("House No.", props.addr_housenumber || allTags['addr:housenumber'])}
-                        ${createDetailRow("City", props.addr_city || allTags['addr:city'])}
-                        ${createDetailRow("Postcode", props.addr_postcode || allTags['addr:postcode'])}
-                        ${createDetailRow("State", props.addr_state || allTags['addr:state'])}
-                        ${createDetailRow("Country", props.addr_country || allTags['addr:country'])}
-                    `;
-
-                    let operationalDetails = `
-                        ${createDetailRow("Building Levels", props.building_levels || allTags['building:levels'])}
-                        ${createDetailRow("Apparatus", props.fire_station_apparatus || allTags['fire_station:apparatus'])}
-                        ${createDetailRow("Staffing", props.fire_station_staffing || allTags['fire_station:staffing'])}
-                        ${createDetailRow("Fire Station Code", props.fire_station_code || allTags['fire_station:code'])}
-                    `;
-
-                    let metaDetails = `
-                        ${createDetailRow("OSM ID", props.osm_id)}
-                        ${createDetailRow("Source", props.source)}
-                        ${createDetailRow("Building Type", props.building)}
-                        ${createDetailRow("Wheelchair Access", props.wheelchair)}
-                        ${createDetailRow("Wikipedia", props.wikipedia)}
-                        ${createDetailRow("Wikidata", props.wikidata)}
-                    `;
-
-                    let additionalText = props.description || allTags.description || props.note || allTags.note;
-
-                    // Build the HTML structure
-                    let content = `
-                        <div class="custom-popup">
-                            <div class="popup-header">
-                                <h4>Fire Station Details</h4>
-                                <button class="close-btn" onclick="map.closePopup()">×</button>
-                            </div>
-                            <div class="popup-body three-columns">
-                                <div class="popup-section">
-                                    <div class="popup-section-title"><i class="fas fa-id-card-alt"></i> Identification</div>
-                                    ${primaryDetails}
-                                </div>
-                                <div class="popup-section">
-                                    <div class="popup-section-title"><i class="fas fa-phone-alt"></i> Contact</div>
-                                    ${contactDetails}
-                                </div>
-                                <div class="popup-section">
-                                    <div class="popup-section-title"><i class="fas fa-map-marked-alt"></i> Address</div>
-                                    ${addressDetails}
-                                </div>
-                                <div class="popup-section" style="flex: 1 1 calc(50% - 10px);">
-                                    <div class="popup-section-title"><i class="fas fa-fire-extinguisher"></i> Operations</div>
-                                    ${operationalDetails}
-                                </div>
-                                <div class="popup-section" style="flex: 1 1 calc(50% - 10px);">
-                                    <div class="popup-section-title"><i class="fas fa-globe"></i> Metadata</div>
-                                    ${metaDetails}
-                                </div>
-                                ${additionalText ? `<div class="popup-section" style="flex: 1 1 100%;">
-                                    <div class="popup-section-title"><i class="fas fa-sticky-note"></i> Description</div>
-                                    <div class="additional-text">${additionalText}</div>
-                                </div>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    return content;
-                }
-
-
-                // --- Initialize Fire Hydrants GeoJSON Layer ---
-                fireHydrantsLayer = L.geoJson(null, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.marker(latlng, { icon: fireHydrantIcon });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        const popupContent = formatHydrantPopupContent(feature.properties);
-                        layer.bindPopup(popupContent, { className: 'custom-popup' });
-                    }
-                }).addTo(map);
-
-                // --- Initialize Fire Stations GeoJSON Layer ---
-                fireStationsLayer = L.geoJson(null, {
-                    pointToLayer: function (feature, latlng) {
-                        return L.marker(latlng, { icon: fireStationIcon });
-                    },
-                    onEachFeature: function (feature, layer) {
-                        const popupContent = formatStationPopupContent(feature.properties);
-                        layer.bindPopup(popupContent, { className: 'custom-popup' });
-                    }
-                }).addTo(map);
-
-                // --- Corrected Function to Load Fire Hydrants ---
-                const loadFireHydrants = async () => {
-                    if (!isHydrantsVisible) {
-                        fireHydrantsLayer.clearLayers();
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`/api/fire_hydrants`);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        const data = await response.json();
-
-                        fireHydrantsLayer.clearLayers();
-                        fireHydrantsLayer.addData(data);
-                        console.log(`Loaded ${data.features.length} fire hydrants.`);
-
-                    } catch (error) {
-                        console.error("Could not fetch fire hydrants:", error);
-                    }
-                };
-
-                // --- Function to Load Fire Stations ---
-                const loadFireStations = async () => {
-                    if (!isStationsVisible) {
-                        fireStationsLayer.clearLayers();
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch(`/api/fire_stations`);
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        const data = await response.json();
-
-                        fireStationsLayer.clearLayers();
-                        fireStationsLayer.addData(data);
-                        console.log(`Loaded ${data.features.length} fire stations.`);
-
-                    } catch (error) {
-                        console.error("Could not fetch fire stations:", error);
-                    }
-                };
-
-                // --- Event Listener for Fire Hydrants Layer Toggle ---
-                document.getElementById('fire-hydrants-toggle').addEventListener('change', function (e) {
-                    isHydrantsVisible = e.target.checked;
-                    if (isHydrantsVisible) {
-                        loadFireHydrants();
-                    } else {
-                        fireHydrantsLayer.clearLayers();
-                    }
-                });
-
-                // --- Event Listener for Fire Stations Layer Toggle ---
-                document.getElementById('fire-stations-toggle').addEventListener('change', function (e) {
-                    isStationsVisible = e.target.checked;
-                    if (isStationsVisible) {
-                        loadFireStations();
-                    } else {
-                        fireStationsLayer.clearLayers();
-                    }
-                });
-
-                // --- Initial load of fire hydrants and fire stations on map load ---
                 loadFireHydrants();
                 loadFireStations();
-
-            }, 250); // Small delay for map rendering
+            }, 250);
         });
 
-        // Your existing sendMessage function and other chat/control panel logic remains the same
+        // --- CHAT LOGIC ---
         function sendMessage() {
             const input = document.getElementById('chat-input');
             const messageContainer = document.getElementById('chat-messages');
             const messageText = input.value.trim();
-
             if (messageText) {
-                messageContainer.innerHTML += `
-            <div class="mb-3 text-end">
-                <div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">
-                    ${messageText}
-                </div>
-            </div>`;
+                messageContainer.innerHTML += `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${messageText}</div></div>`;
                 input.value = '';
-
-                setTimeout(() => {
-                    const responses = [
-                        "I've found 3 active fires in the northern region. The largest is the Canyon Fire with 45% containment.",
-                        "Current resources deployed: 12 fire engines, 3 helicopters, and 45 firefighters across all active incidents.",
-                        "Weather conditions show high wind speeds from the northwest, which may affect fire spread patterns.",
-                        "I've identified 5 properties at high risk in the evacuation zone. Emergency services have been notified."
-                    ];
-                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-
-                    messageContainer.innerHTML += `
-                <div class="mb-3 text-start">
-                    <small class="text-body-secondary">Artemis AI Assistant</small>
-                    <div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">
-                        ${randomResponse}
-                    </div>
-                </div>`;
-                    messageContainer.scrollTop = messageContainer.scrollHeight;
-                }, 1000);
-
+                setTimeout(() => { const r = ["I've found 3 active fires...", "Current resources deployed...", "Weather conditions show high wind..."]; messageContainer.innerHTML += `<div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${r[Math.floor(Math.random()*r.length)]}</div></div>`; messageContainer.scrollTop = messageContainer.scrollHeight; }, 1000);
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         }
+        document.getElementById('chat-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
 
-        document.getElementById('chat-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+        // --- COLLAPSIBLE ICON LOGIC ---
+        document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('click', function() { const i = this.querySelector('.collapse-icon'); if (i) { i.classList.toggle('fa-chevron-down'); i.classList.toggle('fa-chevron-up'); } }));
 
-        // JavaScript to toggle the chevron icon
-        document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(button => {
-            button.addEventListener('click', function() {
-                const icon = this.querySelector('.collapse-icon');
-                if (icon) {
-                    icon.classList.toggle('fa-chevron-down');
-                    icon.classList.toggle('fa-chevron-up');
+        
+        // --- NEW JAVASCRIPT FOR LIVE REPORT TAB (FULLY FUNCTIONAL) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const recordButton = document.getElementById('record-button');
+            const recordIcon = recordButton.querySelector('i');
+            const recordingStatus = document.getElementById('recording-status');
+            const resultsContainer = document.getElementById('ai-analysis-results');
+            const placeholder = document.getElementById('report-placeholder');
+            const errorContainer = document.getElementById('report-error');
+
+            let mediaRecorder;
+            let audioChunks = [];
+            let isRecording = false;
+
+            const setupAudio = async () => {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        mediaRecorder = new MediaRecorder(stream);
+
+                        mediaRecorder.addEventListener("dataavailable", event => {
+                            audioChunks.push(event.data);
+                        });
+
+                        mediaRecorder.addEventListener("stop", async () => {
+                            const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                            audioChunks = []; // Clear chunks for next recording
+                            await sendAudioToServer(audioBlob);
+                        });
+
+                    } catch (err) {
+                        console.error("Error accessing microphone:", err);
+                        showError("Microphone access denied. Please enable it in your browser settings.");
+                        recordButton.disabled = true;
+                    }
+                } else {
+                    showError("Audio recording not supported on this browser.");
+                    recordButton.disabled = true;
                 }
-            });
-        });
+            };
+            
+            recordButton.addEventListener('click', () => {
+                if (!mediaRecorder) return;
 
-        // --- NEW JAVASCRIPT FOR LIVE REPORT TAB ---
-        const recordButton = document.getElementById('record-button');
-        const recordIcon = recordButton.querySelector('i');
-        const recordingStatus = document.getElementById('recording-status');
-        let isRecording = false;
-
-        // Note: This is a simulation. A real implementation would use the Web Speech API
-        // and send data to your backend for Azure processing.
-        recordButton.addEventListener('click', () => {
-            if (!isRecording) {
-                // Start recording
-                isRecording = true;
-                recordButton.classList.add('is-recording');
-                recordIcon.className = 'fas fa-stop';
-                recordingStatus.textContent = 'Listening...';
-
-                // Simulate processing after a delay
-                setTimeout(() => {
+                if (!isRecording) {
+                    // Start recording
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordButton.classList.add('is-recording');
+                    recordIcon.className = 'fas fa-stop';
+                    recordingStatus.textContent = 'Listening... (Tap to stop)';
+                    placeholder?.classList.add('d-none');
+                    errorContainer.classList.add('d-none');
+                    resultsContainer.innerHTML = ''; // Clear previous results
+                } else {
+                    // Stop recording
+                    mediaRecorder.stop();
+                    isRecording = false;
                     recordButton.classList.remove('is-recording');
                     recordIcon.className = 'fas fa-sync-alt fa-spin'; // Processing icon
                     recordingStatus.textContent = 'Analyzing Report...';
-                }, 4000); // Simulate 4 seconds of recording
+                    recordButton.disabled = true; // Prevent clicks during processing
+                }
+            });
 
-                // Simulate completion and display results
-                setTimeout(() => {
-                    recordIcon.className = 'fas fa-microphone'; // Reset icon
-                    recordingStatus.textContent = 'Report Processed. Tap to Start New Report.';
-                    isRecording = false;
-                    // In a real app, you would now populate the .ai-analysis-container
-                    // with the data returned from your server/Azure.
-                }, 6000); // Simulate 2 seconds of processing
+            const sendAudioToServer = async (audioBlob) => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'report.webm');
 
-            } else {
-                // Stop recording (manually)
-                // This logic would trigger the processing step immediately in a real app
-                recordButton.classList.remove('is-recording');
-                recordIcon.className = 'fas fa-sync-alt fa-spin';
-                recordingStatus.textContent = 'Analyzing Report...';
-                isRecording = false; // Prevent re-clicks while processing
-
-                setTimeout(() => {
-                    recordIcon.className = 'fas fa-microphone';
-                    recordingStatus.textContent = 'Report Processed. Tap to Start New Report.';
-                }, 2000);
-            }
+    try {
+        const response = await fetch('/api/process-report', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: formData
         });
 
+        if (!response.ok) {
+            const errorData = await response.json();
+            let errorMessage = errorData.error || `Server error: ${response.status}`;
+            if (errorMessage.includes('FFmpeg')) {
+                errorMessage = 'Audio conversion failed. Please contact support to verify FFmpeg setup.';
+            } else if (errorMessage.includes('Speech-to-text')) {
+                errorMessage = 'Speech recognition failed. Please check your microphone or try again later.';
+            } else if (errorMessage.includes('Azure Language')) {
+                errorMessage = 'Text analysis failed. Please try again or contact support.';
+            }
+            throw new Error(errorMessage);
+        }
+
+        const data = await response.json();
+        displayResults(data);
+
+    } catch (err) {
+        console.error('Error processing report:', err);
+        showError(`Failed to process report: ${err.message}`);
+    } finally {
+        recordIcon.className = 'fas fa-microphone';
+        recordingStatus.textContent = 'Tap to Start Field Report';
+        recordButton.disabled = false;
+    }
+};
+            
+            const displayResults = (data) => {
+                let entityHtml = '';
+                if(data.entities && data.entities.length > 0) {
+                    data.entities.forEach(entity => {
+                        let tagClass = 'entity-tag-other';
+                        const category = entity.category.toLowerCase();
+                        if (category.includes('location')) tagClass = 'entity-tag-location';
+                        else if (category.includes('resource') || category.includes('equipment')) tagClass = 'entity-tag-resource';
+                        else if (category.includes('hazard') || category.includes('skill')) tagClass = 'entity-tag-hazard';
+                        entityHtml += `<span class="entity-tag ${tagClass}">${entity.text}</span> `;
+                    });
+                }
+                
+                let suggestionHtml = '';
+                // Check for nested suggestion structure from OpenAI
+                const suggestionsList = data.suggestions?.suggestions || data.suggestions;
+                if(suggestionsList && Array.isArray(suggestionsList)) {
+                     suggestionsList.forEach(s => {
+                        suggestionHtml += `
+                        <li class="suggestion-item px-3">
+                            <i class="${s.icon || 'fas fa-lightbulb'} suggestion-icon"></i>
+                            <div><strong>${s.suggestion || 'Suggestion text missing.'}</strong></div>
+                        </li>`;
+                    });
+                }
+            
+                const resultsHtml = `
+                    <div class="card ai-analysis-card mb-3">
+                        <div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div>
+                        <div class="card-body">
+                            <p class="card-text">${data.summary || 'No summary available.'}</p>
+                        </div>
+                    </div>
+                    <div class="card ai-analysis-card mb-3">
+                        <div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div>
+                        <div class="card-body">${entityHtml.trim() ? entityHtml : '<span class="text-muted">No specific entities detected.</span>'}</div>
+                    </div>
+                    <div class="card ai-analysis-card mb-3">
+                        <div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div>
+                        <div class="card-body p-0">
+                            <ul class="list-unstyled mb-0">${suggestionHtml.trim() ? suggestionHtml : '<li class="p-3 text-muted">No suggestions available.</li>'}</ul>
+                        </div>
+                    </div>
+                    <div class="accordion" id="transcriptAccordion">
+                        <div class="accordion-item bg-transparent border-secondary">
+                          <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                              <i class="fas fa-file-alt me-2"></i>View Full Transcript
+                            </button>
+                          </h2>
+                          <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#transcriptAccordion">
+                            <div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div>
+                          </div>
+                        </div>
+                    </div>
+                `;
+                resultsContainer.innerHTML = resultsHtml;
+            };
+
+            const showError = (message) => {
+                errorContainer.textContent = message;
+                errorContainer.classList.remove('d-none');
+                if(placeholder) placeholder.classList.add('d-none');
+                resultsContainer.innerHTML = '';
+            };
+
+            // Initialize audio setup when the DOM is ready
+            setupAudio();
+        });
     </script>
 </body>
-
 </html>
