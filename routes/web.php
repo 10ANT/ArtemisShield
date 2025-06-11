@@ -5,10 +5,6 @@ use App\Http\Controllers\WildfireOfficerController;
 use App\Http\Controllers\ApiController;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 
-Route::get('/', function () {
-    return view('main');
-});
-
 
 Route::middleware([
     'auth:sanctum',
@@ -32,6 +28,13 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
     
 // Wildfire Officer Dashboard
 Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'index'])->name('wildfire-officer.dashboard');
+
+
+
+Route::get('/', function () {
+    return view('main');
+});
+
 
 });
 

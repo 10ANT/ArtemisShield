@@ -470,7 +470,8 @@
                                                 >logout</i
                                             >
                                             <span class="ms-2"
-                                                >Logout</span
+                                                >Logout
+                                                </span
                                             >
                                         </a>
                                     </li>
