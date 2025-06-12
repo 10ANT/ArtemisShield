@@ -11,8 +11,8 @@ use App\Http\Controllers\Api\WildfirePerimeterController;
 use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\Api\V1\ProxyController; 
 use App\Http\Controllers\Api\V1\WindController;
-
 use App\Http\Controllers\Api\FireDataController;
+use App\Http\Controllers\GeocodingController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +28,8 @@ use App\Http\Controllers\Api\FireDataController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
 
 // Your API routes should be here:
 Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
@@ -52,4 +54,7 @@ Route::get('/weather-for-point', [WeatherController::class, 'getWeatherForPoint'
 Route::get('/v1/wind-data-proxy', [ProxyController::class, 'getWindData']);
 
 Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
+
+Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this line
+
 

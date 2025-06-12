@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
+use App\Http\Controllers\AgentController;
+
 
 Route::get('/', function () {
     return view('main');
@@ -89,3 +91,8 @@ Route::get('/wildfire-officer/wind-global.json', function () {
     
     return response()->json(json_decode(file_get_contents($filePath), true));
 });
+
+
+Route::post('/agent/chat', [AgentController::class, 'chat']);
+Route::post('/agent/submit-tool-output', [AgentController::class, 'submitToolOutput']);
+Route::post('/agent/reset', [AgentController::class, 'reset']);

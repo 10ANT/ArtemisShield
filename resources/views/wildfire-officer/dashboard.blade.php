@@ -34,8 +34,6 @@
         #layers-sidebar.collapsed #layers-sidebar-content { max-height: 0; padding-top: 0 !important; padding-bottom: 0 !important; opacity: 0; }
         .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
         .legend-icon { width: 30px; margin-right: 10px; text-align: center; }
-        .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
-        .sidebar-wrapper .tab-content, .chat-messages, #routes-content { flex-grow: 1; overflow-y: auto; }
         .cesium-viewer-bottom { display: none !important; }
         #map-controls { position: absolute; top: 80px; right: 10px; z-index: 1001; display: flex; flex-direction: column; gap: 5px; }
         .leaflet-routing-container { display: none !important; }
@@ -60,6 +58,17 @@
         #timeline-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 800px; z-index: 1001; background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: 10px 20px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; }
         #timeline-label { font-size: 0.9em; font-weight: bold; white-space: nowrap; min-width: 100px; text-align: center; color: var(--bs-body-color); }
         #timeline-slider { flex-grow: 1; }
+
+        /* --- FIX FOR SIDEBAR SCROLLING --- */
+        .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
+        .sidebar-wrapper > .card-body { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; /* Important for flex-grow in some browsers */ }
+        .sidebar-wrapper .tab-content { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
+        .sidebar-wrapper .tab-pane { flex-grow: 1; display: flex; flex-direction: column; }
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; min-height: 0; }
+        .chat-messages { flex-grow: 1; overflow-y: auto; }
+        #routes-content, #control-content { display: flex; flex-direction: column; height: 100%; }
+        #routes-content .flex-grow-1, #control-content .flex-grow-1 { min-height: 0; }
+        /* --- END OF FIX --- */
     </style>
 </head>
 
@@ -80,7 +89,6 @@
                             <button id="expand-map-btn" class="btn btn-secondary" title="Toggle Fullscreen Map"><i class="fas fa-expand-arrows-alt"></i></button>
                             <button id="get-weather-btn" class="btn btn-secondary" title="Get Weather for a Point"><i class="fas fa-cloud-sun-rain"></i></button>
                             <button id="goes-fire-temp-btn" class="btn btn-secondary" title="Toggle GOES Fire Temp Preview"><i class="fas fa-fire-alt"></i></button>
-                            <!-- MODIFIED: Changed button ID, title, icon, and text -->
                             <button id="toggle-contained-btn" class="btn btn-secondary" title="Hide Contained & Out Fires"><i class="fas fa-shield-alt"></i></button>
                         </div>
                         <div id="layers-sidebar">
@@ -116,28 +124,41 @@
                 <!-- Right Sidebar Column -->
                 <div class="col-lg-3 col-md-4 border-start right-sidebar-column">
                     <div class="sidebar-wrapper">
-                        <div class="card-header p-2"><ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab"><i class="fas fa-comments me-1"></i> Ask</button></li><li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#routes-content" type="button" role="tab"><i class="fas fa-route me-1"></i> Routes</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab"><i class="fas fa-cogs me-1"></i> Data</button></li></ul></div>
-                        <div class="card-body d-flex flex-column p-0"><div class="tab-content h-100"><div class="tab-pane fade p-3 h-100" id="chat-content" role="tabpanel"><div class="chat-container"><div class="chat-messages mb-3" id="chat-messages"></div><div class="chat-input-group d-flex gap-2"><input type="text" class="form-control" placeholder="Ask a question..." id="chat-input"><button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button></div></div></div>
-                        <div class="tab-pane fade show active p-3 d-flex flex-column" id="routes-content" role="tabpanel">
-                            <div>
-                                <h6 class="text-body-secondary">Route Planner</h6>
-                                <p class="small text-muted">Use the marker tool (<i class="fas fa-map-marker-alt"></i>) on the map to place a start and end point.</p>
-                                <div class="mb-3"><label for="route-name" class="form-label small">Route Name</label><input type="text" class="form-control" id="route-name" placeholder="e.g., Evacuation Route A"></div>
-                                <div class="d-grid gap-2"><button class="btn btn-primary" id="calculate-route-btn" disabled><i class="fas fa-calculator me-2"></i>Calculate & Save Route</button><button class="btn btn-secondary" id="clear-markers-btn"><i class="fas fa-times me-2"></i>Clear Markers</button></div>
-                                <hr>
-                            </div>
-                            <div class="flex-grow-1" style="overflow-y: auto;">
-                                <h6 class="text-body-secondary">Saved Routes</h6>
-                                <div class="input-group input-group-sm mb-2"><span class="input-group-text" id="route-search-addon"><i class="fas fa-search"></i></span><input type="text" id="route-search-input" class="form-control" placeholder="Search saved routes..." aria-label="Search saved routes" aria-describedby="route-search-addon"></div>
-                                <div id="saved-routes-list-container"><ul class="list-group list-group-flush" id="saved-routes-list"></ul></div>
+                        <div class="card-header p-2"><ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab"><i class="fas fa-comments me-1"></i> Ask</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#routes-content" type="button" role="tab"><i class="fas fa-route me-1"></i> Routes</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab"><i class="fas fa-cogs me-1"></i> Data</button></li></ul></div>
+                        <div class="card-body p-0">
+                            <div class="tab-content h-100">
+                                <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
+                                    <div class="chat-container">
+                                        <div class="chat-messages" id="chat-messages"></div>
+                                        <div class="chat-input-group d-flex gap-2 mt-2">
+                                            <input type="text" class="form-control" placeholder="Ask a question..." id="chat-input">
+                                            <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                                            <button class="btn btn-secondary" id="reset-chat-btn" title="Reset Conversation"><i class="fas fa-sync-alt"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade p-3" id="routes-content" role="tabpanel">
+                                    <div>
+                                        <h6 class="text-body-secondary">Route Planner</h6>
+                                        <p class="small text-muted">Use the marker tool (<i class="fas fa-map-marker-alt"></i>) on the map to place a start and end point.</p>
+                                        <div class="mb-3"><label for="route-name" class="form-label small">Route Name</label><input type="text" class="form-control" id="route-name" placeholder="e.g., Evacuation Route A"></div>
+                                        <div class="d-grid gap-2"><button class="btn btn-primary" id="calculate-route-btn" disabled><i class="fas fa-calculator me-2"></i>Calculate & Save Route</button><button class="btn btn-secondary" id="clear-markers-btn"><i class="fas fa-times me-2"></i>Clear Markers</button></div>
+                                        <hr>
+                                    </div>
+                                    <div class="flex-grow-1" style="overflow-y: auto;">
+                                        <h6 class="text-body-secondary">Saved Routes</h6>
+                                        <div class="input-group input-group-sm mb-2"><span class="input-group-text" id="route-search-addon"><i class="fas fa-search"></i></span><input type="text" id="route-search-input" class="form-control" placeholder="Search saved routes..." aria-label="Search saved routes" aria-describedby="route-search-addon"></div>
+                                        <div id="saved-routes-list-container"><ul class="list-group list-group-flush" id="saved-routes-list"></ul></div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade p-3" id="control-content" role="tabpanel">
+                                     <h6 class="text-body-secondary">Live Data</h6>
+                                     <ul class="list-group mb-3"><li class="list-group-item d-flex justify-content-between align-items-center">Satellite Detections <span class="badge text-bg-danger" id="active-fires-count">--</span></li><li class="list-group-item d-flex justify-content-between align-items-center">High Confidence <span class="badge text-bg-warning" id="high-confidence-count">--</span></li></ul>
+                                     <h6 class="text-body-secondary">Recent Detections (< 3 hours)</h6>
+                                     <div id="recent-fires" class="flex-grow-1" style="overflow-y: auto;"></div>
+                                </div>
                             </div>
                         </div>
-                        <div class="tab-pane fade p-3 d-flex flex-column" id="control-content" role="tabpanel">
-                             <h6 class="text-body-secondary">Live Data</h6>
-                             <ul class="list-group mb-3"><li class="list-group-item d-flex justify-content-between align-items-center">Satellite Detections <span class="badge text-bg-danger" id="active-fires-count">--</span></li><li class="list-group-item d-flex justify-content-between align-items-center">High Confidence <span class="badge text-bg-warning" id="high-confidence-count">--</span></li></ul>
-                             <h6 class="text-body-secondary">Recent Detections (< 3 hours)</h6>
-                             <div id="recent-fires" class="flex-grow-1" style="overflow-y: auto;"></div>
-                        </div></div></div>
                     </div>
                 </div>
             </div>
@@ -162,6 +183,7 @@
         Cesium.Ion.defaultAccessToken = "{{ config('services.cesium.ion_access_token', 'YOUR_FALLBACK_KEY') }}";
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
+        let agentHandler;
         let map, fireDetailsModal, weatherMarkerDrawer, drawnItems;
         const fireLayerGroups = { 'VIIRS': L.layerGroup(), 'MODIS': L.layerGroup() };
         const fireDataCache = { 'VIIRS': [], 'MODIS': [] };
@@ -173,8 +195,166 @@
         let goesImageRequestTimer = null;
         let lastValidGoesUrl = '';
         let timelineSlider, timelineLabel, selectedDate = null;
-        let hideContainedFires = false; // State for the new "Hide Contained" button
+        let hideContainedFires = false;
         const NOAA_SECTORS = { 'conus':{ satellite: 'GOES19', name: 'CONUS', bounds: L.latLngBounds([[24, -125], [50, -67]]) }, 'sp':   { satellite: 'GOES19', name: 'Southern Plains', bounds: L.latLngBounds([[25, -107], [40, -92]]) }, 'se':   { satellite: 'GOES19', name: 'Southeast', bounds: L.latLngBounds([[24, -92], [37, -75]]) }, 'sr':   { satellite: 'GOES19', name: 'Southern Rockies', bounds: L.latLngBounds([[31, -114], [42, -102]]) }, 'nr':   { satellite: 'GOES19', name: 'Northern Rockies', bounds: L.latLngBounds([[41, -117], [50, -103]]) }, 'umv':  { satellite: 'GOES19', name: 'Upper Mississippi Valley', bounds: L.latLngBounds([[39, -98], [48, -86]]) }, 'gl':   { satellite: 'GOES19', name: 'Great Lakes', bounds: L.latLngBounds([[41, -92], [49, -76]]) }, 'ne':   { satellite: 'GOES19', name: 'Northeast', bounds: L.latLngBounds([[39, -83], [48, -67]]) }, 'pr':   { satellite: 'GOES19', name: 'Puerto Rico', bounds: L.latLngBounds([[17, -68], [19, -65]]) }, 'wus':  { satellite: 'GOES18', name: 'West US', bounds: L.latLngBounds([[31, -125], [49, -102]]) }, 'psw':  { satellite: 'GOES18', name: 'Pacific Southwest', bounds: L.latLngBounds([[32, -124], [43, -114]]) }, 'pnw':  { satellite: 'GOES18', name: 'Pacific Northwest', bounds: L.latLngBounds([[42, -125], [49, -116]]) }, 'ak':   { satellite: 'GOES18', name: 'Alaska', bounds: L.latLngBounds([[51, -179], [72, -129]]) }, 'hi':   { satellite: 'GOES18', name: 'Hawaii', bounds: L.latLngBounds([[18, -161], [23, -154]]) }, };
+
+        class AgentHandler {
+            constructor(chatMessagesContainer, chatInput) {
+                this.chatMessages = chatMessagesContainer;
+                this.chatInput = chatInput;
+                this.runId = null;
+                this.isBusy = false;
+                this.functionTools = [
+                    { type: "function", function: { name: "searchFires", description: "Searches for active wildfires by name on the map and zooms to the first result.", parameters: { type: "object", properties: { query: { type: "string", description: "The name of the fire." } }, required: ["query"] } }, executor: this.searchFires },
+                    { type: "function", function: { name: "zoomToLocation", description: "Zooms the map to a specific geographic location.", parameters: { type: "object", properties: { location: { type: "string", description: "The location name." }, zoom: { type: "number" } }, required: ["location"] } }, executor: this.zoomToLocation },
+                    { type: "function", function: { name: "assessInfrastructureRisk", description: "Draws a risk-assessment circle around a specific, named fire.", parameters: { type: "object", properties: { fireName: { type: "string", description: "The name of an official fire." } }, required: ["fireName"] } }, executor: this.assessInfrastructureRisk },
+                    { type: "function", function: { name: "showImagesForQuery", description: "Informs the user that image search is not available.", parameters: { type: "object", properties: { query: { type: "string", description: "The image subject." } }, required: ["query"] } }, executor: this.showImagesForQuery }
+                ];
+                document.getElementById('reset-chat-btn').addEventListener('click', () => this.resetConversation());
+                console.log("AgentHandler initialized.");
+            }
+            async resetConversation() {
+                console.log("Reset button clicked.");
+                this.setBusy(true);
+                try {
+                    await axios.post('/agent/reset');
+                    this.chatMessages.innerHTML = '';
+                    this.displayMessage("Conversation has been reset.", 'assistant');
+                } catch (error) { console.error("Failed to reset chat session:", error); } finally { this.setBusy(false); }
+            }
+            getToolDefinitions() { return this.functionTools.map(t => ({ type: t.type, function: t.function })); }
+            displayMessage(text, role) {
+                const alignClass = role === 'user' ? 'text-end' : 'text-start';
+                const bgClass = role === 'user' ? 'bg-primary-subtle' : 'bg-body-secondary';
+                const authorHtml = role === 'assistant' ? '<small class="text-body-secondary">Artemis AI</small>' : '';
+                this.chatMessages.innerHTML += `<div class="mb-3 ${alignClass}">${authorHtml}<div class="p-3 rounded mt-1 ${bgClass} d-inline-block">${text}</div></div>`;
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+            setBusy(busy) {
+                this.isBusy = busy;
+                this.chatInput.disabled = busy;
+                this.chatInput.placeholder = busy ? "Agent is thinking..." : "Ask a question...";
+                if (!busy) this.runId = null;
+            }
+            async sendMessage(messageText) {
+                if (!messageText.trim() || this.isBusy) return;
+                this.setBusy(true);
+                this.displayMessage(messageText, 'user');
+                try {
+                    const response = await axios.post('/agent/chat', { message: messageText, tools: this.getToolDefinitions() });
+                    await this.handleAgentResponse(response.data);
+                } catch (error) {
+                    console.error('Error sending message:', error.response?.data || error.message);
+                    this.displayMessage("An error occurred. Please try resetting the conversation.", 'assistant');
+                    this.setBusy(false);
+                }
+            }
+            async handleAgentResponse(response) {
+                console.log("HANDLING RESPONSE, STATUS:", response.status);
+                if (response.status === 'requires_action') {
+                    const toolCalls = response.required_action.submit_tool_outputs.tool_calls;
+                    this.runId = response.id;
+                    console.log("Action required. Executing tools...", toolCalls);
+                    const toolOutputs = await Promise.all(toolCalls.map(toolCall => {
+                        return this.invokeTool(toolCall.function).then(output => ({ tool_call_id: toolCall.id, output: output }));
+                    }));
+                    console.log("Tools executed. Submitting outputs...", toolOutputs);
+                    try {
+                        const nextResponse = await axios.post('/agent/submit-tool-output', { run_id: this.runId, tool_outputs: toolOutputs });
+                        await this.handleAgentResponse(nextResponse.data);
+                    } catch (error) {
+                        console.error('Error submitting tool output:', error.response?.data || error.message);
+                        this.displayMessage("I had trouble submitting my tool results. Please reset.", 'assistant');
+                        this.setBusy(false);
+                    }
+                } else if (response.status === 'completed') {
+                    console.log("Run completed. Displaying final message.");
+                    const lastMessage = response.messages.filter(m => m.role === 'assistant').pop();
+                    const textContent = lastMessage?.content?.find(c => c.type === 'text');
+                    if (textContent) this.displayMessage(textContent.text.value, 'assistant');
+                    this.setBusy(false);
+                } else {
+                    console.error("Unhandled agent status:", response.status, response);
+                    this.displayMessage("An unknown error occurred. Please reset the conversation.", 'assistant');
+                    this.setBusy(false);
+                }
+            }
+            async invokeTool(funcCall) {
+                console.log(`INVOKING TOOL: ${funcCall.name}`);
+                const tool = this.functionTools.find(t => t.function.name === funcCall.name);
+                if (!tool || !tool.executor) return JSON.stringify({ error: `Tool executor for ${funcCall.name} not found.` });
+                try {
+                    const args = JSON.parse(funcCall.arguments);
+                    const result = await tool.executor.call(this, args);
+                    console.log(`TOOL RESULT for ${funcCall.name}:`, result);
+                    return JSON.stringify(result);
+                } catch (error) {
+                    console.error(`ERROR EXECUTING TOOL ${funcCall.name}:`, error);
+                    return JSON.stringify({ error: `Failed to execute tool: ${error.message}` });
+                }
+            }
+            searchFires({ query }) {
+                return new Promise(resolve => {
+                    if (map?.fireSearchControl) {
+                        map.fireSearchControl.geocoder.geocode(query, (results) => {
+                            if (results?.length > 0) {
+                                const fireNames = results.map(r => r.name.replace('🔥 ', ''));
+                                map.fitBounds(results[0].bbox);
+                                resolve({ found: true, message: `Okay, I've found the ${fireNames[0]} fire and zoomed to its location.` });
+                            } else {
+                                resolve({ found: false, message: `No fires found matching "${query}".` });
+                            }
+                        });
+                    } else { resolve({ error: "Fire search tool is not available." }); }
+                });
+            }
+            async zoomToLocation({ location, zoom = 8 }) {
+                if (!map) return { error: "Map is not ready." };
+                try {
+                    const response = await axios.get('/api/geocode', { params: { q: location } });
+                    const results = response.data;
+                    if (results && results.length > 0) {
+                        const bestResult = results[0];
+                        const bbox = bestResult.boundingbox;
+                        const bounds = L.latLngBounds([[parseFloat(bbox[0]), parseFloat(bbox[2])], [parseFloat(bbox[1]), parseFloat(bbox[3])]]);
+                        map.fitBounds(bounds);
+                        return { success: true, message: `I have zoomed the map to ${bestResult.display_name}.` };
+                    } else {
+                        return { success: false, message: `Could not find a location named "${location}".` };
+                    }
+                } catch (error) {
+                    console.error("Geocoding via backend proxy failed:", error);
+                    return { error: "Could not retrieve location data due to a server error." };
+                }
+            }
+            assessInfrastructureRisk({ fireName }) {
+                return new Promise(resolve => {
+                    if (!map || !officialPerimetersLayer) {
+                        return resolve({ error: "Map layers not ready for assessment." });
+                    }
+                    let foundFireLayer = null;
+                    officialPerimetersLayer.eachLayer(layer => {
+                        const props = layer.feature?.properties || layer.options?.fireProperties;
+                        if (props?.poly_IncidentName && props.poly_IncidentName.toLowerCase().includes(fireName.toLowerCase())) {
+                            foundFireLayer = layer;
+                        }
+                    });
+                    if (foundFireLayer) {
+                        const bounds = foundFireLayer.getBounds();
+                        const center = bounds.getCenter();
+                        const radius = Math.max(bounds.getNorthEast().distanceTo(bounds.getSouthWest()) / 2, 2000);
+                        L.circle(center, { radius: radius * 1.5, color: 'red', fillColor: '#f03', fillOpacity: 0.2, weight: 2 }).bindPopup(`Potential Risk Zone for ${fireName}`).addTo(map);
+                        map.fitBounds(bounds.pad(0.5));
+                        resolve({ success: true, message: `Done. I've highlighted the risk area for the ${fireName} fire.` });
+                    } else {
+                        resolve({ success: false, message: `I couldn't find an official fire named "${fireName}" to assess.` });
+                    }
+                });
+            }
+            showImagesForQuery({ query }) {
+                return { success: false, message: "I am not yet connected to an image search service, so I cannot show you images." };
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
@@ -188,6 +368,10 @@
                 initializeMagnifier();
                 loadInitialData();
                 fetchAndDisplaySavedRoutes();
+
+                const chatMessagesContainer = document.getElementById('chat-messages');
+                const chatInput = document.getElementById('chat-input');
+                agentHandler = new AgentHandler(chatMessagesContainer, chatInput);
             }, 250);
         });
 
@@ -331,7 +515,16 @@
         function filterSavedRoutes() { const searchTerm = document.getElementById('route-search-input').value.toLowerCase(); const routes = document.querySelectorAll('#saved-routes-list li'); routes.forEach(route => { const routeName = route.querySelector('span').textContent.toLowerCase(); route.style.display = routeName.includes(searchTerm) ? '' : 'none'; }); }
         function initializeFireSearch() { if (map.fireSearchControl) { map.removeControl(map.fireSearchControl); } const customGeocoder = { geocode: function(query, cb, context) { const results = []; const lowerCaseQuery = query.toLowerCase(); const addedFireNames = new Set(); if (map.hasLayer(officialPerimetersLayer)) { officialPerimetersLayer.eachLayer(layer => { const props = layer.feature ? layer.feature.properties : layer.options.fireProperties; if (props && props.poly_IncidentName && props.poly_IncidentName.toLowerCase().includes(lowerCaseQuery)) { if (addedFireNames.has(props.poly_IncidentName)) return; const bounds = layer.getBounds(); if (bounds && bounds.isValid()) { addedFireNames.add(props.poly_IncidentName); results.push({ name: `🔥 ${props.poly_IncidentName}`, html: `<span class="leaflet-control-geocoder-result-name">🔥 <b>${props.poly_IncidentName}</b> <small>(${props.poly_GISAcres ? props.poly_GISAcres.toFixed(0) : 'N/A'} acres)</small></span>`, bbox: bounds, center: bounds.getCenter() }); } } }); } if (results.length > 0) { cb.call(context, results); } else { new L.Control.Geocoder.Nominatim().geocode(query, cb, context); } }, reverse: function (location, scale, cb, context) { new L.Control.Geocoder.Nominatim().reverse(location, scale, cb, context); } }; map.fireSearchControl = new L.Control.Geocoder({ defaultMarkGeocode: false, geocoder: customGeocoder, placeholder: 'Search for location or fire name...' }).on('markgeocode', e => { map.fitBounds(e.geocode.bbox); }).addTo(map); }
         function makeDraggable(element, handle) { let isDragging=false,x,y; handle.addEventListener('mousedown',function(e){isDragging=true;x=e.clientX-element.offsetLeft;y=e.clientY-element.offsetTop; e.preventDefault();}); document.addEventListener('mousemove',function(e){if(isDragging===true){element.style.left=Math.max(5, (e.clientX-x))+'px';element.style.top=Math.max(5, (e.clientY-y))+'px';}}); document.addEventListener('mouseup',function(e){isDragging=false;}); }
-        function sendMessage() { const input = document.getElementById('chat-input'), messageText = input.value.trim(); if (!messageText) return; const msgContainer = document.getElementById('chat-messages'); msgContainer.innerHTML += `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${messageText}</div></div>`; input.value = ''; msgContainer.scrollTop = msgContainer.scrollHeight; setTimeout(() => { const response = `Based on current data, I can provide information about the ${document.getElementById('active-fires-count').textContent} active fire detections. How can I help?`; msgContainer.innerHTML += `<div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${response}</div></div>`; msgContainer.scrollTop = msgContainer.scrollHeight; }, 800); }
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messageText = input.value.trim();
+            if (agentHandler && messageText) {
+                agentHandler.sendMessage(messageText);
+                input.value = '';
+            } else {
+                console.log("Agent handler not ready or message is empty.");
+            }
+        }
     </script>
 </body>
 </html>

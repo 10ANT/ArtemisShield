@@ -44,5 +44,24 @@ return [
    'cesium' => [
         'ion_access_token' => env('CESIUM_ION_ACCESS_TOKEN'),
     ],
+    
+      'azure' => [
+        'ai_project_endpoint' => env('AZURE_AI_PROJECT_ENDPOINT'),
+        'ai_agent_id' => env('AZURE_AI_AGENT_ID'),
+        'ai_api_key' => env('AZURE_AI_API_KEY'),
+        'ai_api_version' => 'v1',
+
+
+            //  new credentials for OAuth
+        'tenant_id' => env('AZURE_TENANT_ID'),
+        'client_id' => env('AZURE_CLIENT_ID'),
+        'client_secret' => env('AZURE_CLIENT_SECRET'),
+        
+        // Keep the old API key in case other services need it
+  
+    ],
+
+
+
 
 ];
