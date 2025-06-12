@@ -14,6 +14,14 @@ return [
     |
     */
 
+     'azure' => [
+        'search' => [
+            'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
+            'key' => env('AZURE_SEARCH_KEY'),
+            'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
+        ],
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

@@ -7,22 +7,29 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
+use App\Services\AzureSearchService; // <-- Import the new service
 
 class ReportController extends Controller
 {
     // PASTE YOUR FULL FFMPEG PATH HERE
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
-private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
-    public function process(Request $request)
+    private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
+    
+    /**
+     * Main processing function for the audio report.
+     * Injects the AzureSearchService for RAG capabilities.
+     */
+    public function process(Request $request, AzureSearchService $searchService) // <-- Inject service here
     {
-        // (This part remains the same)
         $request->validate(['audio' => 'required|file']);
 
         try {
             $transcript = $this->transcribeAudio($request->file('audio'));
             $analysis = $this->analyzeText($transcript);
-            $suggestions = $this->getAiSuggestions($transcript, $analysis['entities']);
+            
+            // This is the key change: call the new RAG-based suggestion method
+            $suggestions = $this->getRagSuggestions($transcript, $analysis['entities'], $searchService);
 
             return response()->json([
                 'transcript' => $transcript,
@@ -32,7 +39,6 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
             ]);
         } catch (Throwable $e) {
             Log::error('Report Processing Failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            // Return a cleaner JSON error
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -40,20 +46,14 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
     private function transcribeAudio($audioFile)
     {
         $originalFilename = $audioFile->hashName();
-        $originalPath = $audioFile->getRealPath(); // Use the direct path from the upload temp dir
-        
+        $originalPath = $audioFile->getRealPath();
         $convertedFilename = 'converted_' . pathinfo($originalFilename, PATHINFO_FILENAME) . '.wav';
         $convertedPath = storage_path('app/temp/' . $convertedFilename);
 
-        // Ensure the temp directory exists
         Storage::disk('local')->makeDirectory('temp');
-
-        // Check if shell_exec is available
         if (!function_exists('shell_exec')) {
             throw new \Exception('The shell_exec function is disabled on this server. FFmpeg cannot be run.');
         }
-        
-        // Build the command with the full path to FFmpeg
         $ffmpegCommand = sprintf(
             '%s -i "%s" -acodec pcm_s16le -ar 16000 -ac 1 "%s" 2>&1',
             self::FFMPEG_PATH,
@@ -61,19 +61,12 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
             $convertedPath
         );
 
-        // Execute the command
         $output = shell_exec($ffmpegCommand);
-        
         if (!file_exists($convertedPath) || filesize($convertedPath) === 0) {
-            // Log the command and its output for debugging
-            Log::error('FFmpeg conversion failed.', [
-                'command' => $ffmpegCommand,
-                'output' => $output
-            ]);
+            Log::error('FFmpeg conversion failed.', ['command' => $ffmpegCommand, 'output' => $output]);
             throw new \Exception('Failed to convert audio file. Check FFmpeg path and permissions.');
         }
 
-        // Send the converted WAV file to Azure
         $speechKey = env('SPEECH_KEY');
         $speechRegion = env('SPEECH_REGION');
         if (!$speechKey || !$speechRegion) {
@@ -84,18 +77,12 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $speechKey,
             'Content-Type' => 'audio/wav; codecs=audio/pcm; samplerate=16000',
-        ])->withBody(
-            file_get_contents($convertedPath), 'application/octet-stream'
-        )->post($endpoint);
+        ])->withBody(file_get_contents($convertedPath), 'application/octet-stream')->post($endpoint);
 
-        // Cleanup the converted file immediately
         Storage::disk('local')->delete('temp/' . $convertedFilename);
         
         if ($response->failed()) {
-            Log::error('Azure Speech API failed.', [
-                'status' => $response->status(),
-                'body' => $response->body()
-            ]);
+            Log::error('Azure Speech API failed.', ['status' => $response->status(), 'body' => $response->body()]);
             throw new \Exception('Speech-to-text service failed. Check Azure credentials or service status.');
         }
 
@@ -107,7 +94,6 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
         return $result['DisplayText'];
     }
 
-    // --- The other methods (analyzeText, getAiSuggestions, etc.) remain the same ---
     private function analyzeText($text)
     {
         $languageKey = env('LANGUAGE_KEY');
@@ -123,40 +109,39 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
     }
     
     private function getSummary($text, $key, $endpoint)
-{
-    $summaryEndpoint = "{$endpoint}/language/analyze-text/jobs?api-version=2023-04-01";
-    $response = Http::withHeaders(['Ocp-Apim-Subscription-Key' => $key])->post($summaryEndpoint, [
-        'analysisInput' => ['documents' => [['id' => '1', 'language' => 'en', 'text' => $text]]],
-        'tasks' => [['kind' => 'AbstractiveSummarization', 'parameters' => ['sentenceCount' => 3]]]
-    ]);
+    {
+        $summaryEndpoint = "{$endpoint}/language/analyze-text/jobs?api-version=2023-04-01";
+        $response = Http::withHeaders(['Ocp-Apim-Subscription-Key' => $key])->post($summaryEndpoint, [
+            'analysisInput' => ['documents' => [['id' => '1', 'language' => 'en', 'text' => $text]]],
+            'tasks' => [['kind' => 'AbstractiveSummarization', 'parameters' => ['sentenceCount' => 3]]]
+        ]);
 
-    if ($response->failed()) {
-        Log::error('Summary job submission failed.', ['status' => $response->status(), 'body' => $response->body()]);
-        return 'Summary service request failed.';
-    }
-
-    $jobUrl = $response->header('operation-location');
-    $maxAttempts = 10;
-    $attempt = 0;
-
-    while ($attempt < $maxAttempts) {
-        sleep(1); // Wait 1 second between attempts
-        $jobResponse = Http::withHeaders(['Ocp-Apim-Subscription-Key' => $key])->get($jobUrl);
-        $status = $jobResponse->json()['status'] ?? 'running';
-
-        if ($status === 'succeeded') {
-            return $jobResponse->json()['tasks']['items'][0]['results']['documents'][0]['summaries'][0]['text'] ?? 'Could not generate summary.';
-        } elseif ($status === 'failed') {
-            Log::error('Summary job failed.', ['jobResponse' => $jobResponse->json()]);
-            return 'Summary job failed.';
+        if ($response->failed()) {
+            Log::error('Summary job submission failed.', ['status' => $response->status(), 'body' => $response->body()]);
+            return 'Summary service request failed.';
         }
 
-        $attempt++;
-    }
+        $jobUrl = $response->header('operation-location');
+        $maxAttempts = 10;
+        $attempt = 0;
 
-    Log::warning('Summary job timed out.', ['jobUrl' => $jobUrl]);
-    return 'Summary job timed out.';
-}
+        while ($attempt < $maxAttempts) {
+            sleep(1);
+            $jobResponse = Http::withHeaders(['Ocp-Apim-Subscription-Key' => $key])->get($jobUrl);
+            $status = $jobResponse->json()['status'] ?? 'running';
+
+            if ($status === 'succeeded') {
+                return $jobResponse->json()['tasks']['items'][0]['results']['documents'][0]['summaries'][0]['text'] ?? 'Could not generate summary.';
+            } elseif ($status === 'failed') {
+                Log::error('Summary job failed.', ['jobResponse' => $jobResponse->json()]);
+                return 'Summary job failed.';
+            }
+            $attempt++;
+        }
+
+        Log::warning('Summary job timed out.', ['jobUrl' => $jobUrl]);
+        return 'Summary job timed out.';
+    }
 
     private function getEntities($text, $key, $endpoint)
     {
@@ -169,44 +154,82 @@ private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-m
         return $response->json()['results']['documents'][0]['entities'] ?? [];
     }
 
-   private function getAiSuggestions($transcript, $entities)
-{
-    $openAiKey = env('AZURE_OPENAI_KEY');
-    $openAiEndpoint = env('AZURE_OPENAI_ENDPOINT');
-    $deploymentName = env('AZURE_OPENAI_DEPLOYMENT_NAME');
-    if (!$openAiKey || !$openAiEndpoint || !$deploymentName) {
-        Log::error('Azure OpenAI credentials not configured.');
-        return [];
-    }
-
-    $endpoint = "{$openAiEndpoint}/openai/deployments/{$deploymentName}/chat/completions?api-version=2024-02-15-preview";
-    $entitiesText = implode(', ', array_map(fn($e) => "{$e['text']} ({$e['category']})", $entities));
-    $prompt = "You are an AI assistant for a wildfire incident command center. A firefighter has submitted the following field report. \n\nTRANSCRIPT: \"{$transcript}\"\n\nEXTRACTED ENTITIES: {$entitiesText}\n\nBased on this information, provide 3-4 clear, actionable, and concise suggestions for the command center. Format your response as a JSON array of objects. Each object must have two keys: 'icon' (a Font Awesome class name like 'fas fa-helicopter') and 'suggestion' (a string with the suggestion text).";
-
-    $response = Http::withHeaders([
-        'api-key' => $openAiKey,
-        'Content-Type' => 'application/json',
-    ])->post($endpoint, [
-        'messages' => [['role' => 'system', 'content' => $prompt], ['role' => 'user', 'content' => 'Provide the suggestions in the specified JSON format.']],
-        'max_tokens' => 300, 'temperature' => 0.5, 'response_format' => ['type' => 'json_object']
-    ]);
-
-    if ($response->failed()) {
-        Log::error('Azure OpenAI API failed.', ['status' => $response->status(), 'body' => $response->body()]);
-        return [];
-    }
-
-    $content = $response->json()['choices'][0]['message']['content'] ?? null;
-    if ($content) {
-        $jsonContent = preg_replace('/^```json\s*|\s*```$/', '', $content);
-        $decoded = json_decode($jsonContent, true);
-        if (json_last_error() === JSON_ERROR_NONE) {
-            return $decoded['suggestions'] ?? $decoded; // Handle nested or direct suggestions
+    /**
+     * Generates suggestions using the RAG pattern.
+     * It first retrieves relevant documents from Azure Search and then uses them
+     * to augment the prompt for the OpenAI model.
+     *
+     * @param string $transcript The user's transcribed report.
+     * @param array $entities The entities extracted from the transcript.
+     * @param AzureSearchService $searchService The service to query for documents.
+     * @return array The list of suggestions.
+     */
+    private function getRagSuggestions(string $transcript, array $entities, AzureSearchService $searchService): array
+    {
+        // 1. RETRIEVAL: Query Azure Search to get relevant documents
+        $searchResults = $searchService->search($transcript, 3);
+        
+        $contextString = "No relevant documents found.";
+        if (!empty($searchResults)) {
+            $contextString = "RELEVANT CONTEXT FROM OFFICIAL DOCUMENTS:\n";
+            foreach ($searchResults as $index => $result) {
+                $title = $result['title'] ?? 'Untitled';
+                $content = $result['content'] ?? 'No content.';
+                // Use highlights from semantic search if available, otherwise use full content
+                $bestPassage = $result['@search.captions'][0]['text'] ?? $content;
+                
+                $contextString .= ($index + 1) . ". DOCUMENT TITLE: {$title}\n   RELEVANT EXCERPT: \"{$bestPassage}\"\n\n";
+            }
         }
-        Log::error('Invalid JSON response from OpenAI.', ['content' => $jsonContent]);
-    }
 
-    Log::warning('No suggestions generated from OpenAI.', ['content' => $content]);
-    return [];
-}
+        // 2. AUGMENTED GENERATION: Build a new, more powerful prompt
+        $openAiKey = env('AZURE_OPENAI_KEY');
+        $openAiEndpoint = env('AZURE_OPENAI_ENDPOINT');
+        $deploymentName = env('AZURE_OPENAI_DEPLOYMENT_NAME');
+        if (!$openAiKey || !$openAiEndpoint || !$deploymentName) {
+            Log::error('Azure OpenAI credentials not configured.');
+            return [];
+        }
+
+        $endpoint = "{$openAiEndpoint}/openai/deployments/{$deploymentName}/chat/completions?api-version=2024-02-15-preview";
+        
+        // The RAG prompt is much more specific and powerful
+        $prompt = "You are an AI assistant for a wildfire incident command center. A firefighter has submitted a field report. Your task is to provide clear, actionable suggestions based **strictly** on the provided official documents and the report. Prioritize information from the documents over general knowledge. If the documents provide a direct procedure, reference it.
+
+{$contextString}
+---
+FIREFIGHTER FIELD REPORT:
+\"{$transcript}\"
+---
+
+Based on the official documents and the report, provide 3-4 concise suggestions for the command center. Format your response as a JSON array of objects. Each object must have two keys: 'icon' (a Font Awesome class name like 'fas fa-helicopter') and 'suggestion' (a string with the suggestion text).";
+
+        $response = Http::withHeaders([
+            'api-key' => $openAiKey,
+            'Content-Type' => 'application/json',
+        ])->post($endpoint, [
+            'messages' => [['role' => 'system', 'content' => $prompt], ['role' => 'user', 'content' => 'Provide the suggestions in the specified JSON format based on the documents and the report.']],
+            'max_tokens' => 400, // Increased slightly for potentially longer, context-aware responses
+            'temperature' => 0.3, // Lower temperature for more factual, less creative responses
+            'response_format' => ['type' => 'json_object']
+        ]);
+
+        if ($response->failed()) {
+            Log::error('Azure OpenAI RAG API failed.', ['status' => $response->status(), 'body' => $response->body()]);
+            return [];
+        }
+
+        $content = $response->json()['choices'][0]['message']['content'] ?? null;
+        if ($content) {
+            $jsonContent = preg_replace('/^```json\s*|\s*```$/', '', $content);
+            $decoded = json_decode($jsonContent, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $decoded['suggestions'] ?? $decoded;
+            }
+            Log::error('Invalid JSON response from RAG-based OpenAI.', ['content' => $jsonContent]);
+        }
+
+        Log::warning('No suggestions generated from RAG-based OpenAI.', ['content' => $content]);
+        return [];
+    }
 }
