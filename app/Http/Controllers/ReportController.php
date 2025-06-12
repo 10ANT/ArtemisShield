@@ -10,6 +10,7 @@ use Throwable;
 use App\Services\AzureSearchService;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Notification; 
 
 class ReportController extends Controller
 {
@@ -42,6 +43,8 @@ class ReportController extends Controller
             $report->user_id = Auth::id();
             $report->save();
             // --- END: Database Saving Logic ---
+
+            
 
             return response()->json([
                 'transcript' => $transcript,
