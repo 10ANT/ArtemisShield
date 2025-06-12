@@ -9,6 +9,7 @@ use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\PageController;
 
 
 
@@ -53,6 +54,9 @@ Route::get('/', function () {
     return view('main');
 });
 
+
+Route::get('/terms-of-service', [PageController::class, 'terms'])->name('pages.terms');
+Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 
 
 

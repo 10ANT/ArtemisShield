@@ -14,23 +14,22 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="{{ asset('css/leaflet-velocity.css') }}" />
 
-    <!-- FIX: Moved Speech SDK to head to ensure it loads before our script tries to use it -->
+    <!-- Speech SDK is loaded in the head -->
     <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 
     @include('partials.styles')
     <style>
         :root { --legend-width: 280px; --right-sidebar-width: 25%; }
         html, body { height: 100%; overflow: hidden; }
-
-        /* FIX: Robust layout for the entire page */
+        
         .main-content { height: 100vh; display: flex; flex-direction: column; }
-        .wildfire-dashboard-container { flex-grow: 1; min-height: 0; } /* Allows content to fill space */
-
+        .wildfire-dashboard-container { flex-grow: 1; min-height: 0; }
+        
         .map-column { height: 100%; position: relative; transition: width 0.3s ease-in-out; }
         body.fullscreen .map-column { width: 100% !important; }
         body.fullscreen .right-sidebar-column { display: none !important; }
         body.fullscreen .header { display: none !important; }
-
+        
         .right-sidebar-column { width: var(--right-sidebar-width); max-width: 600px; min-width: 320px; resize: horizontal; overflow: auto; border-left: 1px solid var(--bs-border-color); }
         .right-sidebar-column.d-none { display: none !important; }
 
@@ -41,7 +40,7 @@
         #layers-sidebar-header { cursor: move; flex-shrink: 0; }
         #layers-sidebar-content { overflow-y: auto; flex-grow: 1; transition: all 0.2s ease-out; max-height: 500px; }
         #layers-sidebar.collapsed #layers-sidebar-content { max-height: 0; padding-top: 0 !important; padding-bottom: 0 !important; opacity: 0; }
-        #layers-sidebar.collapsed { max-height: 40px; /* Adjust to header height */ }
+        #layers-sidebar.collapsed { max-height: 40px; }
 
         .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
         .legend-icon { width: 30px; margin-right: 10px; text-align: center; }
@@ -50,27 +49,75 @@
         .leaflet-routing-container { display: none !important; }
         #recent-fires .card:hover { background-color: var(--bs-body-tertiary); cursor: pointer; }
         .frp-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; border: 1px solid #666;}
-
-        /* CSS Fix for Tab Layout */
+        
+        /* Weather popup styles */
+        .weather-popup .card-body { padding: 0.75rem; }
+        .weather-popup .weather-main { display: flex; align-items: center; justify-content: space-between; }
+        .weather-popup .weather-main h4 { margin: 0; }
+        .weather-popup .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; }
+        
+        /* GOES preview styles */
+        #goes-preview { position: fixed; z-index: 1002; background: rgba(0,0,0,0.7); border: 2px solid #fff; border-radius: 5px; pointer-events: none; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 5px; }
+        #goes-preview img { width: 300px; height: 300px; }
+        #goes-preview p { color: white; margin: 5px 0 0 0; font-size: 0.8em; text-align: center; }
+        #goes-fire-temp-btn.active, #toggle-contained-btn.active { background-color: var(--bs-primary); border-color: var(--bs-primary); }
+        .map-container.goes-preview-active { cursor: crosshair; }
+        #zoomed-goes-modal .modal-dialog { max-width: 90vw; }
+        #zoomed-goes-modal .modal-content { background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border: 1px solid #555; }
+        #zoomed-goes-image-container { position: relative; cursor: crosshair; }
+        #zoomed-goes-image { width: 100%; height: auto; max-height: 80vh; object-fit: contain; }
+        #magnifier-loupe { width: 200px; height: 200px; position: absolute; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; display: none; background-repeat: no-repeat; }
+        
+        /* Timeline slider styles */
+        #timeline-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 800px; z-index: 1001; background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: 10px 20px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; }
+        #timeline-label { font-size: 0.9em; font-weight: bold; white-space: nowrap; min-width: 100px; text-align: center; color: var(--bs-body-color); }
+        #timeline-slider { flex-grow: 1; }
+        
+        /* Sidebar and Tab Pane Layout Fix */
         .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
         .sidebar-wrapper > .card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
         .sidebar-wrapper .tab-content { flex: 1; min-height: 0; position: relative; }
-
+        
         .sidebar-wrapper .tab-pane {
-            position: absolute; /* Take panes out of document flow */
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            display: none; /* Hide all panes by default. JS will manage showing the active one. */
+            display: none; /* JS will manage visibility */
             flex-direction: column;
         }
-
-        /* Flexbox for correct scrolling inside each pane */
+        
         .chat-container { height: 100%; display: flex; flex-direction: column; }
         .chat-messages { flex: 1; overflow-y: auto; min-height: 0; }
         #routes-content, #control-content { display: flex; flex-direction: column; height: 100%; }
         #routes-content .flex-grow-1, #control-content .flex-grow-1 { min-height: 0; overflow-y: auto; }
+        
+        /* Search styles */
+        #search-icon-btn { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1002; }
+        #search-container {
+            position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
+            width: 500px; max-width: 90%; z-index: 1002;
+            background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px);
+            border: 1px solid var(--bs-border-color); border-radius: .5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2);
+            transition: all 0.2s ease-in-out; opacity: 1; visibility: visible;
+        }
+        #search-container.hidden { opacity: 0; visibility: hidden; transform: translate(-50%, -10px); }
+        .search-input-group { position: relative; }
+        .search-results-container {
+            position: absolute; top: 100%; left: 0; right: 0;
+            max-height: 300px; overflow-y: auto;
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--bs-border-color); border-top: none;
+            border-radius: 0 0 .5rem .5rem;
+        }
+        .search-result-card { padding: 0.5rem 1rem; cursor: pointer; border-bottom: 1px solid var(--bs-border-color); }
+        .search-result-card:last-child { border-bottom: none; }
+        .search-result-card:hover { background-color: var(--bs-secondary-bg); }
+        .search-result-card .result-name { font-weight: 500; }
+        .search-result-card .result-details { font-size: 0.8em; color: var(--bs-secondary-color); }
+        .spinner-border { position: absolute; right: 10px; top: 50%; margin-top: -0.5rem; }
     </style>
 </head>
 
@@ -124,7 +171,7 @@
                                 <hr class="my-2">
                                 <div class="mb-3">
                                     <h6>Satellite Hotspots (by FRP)</h6>
-                                    <div class="form-check form-switch"><input class="form-check-input layer-toggle" type="checkbox" role="switch" id="viirs-hotspots" data-source="VIIRS" checked><label class="form-check-label legend-item" for="viirs-hotspots"><span class="legend-icon"><i class="fas fa-satellite-dish text-primary"></i></span>VIIRS Hotspots</label></div>
+                                    <div class="form-check form-switch"><input class="form-check-input layer-toggle" type="checkbox" role="switch" id="viirs-hotspots" data-source="VIIRS" ><label class="form-check-label legend-item" for="viirs-hotspots"><span class="legend-icon"><i class="fas fa-satellite-dish text-primary"></i></span>VIIRS Hotspots</label></div>
                                     <div class="form-check form-switch"><input class="form-check-input layer-toggle" type="checkbox" role="switch" id="modis-hotspots" data-source="MODIS" checked><label class="form-check-label legend-item" for="modis-hotspots"><span class="legend-icon"><i class="fas fa-satellite-dish text-success"></i></span>MODIS Hotspots</label></div>
                                     <div class="d-flex align-items-center justify-content-around small text-muted mt-1 px-2"><span>Low</span><span class="frp-legend-dot" style="background-color: #ffff00;"></span><span class="frp-legend-dot" style="background-color: #ffaa00;"></span><span class="frp-legend-dot" style="background-color: #ff4500;"></span><span class="frp-legend-dot" style="background-color: #d40202;"></span><span>High</span></div>
                                 </div>
@@ -139,7 +186,7 @@
                         <div class="card-header p-2"><ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab"><i class="fas fa-comments me-1"></i> Ask</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#routes-content" type="button" role="tab"><i class="fas fa-route me-1"></i> Routes</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab"><i class="fas fa-cogs me-1"></i> Data</button></li></ul></div>
                         <div class="card-body p-0">
                             <div class="tab-content h-100">
-                                <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
+                                <div class="tab-pane fade p-3" id="chat-content" role="tabpanel">
                                     <div class="chat-container">
                                         <div class="chat-messages" id="chat-messages"></div>
                                         <div class="chat-input-group d-flex gap-2 mt-2">
@@ -158,7 +205,7 @@
                                         <div class="d-grid gap-2"><button class="btn btn-primary" id="calculate-route-btn" disabled><i class="fas fa-calculator me-2"></i>Calculate & Save Route</button><button class="btn btn-secondary" id="clear-markers-btn"><i class="fas fa-times me-2"></i>Clear Markers</button></div>
                                         <hr>
                                     </div>
-                                    <div class="flex-grow-1" style="overflow-y: auto;">
+                                    <div class="flex-grow-1">
                                         <h6 class="text-body-secondary">Saved Routes</h6>
                                         <div class="input-group input-group-sm mb-2"><span class="input-group-text" id="route-search-addon"><i class="fas fa-search"></i></span><input type="text" id="route-search-input" class="form-control" placeholder="Search saved routes..." aria-label="Search saved routes" aria-describedby="route-search-addon"></div>
                                         <div id="saved-routes-list-container"><ul class="list-group list-group-flush" id="saved-routes-list"></ul></div>
@@ -168,7 +215,7 @@
                                      <h6 class="text-body-secondary">Live Data</h6>
                                      <ul class="list-group mb-3"><li class="list-group-item d-flex justify-content-between align-items-center">Satellite Detections <span class="badge text-bg-danger" id="active-fires-count">--</span></li><li class="list-group-item d-flex justify-content-between align-items-center">High Confidence <span class="badge text-bg-warning" id="high-confidence-count">--</span></li></ul>
                                      <h6 class="text-body-secondary">Recent Detections (< 3 hours)</h6>
-                                     <div id="recent-fires" class="flex-grow-1" style="overflow-y: auto;"></div>
+                                     <div id="recent-fires" class="flex-grow-1"></div>
                                 </div>
                             </div>
                         </div>
@@ -177,7 +224,7 @@
             </div>
         </div>
     </div>
-
+    
     <div class="modal fade" id="fire-details-modal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="fire-details-modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="fire-details-modal-body"></div></div></div></div>
     <div id="goes-preview"><img id="goes-preview-img" src="" alt="GOES Preview"><p id="goes-preview-label">Move mouse over map</p></div>
     <div class="modal fade" id="zoomed-goes-modal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="zoomed-goes-modal-title">Fire Temperature</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center" id="zoomed-goes-image-container"><img id="zoomed-goes-image" src="" alt="Zoomed GOES Fire Temperature Image"><div id="magnifier-loupe"></div></div></div></div></div>
@@ -189,12 +236,12 @@
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.117/Build/Cesium/Cesium.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.min.js"></script>
     <script src="{{ asset('js/leaflet-velocity.js') }}"></script>
-
+    
     <script>
         const OWM_API_KEY = "{{ config('services.openweather.api_key', 'YOUR_FALLBACK_KEY') }}";
         Cesium.Ion.defaultAccessToken = "{{ config('services.cesium.ion_access_token', 'YOUR_FALLBACK_KEY') }}";
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
+        
         const AZURE_SPEECH_KEY = "{{ config('services.azure.speech_key') }}";
         const AZURE_SPEECH_REGION = "{{ config('services.azure.speech_region') }}";
 
@@ -316,7 +363,7 @@
             }
             async searchFires({ query }) {
                 console.log(`[AI Tool] Searching for fire: "${query}"`);
-                const results = searchFires(query);
+                const results = searchFires(query); 
                 if (results.length > 0) {
                     const firstFire = results[0];
                     map.fitBounds(firstFire.bbox);
@@ -390,7 +437,7 @@
                 if (!startResult) return { success: false, message: `Could not find a starting location for "${start}".`};
                 if (!endResult) return { success: false, message: `Could not find an ending location for "${end}".`};
                 if (currentRouteControl) map.removeControl(currentRouteControl);
-                currentRouteControl = L.Routing.control({
+                currentRouteControl = L.Routing.control({ 
                     waypoints: [startResult.bbox.getCenter(), endResult.bbox.getCenter()],
                     routeWhileDragging: false, addWaypoints: false, createMarker: () => null,
                     lineOptions: { styles: [{ color: 'blue', opacity: 0.8, weight: 6 }] }
@@ -405,63 +452,79 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // A longer timeout to ensure all complex components are ready for interaction
             setTimeout(() => {
                 initializeMap();
                 fireDetailsModal = new bootstrap.Modal(document.getElementById('fire-details-modal'));
                 goesPreviewContainer = document.getElementById('goes-preview'); goesPreviewImg = document.getElementById('goes-preview-img'); goesPreviewLabel = document.getElementById('goes-preview-label');
                 zoomedGoesModal = new bootstrap.Modal(document.getElementById('zoomed-goes-modal')); zoomedGoesContainer = document.getElementById('zoomed-goes-image-container'); zoomedGoesImage = document.getElementById('zoomed-goes-image'); zoomedGoesTitle = document.getElementById('zoomed-goes-modal-title'); magnifierLoupe = document.getElementById('magnifier-loupe');
                 timelineSlider = document.getElementById('timeline-slider'); timelineLabel = document.getElementById('timeline-label');
-
+                
+                initializeRobustTabHiding(); // This listener is still needed for subsequent clicks
+                
                 initializeTimeline();
                 setupEventListeners();
                 initializeMagnifier();
                 initializeSpeechToText();
-                initializeRobustTabHiding(); // Initialize the new tab logic
                 loadInitialData();
                 fetchAndDisplaySavedRoutes();
-
+                
                 const chatMessagesContainer = document.getElementById('chat-messages');
                 const chatInput = document.getElementById('chat-input');
                 agentHandler = new AgentHandler(chatMessagesContainer, chatInput);
-            }, 250);
+                
+                // *** FIX: Call the new kickstart function to solve the initial visibility issue ***
+                kickstartInitialTab();
+
+            }, 250); // Use a sufficient delay
         });
+         function kickstartInitialTab() {
+            console.log("[Tab Fix] Forcing tab state refresh on load...");
 
-        function initializeRobustTabHiding() {
-            const tabContainer = document.querySelector('#sidebar-tabs');
-            const tabPanes = document.querySelectorAll('.sidebar-wrapper .tab-pane');
+            const askTabButton = document.querySelector('button[data-bs-target="#chat-content"]');
+            const routesTabButton = document.querySelector('button[data-bs-target="#routes-content"]');
 
-            if (!tabContainer) {
-                console.error("Robust Tab Hiding Error: Tab container #sidebar-tabs not found.");
+            if (!askTabButton || !routesTabButton) {
+                console.error("[Tab Fix] Could not find Ask or Routes tab buttons.");
                 return;
             }
 
-            // Function to set the display of panes based on the active tab
-            const managePanes = (activeTab) => {
-                if (!activeTab) return;
-                const activePaneId = activeTab.getAttribute('data-bs-target');
-                console.log(`Tab event fired. Active pane should be: ${activePaneId}`);
+            // This sequence is nearly instantaneous and shouldn't cause a noticeable flicker.
+            // It programmatically clicks "Routes" and then immediately clicks "Ask" back.
+            routesTabButton.click();
+            askTabButton.click();
+            
+            console.log("[Tab Fix] Tab state has been refreshed.");
+        }
 
-                tabPanes.forEach(pane => {
-                    if (`#${pane.id}` === activePaneId) {
-                        // Use 'flex' because our layout relies on it
-                        pane.style.display = 'flex';
-                    } else {
-                        // Force all other panes to be hidden
-                        pane.style.display = 'none';
-                    }
-                });
-            };
-
+        function initializeRobustTabHiding() {
+            const tabContainer = document.querySelector('#sidebar-tabs');
+            if (!tabContainer) {
+                console.error("Tab container #sidebar-tabs not found.");
+                return;
+            }
+            
             // Listen for Bootstrap's event that fires AFTER a tab has been shown
             tabContainer.addEventListener('shown.bs.tab', (event) => {
-                managePanes(event.target);
+                const activeTab = event.target; // The new active tab
+                const activePaneId = activeTab.getAttribute('data-bs-target');
+                console.log(`Tab shown: ${activePaneId}.`);
+                
+                const tabPanes = document.querySelectorAll('.sidebar-wrapper .tab-pane');
+                tabPanes.forEach(pane => {
+                    if (`#${pane.id}` === activePaneId) {
+                        pane.style.display = 'flex'; // Use flex as per layout needs
+                    } else {
+                        pane.style.display = 'none'; // Force hide others
+                    }
+                });
             });
 
-            // Run once on initial load for the default active tab
+            // FIX: For initial load, programmatically click the active tab to trigger the 'shown.bs.tab' event.
             const initialActiveTab = tabContainer.querySelector('.nav-link.active');
             if (initialActiveTab) {
-                console.log("Setting initial tab visibility on page load.");
-                managePanes(initialActiveTab);
+                console.log("Programmatically clicking initial active tab to ensure visibility.");
+                initialActiveTab.click();
             }
         }
 
@@ -480,7 +543,7 @@
             staticWeatherWindLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
             weatherMarkerDrawer = new L.Draw.Marker(map, { icon: L.divIcon({ className: 'leaflet-draw-icon', html: '<i class="fas fa-cloud-sun-rain fa-2x text-info"></i>', iconSize: [32,32] }) });
         }
-
+        
         function initializeTimeline() {
             const today = new Date(); today.setUTCHours(0, 0, 0, 0); selectedDate = today.toISOString().split('T')[0];
             timelineSlider.max = 90; timelineSlider.value = 0; timelineLabel.textContent = 'Current';
@@ -501,7 +564,7 @@
 
         function setupEventListeners() {
             makeDraggable(document.getElementById('layers-sidebar'), document.getElementById('layers-sidebar-header'));
-            document.getElementById('sidebar-toggle').addEventListener('click', (e) => {
+            document.getElementById('sidebar-toggle').addEventListener('click', (e) => { 
                 const sidebar = document.getElementById('layers-sidebar');
                 sidebar.classList.toggle('collapsed');
                 e.currentTarget.querySelector('i').className = sidebar.classList.contains('collapsed') ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
@@ -525,9 +588,9 @@
                 });
             });
             document.getElementById('toggle-3d-btn').addEventListener('click', toggle3DView);
-            document.getElementById('expand-map-btn').addEventListener('click', () => {
-                document.body.classList.toggle('fullscreen');
-                setTimeout(() => { map.invalidateSize({ pan: true }); }, 310);
+            document.getElementById('expand-map-btn').addEventListener('click', () => { 
+                document.body.classList.toggle('fullscreen'); 
+                setTimeout(() => { map.invalidateSize({ pan: true }); }, 310); 
             });
             document.getElementById('get-weather-btn').addEventListener('click', () => weatherMarkerDrawer.enable());
             document.getElementById('goes-fire-temp-btn').addEventListener('click', toggleGoesPreview);
@@ -547,25 +610,23 @@
             document.getElementById('clear-markers-btn').addEventListener('click', clearRouteMarkers);
             document.getElementById('saved-routes-list').addEventListener('click', handleSavedRouteClick);
             initializeUnifiedSearch();
-
-            // Chat listeners
             document.getElementById('send-chat-btn').addEventListener('click', sendMessage);
             document.getElementById('chat-input').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    e.preventDefault();
+                    e.preventDefault(); 
                     sendMessage();
                 }
             });
         }
 
         function loadInitialData() { document.querySelectorAll('.layer-toggle:checked').forEach(toggle => { toggle.dispatchEvent(new Event('change')); }); }
-
+        
         async function loadFireData(source) {
             document.getElementById('main-loader').classList.remove('d-none');
             const apiSource = source === 'VIIRS' ? 'VIIRS_SNPP_NRT' : 'MODIS_NRT';
             let urlParams = (selectedDate && parseInt(timelineSlider.value, 10) > 0) ? `&acq_date=${selectedDate}` : '&day_range=1';
             try { const response = await axios.get(`/api/v1/fire-data?source=${apiSource}&area=world${urlParams}`); const fires = response.data.success ? response.data.data : []; fireDataCache[source] = fires; updateFireLayer(source, fires); updateAllFireStats(); const allCurrentFires = (fireDataCache['VIIRS'] || []).concat(fireDataCache['MODIS'] || []); if (parseInt(timelineSlider.value, 10) === 0) { updateRecentFires(allCurrentFires); } else { document.getElementById('recent-fires').innerHTML = `<p class="text-muted small p-2">Showing historical data for ${timelineLabel.textContent}.</p>`; } if (is3D) { synchronizeLayersToCesium(); }
-            } catch (error) { console.error(`Failed to load ${source} fire data for ${selectedDate}:`, error); fireDataCache[source] = []; updateFireLayer(source, []); updateAllFireStats(); }
+            } catch (error) { console.error(`Failed to load ${source} fire data for ${selectedDate}:`, error); fireDataCache[source] = []; updateFireLayer(source, []); updateAllFireStats(); } 
             finally { document.getElementById('main-loader').classList.add('d-none'); }
         }
 
@@ -581,14 +642,14 @@
             const url = `/api/wildfire-perimeters${queryString ? '?' + queryString : ''}`;
             console.log('Requesting Official Fires URL:', url);
             try {
-                const response = await axios.get(url);
+                const response = await axios.get(url); 
                 if (!response.data || !response.data.features || response.data.features.length === 0) { console.log("No features found in response for the current filter."); return; }
                 const now = Date.now(), oneDay = 86400000, threeDays = 3 * oneDay;
-                L.geoJSON(response.data, {
+                L.geoJSON(response.data, { 
                     onEachFeature: (feature, layer) => {
                         const props = feature.properties; const discoveryTs = props.attr_FireDiscoveryDateTime; const age = now - discoveryTs;
                         let color = '#0dcaf0'; if (age < oneDay) color = '#dc3545'; else if (age < threeDays) color = '#fd7e14';
-                        let radius = Math.max(5, Math.min(20, 5 + Math.log((props.poly_GISAcres || 0) + 1)));
+                        let radius = Math.max(5, Math.min(20, 5 + Math.log((props.poly_GISAcres || 0) + 1))); 
                         if (layer && typeof layer.getBounds === 'function') {
                             const bounds = layer.getBounds();
                             if (bounds.isValid()) {
@@ -602,10 +663,10 @@
                     }
                 });
                 if (is3D) synchronizeLayersToCesium();
-            } catch (error) { console.error("Failed to load official perimeters:", error); }
+            } catch (error) { console.error("Failed to load official perimeters:", error); } 
               finally { document.getElementById('main-loader').classList.add('d-none'); }
         }
-
+        
         const formatDate = (ts) => { if (!ts || ts <= 0) return 'N/A'; const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }; return new Date(ts).toLocaleString('en-US', options); };
         function toggleAnimatedWindLayer(show) { if (show) { if (!animatedWindLayer) { document.getElementById('main-loader').classList.remove('d-none'); axios.get('https://onaci.github.io/leaflet-velocity/wind-global.json').then(res => { animatedWindLayer = L.velocityLayer({ displayValues: true, displayOptions: { velocityType: 'Wind', position: 'bottomleft', emptyString: 'No wind data', angleConvention: 'bearingCCW', speedUnit: 'm/s' }, data: res.data, maxVelocity: 15, velocityScale: 0.005, particleMultiplier: 1 / 400, lineWidth: 1.5, colorScale: ["#2196F3", "#1976D2", "#0D47A1"] }); if (document.getElementById('animated-wind').checked) { map.addLayer(animatedWindLayer); } }).catch(err => { console.error("Failed to load or process animated wind data:", err); alert("Could not load animated wind data."); document.getElementById('animated-wind').checked = false; }).finally(() => { document.getElementById('main-loader').classList.add('d-none'); }); } else { map.addLayer(animatedWindLayer); } } else { if (animatedWindLayer) { map.removeLayer(animatedWindLayer); } } }
         function toggleGoesLayer(show) { if (show) { if (!goesLayer) { goesLayer = L.tileLayer.wms("https://mesonet.agron.iastate.edu/cgi-bin/wms/goes/conus_ir.cgi", { layers: 'goes_conus_ir', format: 'image/png', transparent: true, attribution: 'GOES Imagery Courtesy of Iowa Environmental Mesonet', opacity: 0.5, pane: 'goesLayerPane' }); } map.addLayer(goesLayer); } else { if (goesLayer) { map.removeLayer(goesLayer); } } }
@@ -737,6 +798,9 @@
                 });
             });
         }
+        
+        let speechRecognizer = null;
+        let isListening = false;
         function initializeSpeechToText() {
             const speechToTextBtn = document.getElementById('speech-to-text-btn');
             const chatInput = document.getElementById('chat-input');
@@ -757,8 +821,10 @@
                 }
                 
                 try {
+                    // FIX: Initialize the SDK only when the user clicks the button
                     if (typeof SpeechSDK === 'undefined') {
-                        alert("Speech SDK is not loaded yet. Please wait a moment and try again.");
+                        console.error("SpeechSDK is not loaded.");
+                        alert("Speech services are not available. Please check your connection and refresh the page.");
                         return;
                     }
                     
@@ -811,6 +877,7 @@
                 }
             });
         }
+
         function makeDraggable(element, handle) { let isDragging=false,x,y; handle.addEventListener('mousedown',function(e){isDragging=true;x=e.clientX-element.offsetLeft;y=e.clientY-element.offsetTop; e.preventDefault();}); document.addEventListener('mousemove',function(e){if(isDragging===true){element.style.left=Math.max(5, (e.clientX-x))+'px';element.style.top=Math.max(5, (e.clientY-y))+'px';}}); document.addEventListener('mouseup',function(e){isDragging=false;}); }
         function calculateConvexHull(points) {
             points.sort((a, b) => a[1] - b[1] || a[0] - b[0]);
