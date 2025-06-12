@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\WindController;
 
 use App\Http\Controllers\Api\FireDataController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Api\RoutingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,5 +56,6 @@ Route::get('/weather-for-point', [WeatherController::class, 'getWeatherForPoint'
 
 Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 
-Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');
 
+
+Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRouteToNearestStation']);

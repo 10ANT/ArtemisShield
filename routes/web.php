@@ -10,6 +10,7 @@ use App\Models\FireHydrant;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
 
 
 Route::get('/', function () {
@@ -95,3 +96,5 @@ Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
     Route::get('/', [NotificationController::class, 'index']);
     Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
 });
+
+Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');

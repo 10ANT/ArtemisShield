@@ -102,6 +102,114 @@
         }
         .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
 
+         /* --- NEW CSS FOR LIVE REPORT TAB --- */
+        #live-report-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .recording-controls {
+            text-align: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--bs-border-color);
+        }
+
+        .record-btn {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background-color: var(--bs-secondary-bg);
+            border: 4px solid var(--bs-primary);
+            color: var(--bs-primary);
+            font-size: 2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .record-btn:hover {
+            background-color: var(--bs-primary-bg-subtle);
+        }
+        
+        .record-btn:disabled {
+            background-color: var(--bs-secondary-bg);
+            border-color: var(--bs-secondary);
+            color: var(--bs-secondary);
+            cursor: not-allowed;
+        }
+
+        .record-btn.is-recording {
+            background-color: var(--bs-danger);
+            border-color: var(--bs-danger-bg-subtle);
+            color: #fff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        .recording-status {
+            margin-top: 0.5rem;
+            font-weight: 500;
+            color: var(--bs-secondary-color);
+        }
+        
+        .ai-analysis-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-top: 1rem;
+        }
+
+        .ai-analysis-card {
+            background-color: var(--bs-tertiary-bg);
+            border: 1px solid var(--bs-border-color-translucent);
+        }
+
+        .ai-analysis-card .card-header {
+            background-color: rgba(var(--bs-emphasis-color-rgb), 0.05);
+            font-weight: 600;
+        }
+
+        .entity-tag {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: .8em;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: var(--bs-border-radius);
+            margin: 2px;
+        }
+
+        .entity-tag-location { background-color: var(--bs-primary); color: #fff; }
+        .entity-tag-resource { background-color: var(--bs-info); color: #000; }
+        .entity-tag-hazard { background-color: var(--bs-warning); color: #000; }
+        .entity-tag-other { background-color: var(--bs-secondary); color: #fff; }
+
+        .suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--bs-border-color-translucent);
+        }
+        .suggestion-item:last-child {
+            border-bottom: none;
+        }
+        .suggestion-icon {
+            font-size: 1.25rem;
+            color: var(--bs-success);
+            margin-top: 0.25rem;
+        }
+
     </style>
 </head>
 
