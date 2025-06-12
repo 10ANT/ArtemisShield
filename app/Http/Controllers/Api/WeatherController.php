@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\JsonResponse;
 
-class WeatherController extends Controller
+class WeatherController extends wController
 {
     /**
      * Fetch weather for a specific point from OpenWeatherMap.

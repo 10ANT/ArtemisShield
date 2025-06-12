@@ -11,6 +11,9 @@ use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\AgentController;
 
 
+
+
+
 Route::get('/', function () {
     return view('main');
 });

@@ -58,7 +58,10 @@ return [
         'client_secret' => env('AZURE_CLIENT_SECRET'),
         
         // Keep the old API key in case other services need it
-  
+
+        //below for speech
+        'speech_key' => env('AZURE_SPEECH_KEY'),
+        'speech_region' => env('AZURE_SPEECH_REGION'),
     ],
 
 
