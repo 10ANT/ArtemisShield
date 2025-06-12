@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
-use App\Services\AzureSearchService; // <-- Import the new service
+use App\Services\AzureSearchService;
+use App\Models\Report;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -22,6 +24,7 @@ class ReportController extends Controller
      */
     public function process(Request $request, AzureSearchService $searchService) // <-- Inject service here
     {
+        
         $request->validate(['audio' => 'required|file']);
 
         try {
@@ -30,6 +33,15 @@ class ReportController extends Controller
             
             // This is the key change: call the new RAG-based suggestion method
             $suggestions = $this->getRagSuggestions($transcript, $analysis['entities'], $searchService);
+
+             // --- START: Database Saving Logic ---
+            $report = new Report();
+            $report->transcript = $transcript;
+            $report->ai_suggested_actions = $suggestions; // Laravel's cast handles JSON encoding automatically
+            $report->key_entities = $analysis['entities']; // Also cast to JSON
+            $report->user_id = Auth::id();
+            $report->save();
+            // --- END: Database Saving Logic ---
 
             return response()->json([
                 'transcript' => $transcript,
@@ -231,5 +243,19 @@ Based on the official documents and the report, provide 3-4 concise suggestions 
 
         Log::warning('No suggestions generated from RAG-based OpenAI.', ['content' => $content]);
         return [];
+    }
+
+      public function history()
+    {
+        // Fetch all reports, ordered by the newest first.
+        // We only select the columns needed by the frontend for efficiency.
+        $reports = Report::latest()->get([
+            'id', 
+            'transcript', 
+            'ai_suggested_actions', 
+            'created_at'
+        ]);
+
+        return response()->json($reports);
     }
 }

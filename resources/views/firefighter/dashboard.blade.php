@@ -279,6 +279,21 @@
                                         <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-wind fa-3x mb-3"></i><p>Awaiting field report...</p></div>
                                         <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
                                     </div>
+                                     <!-- START: NEW PREVIOUS TRANSCRIPTS SECTION -->
+    <div class="px-3 pb-3 mt-4">
+        <hr>
+        <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
+        
+        <!-- This container will be filled by JavaScript -->
+        <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;">
+             <!-- A loading indicator will be shown initially -->
+            <p id="previous-transcripts-loading" class="text-muted text-center p-4">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Loading history...
+            </p>
+        </div>
+    </div>
+    <!-- END: NEW PREVIOUS TRANSCRIPTS SECTION -->
                                 </div>
                             </div>
                         </div>
@@ -450,7 +465,93 @@
                 const resultsHtml = `<div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div><div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div><div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div><div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div></div><div class="accordion" id="transcriptAccordion"><div class="accordion-item bg-transparent border-secondary"><h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2><div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div></div></div>`;
                 if(resultsContainer) resultsContainer.innerHTML = resultsHtml; };
                 const showError = (message) => { if(errorContainer) { errorContainer.textContent = message; errorContainer.classList.remove('d-none'); } if(placeholder) placeholder.classList.add('d-none'); if(resultsContainer) resultsContainer.innerHTML = ''; };
-                setupAudio();
+                
+
+                /**
+     * NEW FUNCTION: Fetches and displays the history of previous reports.
+     */
+    const loadPreviousTranscripts = async () => {
+        const container = document.getElementById('previous-transcripts-container');
+        const loadingIndicator = document.getElementById('previous-transcripts-loading');
+
+        try {
+            const response = await fetch('/reports/history', {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+
+            const reports = await response.json();
+            
+            // Hide the loading indicator once data is fetched
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+
+            if (reports && reports.length > 0) {
+                let html = '<div class="accordion" id="previousReportsAccordion">';
+                
+                reports.forEach((report, index) => {
+                    const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                    
+                    // The suggestions might be nested, so we check for both possibilities
+                    const suggestionsList = report.ai_suggested_actions?.suggestions || report.ai_suggested_actions || [];
+                    let suggestionsHtml = '';
+
+                    if (Array.isArray(suggestionsList) && suggestionsList.length > 0) {
+                        suggestionsHtml = '<ul class="list-group list-group-flush">';
+                        suggestionsList.forEach(s => {
+                            suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${s.icon || 'fas fa-lightbulb'} me-2 text-success"></i> ${s.suggestion || '...'}</li>`;
+                        });
+                        suggestionsHtml += '</ul>';
+                    } else {
+                        suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
+                    }
+
+                    html += `
+                        <div class="accordion-item bg-dark border-secondary mb-2">
+                            <h2 class="accordion-header" id="heading-history-${report.id}">
+                                <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">
+                                    Report from ${reportDate}
+                                </button>
+                            </h2>
+                            <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
+                                <div class="accordion-body">
+                                    <h6 class="text-white-50">Transcript</h6>
+                                    <p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p>
+                                    
+                                    <h6 class="text-white-50">AI Suggested Actions</h6>
+                                    ${suggestionsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>';
+            }
+
+        } catch (error) {
+            console.error('Failed to load report history:', error);
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+            container.innerHTML = '<div class="alert alert-warning text-center">Could not load report history.</div>';
+        }
+    };
+    
+    // Call the setup and new load function
+    setupAudio();
+    loadPreviousTranscripts(); // <-- CALL THE NEW FUNCTION HERE
+
             };
             initLiveReport();
 

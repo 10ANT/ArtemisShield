@@ -59,3 +59,5 @@ Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 
 
 Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRouteToNearestStation']);
+
+
