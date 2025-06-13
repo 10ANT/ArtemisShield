@@ -14,9 +14,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <link rel="stylesheet" href="{{ asset('css/leaflet-velocity.css') }}" />
 
-    <!-- Speech SDK is loaded in the head -->
-    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-
     @include('partials.styles')
     <style>
         :root { --legend-width: 280px; --right-sidebar-width: 25%; }
@@ -50,13 +47,11 @@
         #recent-fires .card:hover { background-color: var(--bs-body-tertiary); cursor: pointer; }
         .frp-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; border: 1px solid #666;}
         
-        /* Weather popup styles */
         .weather-popup .card-body { padding: 0.75rem; }
         .weather-popup .weather-main { display: flex; align-items: center; justify-content: space-between; }
         .weather-popup .weather-main h4 { margin: 0; }
         .weather-popup .weather-details { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; }
         
-        /* GOES preview styles */
         #goes-preview { position: fixed; z-index: 1002; background: rgba(0,0,0,0.7); border: 2px solid #fff; border-radius: 5px; pointer-events: none; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 5px; }
         #goes-preview img { width: 300px; height: 300px; }
         #goes-preview p { color: white; margin: 5px 0 0 0; font-size: 0.8em; text-align: center; }
@@ -68,12 +63,10 @@
         #zoomed-goes-image { width: 100%; height: auto; max-height: 80vh; object-fit: contain; }
         #magnifier-loupe { width: 200px; height: 200px; position: absolute; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; display: none; background-repeat: no-repeat; }
         
-        /* Timeline slider styles */
         #timeline-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 800px; z-index: 1001; background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: 10px 20px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; }
         #timeline-label { font-size: 0.9em; font-weight: bold; white-space: nowrap; min-width: 100px; text-align: center; color: var(--bs-body-color); }
         #timeline-slider { flex-grow: 1; }
         
-        /* Sidebar and Tab Pane Layout Fix */
         .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
         .sidebar-wrapper > .card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
         .sidebar-wrapper .tab-content { flex: 1; min-height: 0; position: relative; }
@@ -84,7 +77,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            display: none; /* JS will manage visibility */
+            display: none;
             flex-direction: column;
         }
         
@@ -93,7 +86,6 @@
         #routes-content, #control-content { display: flex; flex-direction: column; height: 100%; }
         #routes-content .flex-grow-1, #control-content .flex-grow-1 { min-height: 0; overflow-y: auto; }
         
-        /* Search styles */
         #search-icon-btn { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1002; }
         #search-container {
             position: absolute; top: 55px; left: 50%; transform: translateX(-50%);
@@ -183,15 +175,15 @@
                 <!-- Right Sidebar Column -->
                 <div class="col-lg-3 col-md-4 right-sidebar-column">
                     <div class="sidebar-wrapper">
-                        <div class="card-header p-2"><ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist"><li class="nav-item" role="presentation"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab"><i class="fas fa-comments me-1"></i> Ask</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#routes-content" type="button" role="tab"><i class="fas fa-route me-1"></i> Routes</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab"><i class="fas fa-cogs me-1"></i> Data</button></li></ul></div>
+                        <div class="card-header p-2"><ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist"><li class="nav-item" role="presentation" style=""><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab"><i class="fas fa-comments me-1" ></i> Ask</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#routes-content" type="button" role="tab"><i class="fas fa-route me-1"></i> Routes</button></li><li class="nav-item" role="presentation"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#control-content" type="button" role="tab"><i class="fas fa-cogs me-1"></i> Data</button></li></ul></div>
                         <div class="card-body p-0">
                             <div class="tab-content h-100">
                                 <div class="tab-pane fade p-3" id="chat-content" role="tabpanel">
                                     <div class="chat-container">
                                         <div class="chat-messages" id="chat-messages"></div>
                                         <div class="chat-input-group d-flex gap-2 mt-2">
-                                            <input type="text" class="form-control" placeholder="Ask a question..." id="chat-input">
-                                            <button class="btn btn-secondary" id="speech-to-text-btn" title="Start Listening"><i class="fas fa-microphone"></i></button>
+                                            <input type="text" class="form-control" placeholder="Ask a question or use the mic..." id="chat-input">
+                                            <button class="btn btn-secondary" id="speech-to-text-btn" title="Talk to Agent"><i class="fas fa-microphone"></i></button>
                                             <button class="btn btn-primary" id="send-chat-btn"><i class="fas fa-paper-plane"></i></button>
                                             <button class="btn btn-secondary" id="reset-chat-btn" title="Reset Conversation"><i class="fas fa-sync-alt"></i></button>
                                         </div>
@@ -242,9 +234,6 @@
         Cesium.Ion.defaultAccessToken = "{{ config('services.cesium.ion_access_token', 'YOUR_FALLBACK_KEY') }}";
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        const AZURE_SPEECH_KEY = "{{ config('services.azure.speech_key') }}";
-        const AZURE_SPEECH_REGION = "{{ config('services.azure.speech_region') }}";
-
         let agentHandler;
         let map, fireDetailsModal, weatherMarkerDrawer, drawnItems;
         const fireLayerGroups = { 'VIIRS': L.layerGroup(), 'MODIS': L.layerGroup() };
@@ -298,7 +287,7 @@
             setBusy(busy) {
                 this.isBusy = busy;
                 this.chatInput.disabled = busy;
-                this.chatInput.placeholder = busy ? "Agent is thinking..." : "Ask a question...";
+                this.chatInput.placeholder = busy ? "Artemis is thinking..." : "Ask a question or use the mic...";
                 if (!busy) this.runId = null;
             }
             async sendMessage(messageText) {
@@ -452,7 +441,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // A longer timeout to ensure all complex components are ready for interaction
             setTimeout(() => {
                 initializeMap();
                 fireDetailsModal = new bootstrap.Modal(document.getElementById('fire-details-modal'));
@@ -460,40 +448,33 @@
                 zoomedGoesModal = new bootstrap.Modal(document.getElementById('zoomed-goes-modal')); zoomedGoesContainer = document.getElementById('zoomed-goes-image-container'); zoomedGoesImage = document.getElementById('zoomed-goes-image'); zoomedGoesTitle = document.getElementById('zoomed-goes-modal-title'); magnifierLoupe = document.getElementById('magnifier-loupe');
                 timelineSlider = document.getElementById('timeline-slider'); timelineLabel = document.getElementById('timeline-label');
                 
-                initializeRobustTabHiding(); // This listener is still needed for subsequent clicks
+                initializeRobustTabHiding();
                 
                 initializeTimeline();
                 setupEventListeners();
                 initializeMagnifier();
-                initializeSpeechToText();
+                initializeAudioRecording();
                 loadInitialData();
                 fetchAndDisplaySavedRoutes();
                 
                 const chatMessagesContainer = document.getElementById('chat-messages');
                 const chatInput = document.getElementById('chat-input');
                 agentHandler = new AgentHandler(chatMessagesContainer, chatInput);
-                
-                // *** FIX: Call the new kickstart function to solve the initial visibility issue ***
-                kickstartInitialTab();
 
-            }, 250); // Use a sufficient delay
+                kickstartInitialTab();
+            }, 250);
         });
+
          function kickstartInitialTab() {
             console.log("[Tab Fix] Forcing tab state refresh on load...");
-
             const askTabButton = document.querySelector('button[data-bs-target="#chat-content"]');
             const routesTabButton = document.querySelector('button[data-bs-target="#routes-content"]');
-
             if (!askTabButton || !routesTabButton) {
                 console.error("[Tab Fix] Could not find Ask or Routes tab buttons.");
                 return;
             }
-
-            // This sequence is nearly instantaneous and shouldn't cause a noticeable flicker.
-            // It programmatically clicks "Routes" and then immediately clicks "Ask" back.
             routesTabButton.click();
             askTabButton.click();
-            
             console.log("[Tab Fix] Tab state has been refreshed.");
         }
 
@@ -503,24 +484,20 @@
                 console.error("Tab container #sidebar-tabs not found.");
                 return;
             }
-            
-            // Listen for Bootstrap's event that fires AFTER a tab has been shown
             tabContainer.addEventListener('shown.bs.tab', (event) => {
-                const activeTab = event.target; // The new active tab
+                const activeTab = event.target;
                 const activePaneId = activeTab.getAttribute('data-bs-target');
                 console.log(`Tab shown: ${activePaneId}.`);
                 
                 const tabPanes = document.querySelectorAll('.sidebar-wrapper .tab-pane');
                 tabPanes.forEach(pane => {
                     if (`#${pane.id}` === activePaneId) {
-                        pane.style.display = 'flex'; // Use flex as per layout needs
+                        pane.style.display = 'flex';
                     } else {
-                        pane.style.display = 'none'; // Force hide others
+                        pane.style.display = 'none';
                     }
                 });
             });
-
-            // FIX: For initial load, programmatically click the active tab to trigger the 'shown.bs.tab' event.
             const initialActiveTab = tabContainer.querySelector('.nav-link.active');
             if (initialActiveTab) {
                 console.log("Programmatically clicking initial active tab to ensure visibility.");
@@ -781,7 +758,7 @@
             }
             container.innerHTML = results.map(result => {
                 const icon = result.type === 'fire' ? 'fas fa-fire text-danger' : 'fas fa-map-pin text-info';
-                return `<div class="search-result-card" data-bbox="${result.bbox.toBBoxString()}"><div class="d-flex align-items-center"><i class="${icon} me-3"></i><div><div class="result-name">${result.name}</div><div class="result-details">${result.details}</div></div></div></div>`;
+                return `<div class="search-result-card" data-bbox="${result.bbox.toBBoxString()}"><div class="d-flex align-items-center"><i class="${icon} me-3"></i><div><div class="result-name">${result.name}</div><div class="result-details">${result.details}</div></div></div>`;
             }).join('');
             
             container.querySelectorAll('.search-result-card').forEach(card => {
@@ -799,84 +776,115 @@
             });
         }
         
-        let speechRecognizer = null;
-        let isListening = false;
-        function initializeSpeechToText() {
-            const speechToTextBtn = document.getElementById('speech-to-text-btn');
+        // --- START: NEW AUDIO WORKFLOW ---
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        function initializeAudioRecording() {
+            const recordBtn = document.getElementById('speech-to-text-btn');
             const chatInput = document.getElementById('chat-input');
-            const icon = speechToTextBtn.querySelector('i');
+            const icon = recordBtn.querySelector('i');
 
-            if (!AZURE_SPEECH_KEY || AZURE_SPEECH_KEY.includes('YOUR_FALLBACK_KEY') || !AZURE_SPEECH_REGION) {
-                console.warn("Azure Speech credentials not configured. Hiding speech button.");
-                speechToTextBtn.style.display = 'none';
-                return;
-            }
-
-            speechToTextBtn.addEventListener('click', () => {
-                if (isListening) {
-                    if (speechRecognizer) {
-                        speechRecognizer.stopContinuousRecognitionAsync(() => console.log("Speech recognition stopped by user."));
-                    }
-                    return;
-                }
-                
-                try {
-                    // FIX: Initialize the SDK only when the user clicks the button
-                    if (typeof SpeechSDK === 'undefined') {
-                        console.error("SpeechSDK is not loaded.");
-                        alert("Speech services are not available. Please check your connection and refresh the page.");
-                        return;
-                    }
-                    
-                    const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(AZURE_SPEECH_KEY, AZURE_SPEECH_REGION);
-                    speechConfig.speechRecognitionLanguage = "en-US";
-                    const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-                    speechRecognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-                    
-                    chatInput.value = ''; 
-                    isListening = true;
-                    icon.classList.remove('fa-microphone');
-                    icon.classList.add('fa-stop', 'text-danger');
-                    chatInput.placeholder = "Listening...";
-                    
-                    speechRecognizer.recognizing = (s, e) => { chatInput.value = e.result.text; };
-                    speechRecognizer.recognized = (s, e) => { if (e.result.reason == SpeechSDK.ResultReason.RecognizedSpeech) { chatInput.value = e.result.text; }};
-                    speechRecognizer.canceled = (s, e) => {
-                        console.error(`CANCELED: Reason=${e.reason}. ErrorDetails=${e.errorDetails}`);
-                        if (e.reason === SpeechSDK.CancellationReason.Error) {
-                            alert(`Speech Error: ${e.errorDetails}.\n\nPlease ensure your microphone is enabled in your browser/OS and connected properly.`);
-                        }
-                        speechRecognizer.stopContinuousRecognitionAsync();
-                    };
-                    speechRecognizer.sessionStopped = (s, e) => {
-                        console.log("Session stopped.");
-                        isListening = false;
-                        icon.classList.remove('fa-stop', 'text-danger');
-                        icon.classList.add('fa-microphone');
-                        chatInput.placeholder = "Ask a question...";
-                        speechRecognizer.close();
-                        speechRecognizer = null;
-                    };
-                    
-                    speechRecognizer.startContinuousRecognitionAsync(
-                        () => console.log("Speech recognition started."),
-                        (err) => {
-                            console.error(`Error starting speech recognition: ${err}`);
-                            alert(`Error starting speech recognition: ${err}`);
-                            speechRecognizer.close();
-                            speechRecognizer = undefined;
-                        }
-                    );
-                } catch (error) {
-                    console.error("Failed to initialize Speech SDK:", error);
-                    alert("Failed to initialize speech services. Please check the console for details.");
-                    isListening = false;
-                    icon.classList.remove('fa-stop', 'text-danger');
-                    icon.classList.add('fa-microphone');
-                    chatInput.placeholder = "Speech unavailable";
+            recordBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    stopRecording();
+                } else {
+                    startRecording();
                 }
             });
+
+            async function startRecording() {
+                console.log("[Speech-to-Text] Starting recording...");
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    isRecording = true;
+                    audioChunks = [];
+                    mediaRecorder = new MediaRecorder(stream);
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        console.log("[Speech-to-Text] Recording stopped. Sending for transcription.");
+                        stream.getTracks().forEach(track => track.stop());
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        sendAudioForTranscription(audioBlob);
+                    };
+                    
+                    mediaRecorder.start();
+
+                    // Update UI
+                    icon.classList.remove('fa-microphone');
+                    icon.classList.add('fa-stop', 'text-danger');
+                    recordBtn.title = "Stop Recording";
+                    chatInput.placeholder = "Listening... Click stop when finished.";
+                    chatInput.disabled = true;
+
+                } catch (err) {
+                    console.error("[Speech-to-Text] Error accessing microphone:", err);
+                    alert("Could not access the microphone. Please ensure you have granted permission in your browser settings.");
+                    isRecording = false;
+                }
+            }
+
+            function stopRecording() {
+                if (mediaRecorder && mediaRecorder.state === "recording") {
+                    mediaRecorder.stop();
+                }
+            }
+
+            async function sendAudioForTranscription(blob) {
+                console.log(`[Speech-to-Text] Sending audio blob for transcription. Size: ${blob.size} bytes`);
+                const recordBtn = document.getElementById('speech-to-text-btn');
+                const chatInput = document.getElementById('chat-input');
+                const icon = recordBtn.querySelector('i');
+                
+                // Update UI to show processing state
+                icon.classList.remove('fa-stop', 'text-danger');
+                icon.classList.add('fa-spinner', 'fa-spin');
+                recordBtn.title = "Transcribing...";
+                recordBtn.disabled = true;
+                chatInput.placeholder = "Transcribing audio...";
+
+                const formData = new FormData();
+                formData.append('audio', blob, 'speech_input.webm');
+
+                try {
+                    // Call the new, simple transcription endpoint
+                    const response = await axios.post('/transcribe/audio', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+
+                    const transcript = response.data.transcript;
+                    console.log("[Speech-to-Text] Received transcript:", transcript);
+
+                    if (transcript) {
+                        // Place the transcript in the chat box and send it to the agent
+                        chatInput.value = transcript;
+                        sendMessage();
+                    } else {
+                        console.warn("[Speech-to-Text] Received empty transcript from server.");
+                    }
+
+                } catch (error) {
+                    console.error("[Speech-to-Text] Failed to transcribe audio:", error.response?.data || error.message);
+                    const errorMessage = error.response?.data?.error || "Could not transcribe the audio.";
+                    agentHandler.displayMessage(`<strong>Transcription Failed:</strong> ${errorMessage}`, 'assistant');
+                } finally {
+                    // Reset UI
+                    isRecording = false;
+                    icon.classList.remove('fa-spinner', 'fa-spin');
+                    icon.classList.add('fa-microphone');
+                    recordBtn.title = "Talk to Agent";
+                    recordBtn.disabled = false;
+                    chatInput.placeholder = "Ask a question or use the mic...";
+                    chatInput.disabled = false;
+                }
+            }
         }
+        // --- END: NEW AUDIO WORKFLOW ---
 
         function makeDraggable(element, handle) { let isDragging=false,x,y; handle.addEventListener('mousedown',function(e){isDragging=true;x=e.clientX-element.offsetLeft;y=e.clientY-element.offsetTop; e.preventDefault();}); document.addEventListener('mousemove',function(e){if(isDragging===true){element.style.left=Math.max(5, (e.clientX-x))+'px';element.style.top=Math.max(5, (e.clientY-y))+'px';}}); document.addEventListener('mouseup',function(e){isDragging=false;}); }
         function calculateConvexHull(points) {

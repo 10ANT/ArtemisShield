@@ -10,7 +10,7 @@ use App\Models\FireHydrant;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\PageController;
-
+use App\Http\Controllers\TranscriptionController;
 
 
 
@@ -65,6 +65,8 @@ Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 
 
 
+
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -103,3 +105,5 @@ Route::get('/wildfire-officer/wind-global.json', function () {
 Route::post('/agent/chat', [AgentController::class, 'chat']);
 Route::post('/agent/submit-tool-output', [AgentController::class, 'submitToolOutput']);
 Route::post('/agent/reset', [AgentController::class, 'reset']);
+
+Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');
