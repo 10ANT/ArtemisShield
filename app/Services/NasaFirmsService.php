@@ -37,7 +37,7 @@ class NasaFirmsService
         $url = "{$this->baseUrl}{$this->apiKey}/MODIS_NRT/-180,-90,180,90/1";
 
         try {
-            $response = Http::timeout(30)->get($url);
+            $response = Http::timeout(60)->get($url); // Increased timeout for large dataset
 
             if ($response->failed()) {
                 Log::error('NASA FIRMS API request failed.', ['status' => $response->status(), 'body' => $response->body()]);
@@ -53,7 +53,7 @@ class NasaFirmsService
         $lines = explode("\n", trim($csvData));
         $header = str_getcsv(array_shift($lines)); // Get and remove header
 
-        if (empty($lines)) {
+        if (empty($lines) || empty($header)) {
             return ['status' => 'success', 'message' => 'No new fire incidents reported in the last 24 hours.', 'count' => 0];
         }
 
@@ -69,10 +69,6 @@ class NasaFirmsService
 
             $rowData = array_combine($header, $data);
 
-            // --- FIX: Correctly format the HHMM time string ---
-            // The FIRMS time is in HHMM format (e.g., '1800' or '0435'). We need to format it to 'HH:MM:SS'.
-            // The previous logic had a flaw that resulted in an invalid time like '18::00'.
-            // This new logic is more robust and guarantees the correct format.
             $timeRaw = str_pad($rowData['acq_time'], 4, '0', STR_PAD_LEFT);
             $hours = substr($timeRaw, 0, 2);
             $minutes = substr($timeRaw, 2, 2);
@@ -85,21 +81,20 @@ class NasaFirmsService
                 'scan' => $rowData['scan'],
                 'track' => $rowData['track'],
                 'acq_date' => $rowData['acq_date'],
-                'acq_time' => $timeFormatted, // Use the correctly formatted time
+                'acq_time' => $timeFormatted,
                 'satellite' => $rowData['satellite'],
-                'instrument' => 'MODIS', // The API endpoint specifies MODIS
+                'instrument' => 'MODIS',
                 'confidence' => $rowData['confidence'],
                 'version' => $rowData['version'],
                 'bright_t31' => $rowData['bright_t31'],
                 'frp' => $rowData['frp'],
                 'daynight' => $rowData['daynight'],
-                'type' => 0, // Default type, can be adjusted based on logic
+                'type' => 0,
                 'source' => 'MODIS_NRT',
                 'created_at' => $now,
                 'updated_at' => $now,
             ];
 
-            // Create a unique key to prevent duplicates within this same batch
             $key = "{$incidentData['latitude']}-{$incidentData['longitude']}-{$incidentData['acq_date']}-{$incidentData['acq_time']}";
             if (!isset($uniqueKeys[$key])) {
                 $incidents[] = $incidentData;
@@ -113,19 +108,25 @@ class NasaFirmsService
 
         // Use a transaction for efficiency and safety
         DB::transaction(function () use ($incidents) {
-            // First, clear out old data to keep the table fresh with only recent incidents.
-            // This is better than letting the table grow indefinitely.
+            // First, clear out old data to keep the table fresh.
             FireIncident::where('created_at', '<', Carbon::now()->subDays(2))->delete();
 
-            // Insert new data, ignoring duplicates based on a unique combination
-            // This prevents errors if you run the fetch multiple times within a short period.
-            FireIncident::upsert($incidents, 
-                ['latitude', 'longitude', 'acq_date', 'acq_time'], // Unique columns
-                ['brightness', 'confidence', 'frp', 'updated_at'] // Columns to update on duplicate
-            );
+            // ** THE FIX IS HERE: Chunk the data before upserting **
+            // We break the massive $incidents array into smaller chunks of 500 records.
+            $incidentChunks = collect($incidents)->chunk(500);
+
+            // Now we loop through each small chunk and run an upsert operation.
+            // This keeps the number of placeholders in each query well below the limit.
+            foreach ($incidentChunks as $chunk) {
+                FireIncident::upsert(
+                    $chunk->toArray(),
+                    ['latitude', 'longitude', 'acq_date', 'acq_time'], // Unique columns to identify duplicates
+                    ['brightness', 'confidence', 'frp', 'updated_at']  // Columns to update if a duplicate is found
+                );
+            }
         });
         
-        Log::info('Successfully fetched and stored NASA FIRMS data.', ['count' => count($incidents)]);
+        Log::info('Successfully fetched and stored/updated NASA FIRMS data.', ['count' => count($incidents)]);
         return ['status' => 'success', 'message' => 'Successfully updated fire incident data.', 'count' => count($incidents)];
     }
 }
