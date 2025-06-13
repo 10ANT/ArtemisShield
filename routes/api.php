@@ -16,6 +16,9 @@ use App\Http\Controllers\Api\FireDataController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\RoutingController;
 
+use App\Http\Controllers\FireIncidentController;
+
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -61,3 +64,6 @@ Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRouteToNearestStation']);
 
 
+
+// Add this line
+Route::get('/fire-incidents', [FireIncidentController::class, 'getApiIncidents']);

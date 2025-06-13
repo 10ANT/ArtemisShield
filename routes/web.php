@@ -12,6 +12,7 @@ use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 
+use App\Http\Controllers\FireIncidentController;
 
 Route::get('/', function () {
     return view('main');
@@ -99,3 +100,7 @@ Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
 });
 
 Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');
+
+
+// Replace your old route for the dashboard with this one
+Route::get('/firefighter-dashboard', [FireIncidentController::class, 'dashboard'])->name('firefighter.dashboard');

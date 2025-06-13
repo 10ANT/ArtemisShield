@@ -14,6 +14,11 @@ return [
     |
     */
 
+    // Add this array inside the return array
+    'nasa_firms' => [
+        'api_key' => env('NASA_FIRMS_API_KEY'),
+    ],
+
      'azure' => [
         'search' => [
             'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
