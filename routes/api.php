@@ -11,13 +11,16 @@ use App\Http\Controllers\Api\WildfirePerimeterController;
 use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\Api\V1\ProxyController; 
 use App\Http\Controllers\Api\V1\WindController;
-
 use App\Http\Controllers\Api\FireDataController;
+
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\RoutingController;
 
 use App\Http\Controllers\FireIncidentController;
 use App\Http\Controllers\Api\ChatController;
+
+use App\Http\Controllers\GeocodingController; 
+>>>>>>> main
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +35,11 @@ use App\Http\Controllers\Api\ChatController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
+
 })->middleware('auth:sanctum');
+
+
+
 
 // Your API routes should be here:
 Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
@@ -61,6 +68,7 @@ Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 
 
 
+
 Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRouteToNearestStation']);
 
 
@@ -69,3 +77,8 @@ Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRoute
 Route::get('/fire-incidents', [FireIncidentController::class, 'getApiIncidents']);
 
 Route::post('/chat', [ChatController::class, 'sendMessage']);
+
+Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this line
+
+
+
