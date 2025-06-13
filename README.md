@@ -1,67 +1,148 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🔥 Artemis – Wildfire Response and Prediction System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Laravel](https://img.shields.io/badge/built%20with-Laravel-red)
+![Hackathon](https://img.shields.io/badge/hackathon-project-important)
+![Status](https://img.shields.io/badge/status-in%20progress-yellow)
 
-## About Laravel
+> **Artemis** is an AI-powered wildfire monitoring and emergency response application designed to empower emergency responders, planners, and policymakers with **real-time fire intelligence**, **risk assessments**, and **strategic guidance**. Built with Laravel, OpenAI, and Azure AI, Artemis bridges data, decision-making, and deployment—all under one roof.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Table of Contents
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [🔍 Project Overview](#-project-overview)
+- [🎯 Features](#-features)
+- [👥 User Roles](#-user-roles)
+- [🗺️ Map & Visualization Modes](#-map--visualization-modes)
+- [🧠 AI Assistant](#-ai-assistant)
+- [🧑‍🚒 Firefighter Dashboard](#-firefighter-dashboard)
+- [🛠️ Tech Stack](#-tech-stack)
+- [📦 Repository Structure](#-repository-structure)
+- [📄 API Documentation](#-api-documentation)
+- [📈 Future Enhancements](#-future-enhancements)
+- [📚 Setup & Installation](#-setup--installation)
+- [🤝 Contributing](#-contributing)
+- [🛡️ License](#-license)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 🔍 Project Overview
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Wildfires are increasing in frequency and impact. **Artemis** is a scalable, real-time solution to:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- Predict wildfire **spread and intensity**
+- Assess **risks** to infrastructure, communities, and natural resources
+- Recommend optimal **resource allocation** and **evacuation routes**
+- Provide **interpretable, AI-driven insights** to decision-makers
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🎯 Features
 
-### Premium Partners
+### 🌍 For General Users
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+- 🔥 **Live Wildfire Map**: View active fires with satellite + 3D options
+- 📜 **Historical Fires**: Browse wildfire events by date ranges
+- 🧠 **AI Assistant (Artemis Bot)**:
+  - Explains fire behavior
+  - Executes map functions (zoom, route marking, etc.)
+- 🌱 **Map Layers**:
+  - Vegetation view
+  - Road & rail infrastructure
+  - Heat maps & risk overlays
+  - Weather data and live fire predictions
+- 📍 **Smart Navigation**: Get shortest paths across the terrain
 
-## Contributing
+### 🧑‍🚒 For First Responders (Firefighters, Paramedics)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- 🧭 **Incident-Specific Map View**:
+  - Active fire perimeters
+  - Fire hydrant and station locations
+- 🗣️ **Voice Reporting** (via Azure AI + OpenAI):
+  - Speak fire reports into the system
+  - Generates summaries, key entities, and AI-suggested next steps
+- 🛎️ **Fire Alerts**:
+  - Nearest fire stations automatically alerted
+  - Team notifications and updates via shared transcript log
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 👥 User Roles
 
-## Security Vulnerabilities
+| Role            | Permissions                                                                 |
+|-----------------|-------------------------------------------------------------------------------|
+| General User    | View maps, interact with AI, track wildfires, view predictions              |
+| First Responder | Submit reports, access tactical maps, receive alerts, AI assistance         |
+| Admin (optional template) | Manage users, fire zones, AI datasets, and alert systems            |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 🗺️ Map & Visualization Modes
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-"# ArtemisShield-" 
+- 🛰️ **Satellite Mode**
+- 🌳 **Vegetation Mode**
+- 🚧 **Infrastructure View** (roads, railways)
+- 🌡️ **Heat Map Overlay**
+- ☁️ **Weather + Wind Prediction**
+- 🧭 **Route Planner** (shortest + safest path)
+
+---
+
+## 🧠 AI Assistant
+
+Artemis leverages **GPT-3.5 Turbo (RAG)** for:
+- Natural language query processing
+- Contextual map assistance
+- First responder dialogue generation
+- Smart routing and fire prediction explanations
+
+> 🔍 **Retrieval-Augmented Generation (RAG)** integrates custom datasets for hyper-relevant, grounded answers.
+
+---
+
+## 🧑‍🚒 Firefighter Dashboard
+
+| Feature                        | Description |
+|-------------------------------|-------------|
+| 🎙️ Voice to Summary            | Speak your report, get real-time AI transcription + suggestions |
+| 🧾 Transcript Log              | All voice reports available to the team |
+| 🧠 Entity Detection            | AI extracts key elements like location, urgency, fire behavior |
+| 📍 Map with Hydrants & Stations | Specialized layers for operational use |
+| 🚨 Fire Station Auto Alerts     | Nearest team notified instantly on active fire detection |
+
+---
+
+## 🛠️ Tech Stack
+
+| Tech                | Purpose |
+|---------------------|---------|
+| Laravel             | Core backend framework |
+| Laravel Jetstream   | Authentication and team management |
+| Vue.js / Livewire   | Frontend interaction (assumed) |
+| OpenAI GPT-3.5 Turbo| AI assistant and fire report analysis |
+| Azure Cognitive Services | Voice recognition and speech-to-text |
+| Mapbox / Leaflet / CesiumJS | Interactive 2D/3D maps |
+| PostgreSQL / MySQL  | Relational database |
+| Redis / Queue System| Real-time updates / notifications |
+| GitHub Actions      | CI/CD pipeline (template section) |
+
+---
+
+## 📦 Repository Structure
+
+```bash
+├── app/
+├── bootstrap/
+├── config/
+├── database/
+├── public/
+├── resources/
+│   ├── js/         # Vue.js or Livewire components
+│   └── views/      # Blade templates
+├── routes/
+│   └── web.php     # Route definitions
+├── storage/
+├── tests/
+├── README.md
+└── .env.example

@@ -12,7 +12,15 @@ use App\Http\Controllers\Api\WeatherController;
 use App\Http\Controllers\Api\V1\ProxyController; 
 use App\Http\Controllers\Api\V1\WindController;
 use App\Http\Controllers\Api\FireDataController;
+
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Api\RoutingController;
+
+use App\Http\Controllers\FireIncidentController;
+use App\Http\Controllers\Api\ChatController;
+
 use App\Http\Controllers\GeocodingController; 
+
 
 /*
 |--------------------------------------------------------------------------
@@ -27,7 +35,9 @@ use App\Http\Controllers\GeocodingController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
-});
+
+})->middleware('auth:sanctum');
+
 
 
 
@@ -36,6 +46,7 @@ Route::get('/fire_hydrants', [FireHydrantController::class, 'index']);
 Route::get('/fire-data', [ApiController::class, 'getFireData']); // Assuming ApiController is also in Api namespace or adjust
 Route::get('/fire_stations', [FireStationController::class, 'index']);
 Route::post('/process-report', [ReportController::class, 'process']);
+
 
 
 Route::prefix('v1')->group(function () {
@@ -51,10 +62,23 @@ Route::get('/wildfire-perimeters', [WildfirePerimeterController::class, 'index']
 
 Route::get('/weather-for-point', [WeatherController::class, 'getWeatherForPoint']);
 
-Route::get('/v1/wind-data-proxy', [ProxyController::class, 'getWindData']);
+//Route::get('/v1/wind-data-proxy', [ProxyController::class, 'getWindData']);
 
 Route::get('/v1/gfs-wind-data', [WindController::class, 'getGfsData']);
 
+
+
+
+Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRouteToNearestStation']);
+
+
+
+// Add this line
+Route::get('/fire-incidents', [FireIncidentController::class, 'getApiIncidents']);
+
+Route::post('/chat', [ChatController::class, 'sendMessage']);
+
 Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this line
+
 
 

@@ -4,6 +4,8 @@
 /public/hot
 /public/storage
 /storage/*.key
+!storage/app/data/*
+!storage/app/firestations.csv
 /vendor
 .env
 .env.backup
