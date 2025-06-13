@@ -7,7 +7,16 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
+
+
+use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReportController;
+
+use App\Http\Controllers\FireIncidentController;
+
+
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\TranscriptionController;
@@ -15,9 +24,13 @@ use App\Http\Controllers\TranscriptionController;
 
 
 
+
 Route::get('/', function () {
     return view('main');
 });
+
+
+
 
 
 
@@ -38,10 +51,13 @@ Route::middleware([
 
 // Wildfire Officer Routes
 Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function () {
+
     Route::get('/officer-dashboard', [WildfireOfficerController::class, 'dashboard'])->name('officer.dashboard');
     Route::get('/api/dashboard-data', [WildfireOfficerController::class, 'getDashboardData']);
 
+
     Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
+    Route::get('/reports/history', [ReportController::class, 'history'])->middleware('auth');
 });
 
     
@@ -55,8 +71,10 @@ Route::get('/', function () {
 });
 
 
+
 Route::get('/terms-of-service', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
+
 
 
 
@@ -102,8 +120,20 @@ Route::get('/wildfire-officer/wind-global.json', function () {
 });
 
 
+
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
+});
+
+Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');
+
+
+// Replace your old route for the dashboard with this one
+Route::get('/firefighter-dashboard', [FireIncidentController::class, 'dashboard'])->name('firefighter.dashboard');
 Route::post('/agent/chat', [AgentController::class, 'chat']);
 Route::post('/agent/submit-tool-output', [AgentController::class, 'submitToolOutput']);
 Route::post('/agent/reset', [AgentController::class, 'reset']);
+
 
 Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');
