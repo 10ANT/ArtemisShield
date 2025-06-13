@@ -23,7 +23,7 @@ class AzureSearchService
     }
 
     /**
-     * Performs a semantic search on the Azure AI Search index.
+     * Performs the most basic keyword search on the Azure AI Search index.
      *
      * @param string $query The search query text.
      * @param int $limit The maximum number of results to return.
@@ -33,13 +33,10 @@ class AzureSearchService
     {
         $url = "{$this->endpoint}/indexes/{$this->indexName}/docs/search?api-version=2023-11-01";
 
+        // This payload has been stripped to the absolute minimum for maximum compatibility.
+        // It performs a simple keyword search.
         $payload = [
             'search' => $query,
-            'queryType' => 'semantic', // Use the powerful semantic search
-            'semanticConfiguration' => 'default', // The name of the semantic config in your index
-            'queryLanguage' => 'en-us',
-            'captions' => 'extractive', // Gets highlighted summary passages
-            'answers' => 'extractive|count-3', // Tries to find direct answers
             'top' => $limit,
         ];
 

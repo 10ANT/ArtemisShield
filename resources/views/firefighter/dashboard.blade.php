@@ -101,6 +101,7 @@
     .suggestion-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--bs-border-color-translucent); }
     .suggestion-item:last-child { border-bottom: none; }
     .suggestion-icon { font-size: 1.25rem; color: var(--bs-success); margin-top: 0.25rem; }
+    .suggestion-item-tts { display: flex; justify-content: space-between; align-items: center; } /* For TTS button */
 
     /* --- BASEMAP PANEL POSITIONING --- */
     .basemap-panel { top: 200px; left: 0; }
@@ -145,7 +146,7 @@
                         <div class="tab-content h-100">
                             <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
                                 <div class="chat-container">
-                                    <div class="chat-messages mb-3" id="chat-messages"><div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">Hello! I'm Artemis. Ask me about active fires, resource status, or weather conditions.</div></div></div>
+                                    <div class="chat-messages mb-3" id="chat-messages"><div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">Hello! I'm Artemis. Ask me about active fires, resource status, or standard operating procedures from the knowledge base.</div></div></div>
                                     <div class="chat-input-group d-flex gap-2"><input type="text" class="form-control" placeholder="Ask a question..." id="chat-input"><button class="btn btn-primary" id="send-chat-btn"><i class="fas fa-paper-plane"></i></button></div>
                                 </div>
                             </div>
@@ -166,8 +167,8 @@
                                     <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
                                 </div>
                             </div>
-                            <div class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
-                                <div style="margin-top:-670px;" class="">
+                            <div  class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
+                                <div " class="">
                                     <h5 class="mb-3"><i class="fas fa-route me-2"></i>Fire Response Routing</h5>
                                     <div class="card bg-body-tertiary mb-3">
                                         <div class="card-body">
@@ -331,20 +332,81 @@
             loadModisFires();
         };
 
+        // =========================================================================
+        // START: CHAT FUNCTIONALITY UPDATE
+        // =========================================================================
         const initChat = () => {
-            const sendMessage = () => {
-                const input = document.getElementById('chat-input'); const messageContainer = document.getElementById('chat-messages');
-                const messageText = input.value.trim();
-                if (messageText) {
-                    messageContainer.innerHTML += `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${messageText}</div></div>`;
-                    input.value = '';
-                    setTimeout(() => { const r = ["I've found 3 active fires near your location.", "Current resources deployed: 45 units.", "Weather conditions show high wind speeds from the NW."]; messageContainer.innerHTML += `<div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${r[Math.floor(Math.random()*r.length)]}</div></div>`; messageContainer.scrollTop = messageContainer.scrollHeight; }, 1000);
-                    messageContainer.scrollTop = messageContainer.scrollHeight;
+            const chatInput = document.getElementById('chat-input');
+            const sendBtn = document.getElementById('send-chat-btn');
+            const messageContainer = document.getElementById('chat-messages');
+
+            const renderMessage = (text, sender) => {
+                let html;
+                const sanitizedText = text.replace(/</g, "<").replace(/>/g, ">");
+                if (sender === 'user') {
+                    html = `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${sanitizedText}</div></div>`;
+                } else if (sender === 'ai-typing') {
+                     html = `<div class="mb-3 text-start" id="ai-typing-indicator"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Typing...</div></div>`;
+                } else { // AI response
+                    html = `<div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${sanitizedText}</div></div>`;
                 }
-            }
-            document.getElementById('send-chat-btn')?.addEventListener('click', sendMessage);
-            document.getElementById('chat-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+                messageContainer.innerHTML += html;
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            };
+
+            const sendMessage = async () => {
+                const messageText = chatInput.value.trim();
+                if (!messageText) return;
+                
+                renderMessage(messageText, 'user');
+                chatInput.value = '';
+                chatInput.disabled = true;
+                sendBtn.disabled = true;
+                
+                renderMessage('', 'ai-typing');
+
+                try {
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ message: messageText })
+                    });
+                    
+                    const typingIndicator = document.getElementById('ai-typing-indicator');
+                    if (typingIndicator) typingIndicator.remove();
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'The server returned an error.');
+                    }
+                    
+                    const data = await response.json();
+                    renderMessage(data.reply, 'ai');
+
+                } catch (error) {
+                    console.error('Chat Error:', error);
+                    const typingIndicator = document.getElementById('ai-typing-indicator');
+                    if (typingIndicator) typingIndicator.remove();
+                    renderMessage(`Sorry, I ran into a problem: ${error.message}`, 'ai');
+                } finally {
+                    chatInput.disabled = false;
+                    sendBtn.disabled = false;
+                    chatInput.focus();
+                }
+            };
+
+            sendBtn.addEventListener('click', sendMessage);
+            chatInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
         };
+        // =========================================================================
+        // END: CHAT FUNCTIONALITY UPDATE
+        // =========================================================================
         
         const initGeneralUI = () => {
              document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('click', function() { const i = this.querySelector('.collapse-icon'); if (i) { i.classList.toggle('fa-chevron-down'); i.classList.toggle('fa-chevron-up'); } }));

@@ -17,7 +17,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Api\RoutingController;
 
 use App\Http\Controllers\FireIncidentController;
-
+use App\Http\Controllers\Api\ChatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -67,3 +67,5 @@ Route::get('/routing/find-nearest-station', [RoutingController::class, 'getRoute
 
 // Add this line
 Route::get('/fire-incidents', [FireIncidentController::class, 'getApiIncidents']);
+
+Route::post('/chat', [ChatController::class, 'sendMessage']);
