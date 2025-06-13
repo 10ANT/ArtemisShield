@@ -1,0 +1,216 @@
+/**
+ * ArtemisShield Agent Handler (FINAL, BULLETPROOF VERSION)
+ * Handles the complete agent lifecycle, including submitting tool outputs robustly.
+ */
+class AgentHandler {
+    constructor(chatMessagesContainer, chatInput) {
+        this.chatMessages = chatMessagesContainer;
+        this.chatInput = chatInput;
+        this.runId = null;
+        this.isBusy = false;
+
+        this.functionTools = [
+            {
+                type: "function",
+                function: {
+                    name: "searchFires",
+                    description: "Searches for active wildfires by name on the map and zooms to the first result.",
+                    parameters: { type: "object", properties: { query: { type: "string", description: "The name of the fire." } }, required: ["query"] }
+                },
+                executor: this.searchFires
+            },
+            {
+                type: "function",
+                function: {
+                    name: "zoomToLocation",
+                    description: "Zooms the map to a specific geographic location.",
+                    parameters: { type: "object", properties: { location: { type: "string", description: "The location name." }, zoom: { type: "number" } }, required: ["location"] }
+                },
+                executor: this.zoomToLocation
+            },
+            {
+                type: "function",
+                function: {
+                    name: "assessInfrastructureRisk",
+                    description: "Draws a risk-assessment circle around a specific, named fire.",
+                    parameters: { type: "object", properties: { fireName: { type: "string", description: "The name of an official fire." } }, required: ["fireName"] }
+                },
+                executor: this.assessInfrastructureRisk
+            },
+            {
+                type: "function",
+                function: {
+                    name: "showImagesForQuery",
+                    description: "Informs the user that image search is not available.",
+                    parameters: { type: "object", properties: { query: { type: "string", description: "The image subject." } }, required: ["query"] }
+                },
+                executor: this.showImagesForQuery
+            }
+        ];
+
+        document.getElementById('reset-chat-btn').addEventListener('click', () => this.resetConversation());
+        console.log("AgentHandler initialized.");
+    }
+
+    async resetConversation() {
+        console.log("Reset button clicked.");
+        this.setBusy(true);
+        try {
+            await axios.post('/agent/reset');
+            this.chatMessages.innerHTML = '';
+            this.displayMessage("Conversation has been reset.", 'assistant');
+        } catch (error) {
+            console.error("Failed to reset chat session:", error);
+        } finally {
+            this.setBusy(false);
+        }
+    }
+
+    getToolDefinitions() { return this.functionTools.map(t => ({ type: t.type, function: t.function })); }
+
+    displayMessage(text, role) {
+        const alignClass = role === 'user' ? 'text-end' : 'text-start';
+        const bgClass = role === 'user' ? 'bg-primary-subtle' : 'bg-body-secondary';
+        const authorHtml = role === 'assistant' ? '<small class="text-body-secondary">Artemis AI</small>' : '';
+        this.chatMessages.innerHTML += `<div class="mb-3 ${alignClass}">${authorHtml}<div class="p-3 rounded mt-1 ${bgClass} d-inline-block">${text}</div></div>`;
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+    }
+
+    setBusy(busy) {
+        this.isBusy = busy;
+        this.chatInput.disabled = busy;
+        this.chatInput.placeholder = busy ? "Agent is thinking..." : "Ask a question...";
+        if (!busy) this.runId = null;
+    }
+
+    async sendMessage(messageText) {
+        if (!messageText.trim() || this.isBusy) return;
+        this.setBusy(true);
+        this.displayMessage(messageText, 'user');
+        try {
+            const response = await axios.post('/agent/chat', { message: messageText, tools: this.getToolDefinitions() });
+            await this.handleAgentResponse(response.data);
+        } catch (error) {
+            console.error('Error sending message:', error.response?.data || error.message);
+            this.displayMessage("An error occurred. Please try resetting the conversation.", 'assistant');
+            this.setBusy(false);
+        }
+    }
+
+    async handleAgentResponse(response) {
+        console.log("HANDLING RESPONSE, STATUS:", response.status);
+
+        if (response.status === 'requires_action') {
+            const toolCalls = response.required_action.submit_tool_outputs.tool_calls;
+            this.runId = response.id;
+            
+            console.log("Action required. Executing tools...", toolCalls);
+            
+            const toolOutputs = await Promise.all(toolCalls.map(toolCall => {
+                return this.invokeTool(toolCall.function).then(output => {
+                    return { tool_call_id: toolCall.id, output: output };
+                });
+            }));
+
+            console.log("Tools executed. Submitting outputs...", toolOutputs);
+            try {
+                const nextResponse = await axios.post('/agent/submit-tool-output', {
+                    run_id: this.runId,
+                    tool_outputs: toolOutputs
+                });
+                await this.handleAgentResponse(nextResponse.data);
+            } catch (error) {
+                console.error('Error submitting tool output:', error.response?.data || error.message);
+                this.displayMessage("I had trouble submitting my tool results. Please reset.", 'assistant');
+                this.setBusy(false);
+            }
+
+        } else if (response.status === 'completed') {
+            console.log("Run completed. Displaying final message.");
+            const lastMessage = response.messages.filter(m => m.role === 'assistant').pop();
+            const textContent = lastMessage?.content?.find(c => c.type === 'text');
+            if (textContent) this.displayMessage(textContent.text.value, 'assistant');
+            this.setBusy(false);
+
+        } else {
+            console.error("Unhandled agent status:", response.status, response);
+            this.displayMessage("An unknown error occurred. Please reset the conversation.", 'assistant');
+            this.setBusy(false);
+        }
+    }
+
+    async invokeTool(funcCall) {
+        console.log(`INVOKING TOOL: ${funcCall.name}`);
+        const tool = this.functionTools.find(t => t.function.name === funcCall.name);
+        if (!tool || !tool.executor) {
+            return JSON.stringify({ error: `Tool executor for ${funcCall.name} not found.` });
+        }
+        try {
+            const args = JSON.parse(funcCall.arguments);
+            const result = await tool.executor.call(this, args);
+            console.log(`TOOL RESULT for ${funcCall.name}:`, result);
+            return JSON.stringify(result);
+        } catch (error) {
+            console.error(`ERROR EXECUTING TOOL ${funcCall.name}:`, error);
+            return JSON.stringify({ error: `Failed to execute tool: ${error.message}` });
+        }
+    }
+
+    searchFires({ query }) {
+        return new Promise(resolve => {
+            if (window.map?.fireSearchControl) {
+                window.map.fireSearchControl.geocoder.geocode(query, (results) => {
+                    if (results?.length > 0) {
+                        const fireNames = results.map(r => r.name.replace('🔥 ', ''));
+                        window.map.fitBounds(results[0].bbox);
+                        resolve({ found: true, message: `Okay, I've found the ${fireNames[0]} fire and zoomed to its location.` });
+                    } else {
+                        resolve({ found: false, message: `No fires found matching "${query}".` });
+                    }
+                });
+            } else { resolve({ error: "Fire search tool is not available." }); }
+        });
+    }
+    zoomToLocation({ location, zoom = 8 }) {
+        return new Promise(resolve => {
+            if (window.L?.Control.Geocoder.nominatim) {
+                new L.Control.Geocoder.Nominatim().geocode(location, (results) => {
+                     if (results?.length > 0) {
+                        const bestResult = results[0];
+                        window.map.fitBounds(bestResult.bbox);
+                        resolve({ success: true, message: `I have zoomed the map to ${bestResult.name}.` });
+                    } else {
+                        resolve({ success: false, message: `Could not find a location named "${location}".` });
+                    }
+                });
+            } else { resolve({ error: "Map geocoder not available." }); }
+        });
+    }
+    assessInfrastructureRisk({ fireName }) {
+        return new Promise(resolve => {
+            if (!window.map || !window.officialPerimetersLayer) {
+                return resolve({ error: "Map layers not ready for assessment." });
+            }
+            let foundFireLayer = null;
+            window.officialPerimetersLayer.eachLayer(layer => {
+                const props = layer.feature?.properties || layer.options?.fireProperties;
+                if (props?.poly_IncidentName && props.poly_IncidentName.toLowerCase().includes(fireName.toLowerCase())) {
+                    foundFireLayer = layer;
+                }
+            });
+            if (foundFireLayer) {
+                const bounds = foundFireLayer.getBounds();
+                const center = bounds.getCenter();
+                const radius = Math.max(bounds.getNorthEast().distanceTo(bounds.getSouthWest()) / 2, 2000);
+                L.circle(center, { radius: radius * 1.5, color: 'red', fillColor: '#f03', fillOpacity: 0.2, weight: 2 }).bindPopup(`Potential Risk Zone for ${fireName}`).addTo(map);
+                window.map.fitBounds(bounds.pad(0.5));
+                resolve({ success: true, message: `Done. I've highlighted the risk area for the ${fireName} fire.` });
+            } else {
+                resolve({ success: false, message: `I couldn't find an official fire named "${fireName}" to assess.` });
+            }
+        });
+    }
+    showImagesForQuery({ query }) {
+        return { success: false, message: "I am not yet connected to an image search service, so I cannot show you images." };
+    }
+}

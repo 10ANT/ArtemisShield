@@ -61,7 +61,7 @@
                                 <div
                                     class="notification-menu d-flex flex-wrap justify-content-between gap-4"
                                 >
-                                    <a
+                                    
                                         href=""
                                         target="_blank"
                                         class="dropdown-item p-0 text-center"
@@ -82,7 +82,6 @@
                 </ul>
             </div>
         </div>
-
         <div class="col-lg-8 col-sm-6">
             <div class="right-header-content mt-2 mt-sm-0">
                 <ul
@@ -139,7 +138,7 @@
                                     <div
                                         class="notification-menu"
                                     >
-                                        <a
+                                        
                                             href="javascript:void(0);"
                                             class="dropdown-item"
                                         >
@@ -153,7 +152,7 @@
                                     <div
                                         class="notification-menu"
                                     >
-                                        <a
+                                        
                                             href="javascript:void(0);"
                                             class="dropdown-item"
                                         >
@@ -167,7 +166,7 @@
                                     <div
                                         class="notification-menu"
                                     >
-                                        <a
+                                        
                                             href="javascript:void(0);"
                                             class="dropdown-item"
                                         >
@@ -181,7 +180,7 @@
                                     <div
                                         class="notification-menu mb-0"
                                     >
-                                        <a
+                                        
                                             href="javascript:void(0);"
                                             class="dropdown-item"
                                         >
@@ -243,7 +242,6 @@
                                         Clear All
                                     </button>
                                 </div>
-
                                 <div
                                     class="max-h-217"
                                     data-simplebar
@@ -252,7 +250,7 @@
                                     <div
                                         class="notification-menu unseen"
                                     >
-                                        <a
+                                        
                                             href="/notification"
                                             class="dropdown-item"
                                         >
@@ -290,8 +288,7 @@
                                  
                                  
                                 </div>
-
-                                <a
+                                
                                     href="/notification"
                                     class="dropdown-item text-center text-primary d-block view-all fw-medium rounded-bottom-3"
                                 >
@@ -304,13 +301,15 @@
                     </li>
                     <li class="header-right-item">
                         <div class="dropdown admin-profile">
+                            @auth
                             <div
                                 class="d-xxl-flex align-items-center bg-transparent border-0 text-start p-0 cursor dropdown-toggle"
                                 data-bs-toggle="dropdown"
                             >
                                 <div class="flex-shrink-0">
-                                <img class="rounded-circle wh-40 administrator" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-
+                                    <img class="rounded-circle wh-40 administrator" 
+                                         src="{{ Auth::user()->profile_photo_url ?? asset('images/default-avatar.png') }}" 
+                                         alt="{{ Auth::user()->name }}" />
                                 </div>
                                 <div class="flex-grow-1 ms-2">
                                     <div
@@ -322,16 +321,15 @@
                                             <div
                                                 class="d-flex align-content-center"
                                             >
-                                                <h3>  <div>
-                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                </div></h3>
+                                                <div>
+                                                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                                                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
                             <div
                                 class="dropdown-menu border-0 bg-white dropdown-menu-end"
                             >
@@ -339,25 +337,24 @@
                                     class="d-flex align-items-center info"
                                 >
                                     <div class="flex-shrink-0">
-                                       <img class="rounded-circle wh-40 administrator" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-
+                                       <img class="rounded-circle wh-40 administrator" 
+                                            src="{{ Auth::user()->profile_photo_url ?? asset('images/default-avatar.png') }}" 
+                                            alt="{{ Auth::user()->name }}" />
                                     </div>
                                     <div
                                         class="flex-grow-1 ms-2"
                                     >
                                         <h3 class="fw-medium">
-                                          
+                                            {{ Auth::user()->name }}
                                         </h3>
-                                        <span class="fs-12"
-                                         class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</span
-                                        >
+                                        <span class="fs-12 font-medium text-base text-gray-800">{{ Auth::user()->email }}</span>
                                     </div>
                                 </div>
                                 <ul
                                     class="admin-link ps-0 mb-0 list-unstyled"
                                 >
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/my-profile"
                                         >
@@ -372,7 +369,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/chat"
                                         >
@@ -386,7 +383,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/to-do-list"
                                         >
@@ -400,7 +397,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/my-profile"
                                         >
@@ -418,7 +415,7 @@
                                     class="admin-link ps-0 mb-0 list-unstyled"
                                 >
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/settings"
                                         >
@@ -432,7 +429,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/tickets"
                                         >
@@ -446,7 +443,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/lock-screen"
                                         >
@@ -461,7 +458,7 @@
                                         </a>
                                     </li>
                                     <li>
-                                        <a
+                                        
                                             class="dropdown-item d-flex align-items-center text-body"
                                             href="/login"
                                         >
@@ -477,6 +474,9 @@
                                     </li>
                                 </ul>
                             </div>
+                            @else
+                            <a href="{{ route('login') }}" class="btn btn-primary">Login</a>
+                            @endauth
                         </div>
                     </li>
                     <li class="header-right-item">

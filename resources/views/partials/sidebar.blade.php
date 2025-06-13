@@ -19,7 +19,7 @@
                 </a>
                 <ul class="menu-sub">
                     <li class="menu-item">
-                        <a href="/officer-dashboard" class="menu-link {{ Request::is('officer-dashboard') ? 'active' : '' }}">
+                        <a href="/wildfire-officer/dashboard" class="menu-link {{ Request::is('officer-dashboard') ? 'active' : '' }}">
                             Dashboard
                         </a>
                     </li>
