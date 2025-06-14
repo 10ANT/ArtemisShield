@@ -81,6 +81,28 @@
     .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; }
     .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
 
+    /* --- Fullscreen Map Control --- */
+    .leaflet-control-fullscreen a { background-color: #2b3035 !important; width: 34px; height: 34px; line-height: 34px; text-align: center; font-size: 1.2em; color: #f8f9fa; display: block; cursor: pointer; border-radius: 4px; }
+    .leaflet-control-fullscreen a:hover { background-color: #343a40 !important; color: #fff; }
+    .leaflet-control-fullscreen { box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
+    .leaflet-bar .leaflet-control-fullscreen { border: none; }
+
+    /* --- NEW: Application Fullscreen Mode Overrides --- */
+    body.map-fullscreen-active .sidebar-nav-wrapper,
+    body.map-fullscreen-active .main-content > .header,
+    body.map-fullscreen-active .main-content > .footer {
+        display: none !important;
+    }
+    body.map-fullscreen-active .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+        height: 100vh;
+    }
+    body.map-fullscreen-active .wildfire-dashboard-container {
+        height: 100% !important;
+    }
+
+
      /* --- LIVE REPORT TAB --- */
     #live-report-content { display: flex; flex-direction: column; height: 100%; }
     .recording-controls { text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--bs-border-color); }
@@ -110,90 +132,100 @@
 <body class="boxed-size">
     @include('partials.preloader')
     @include('partials.sidebar')
-<div class="container-fluid">
-    <div class="main-content d-flex flex-column">
-        @include('partials.header')
-        <div class="wildfire-dashboard-container row g-0 flex-grow-1">
-            <div class="col-lg-8 col-md-7">
-                <div class="map-wrapper">
-                    <div id="map"></div>
-                    <!-- Draggable Panels -->
-                    <div class="map-overlay layers-panel card shadow-sm">
-                        <div class="card-header p-0" id="layersHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#layersCollapse" aria-expanded="true" aria-controls="layersCollapse"><i class="fas fa-layer-group fa-fw me-2"></i>Map Layers <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
-                        <div id="layersCollapse" class="collapse show" aria-labelledby="layersHeading"><div class="card-body p-3"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div><hr><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="active-incidents"><label class="form-check-label" for="active-incidents">Active Incidents (Manual)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="viirs-24"><label class="form-check-label" for="viirs-24">VIIRS Hotspots (24h)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="infrastructure"><label class="form-check-label" for="infrastructure">Infrastructure</label></div></div></div>
-                    </div>
-                    <div class="map-overlay weather-widget card shadow-sm">
-                        <div class="card-header p-0" id="weatherHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#weatherCollapse" aria-expanded="true" aria-controls="weatherCollapse"><i class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
-                        <div id="weatherCollapse" class="collapse show" aria-labelledby="weatherHeading"><div class="card-body p-3"><ul class="list-group list-group-flush"><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Temperature <span class="badge text-bg-primary" id="temp">28°C</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Wind <span class="badge text-bg-primary" id="wind">15 km/h</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Humidity <span class="badge text-bg-primary" id="humidity">45%</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Fire Risk <span class="badge text-bg-danger" id="fire-risk">High</span></li></ul></div></div>
-                    </div>
-                    <div class="map-overlay basemap-panel card shadow-sm">
-                        <div class="card-header p-0" id="basemapHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#basemapCollapse" aria-expanded="true" aria-controls="basemapCollapse"><i class="fas fa-map fa-fw me-2"></i>Base Maps <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
-                        <div id="basemapCollapse" class="collapse show" aria-labelledby="basemapHeading"><div class="card-body p-3" id="basemap-selector-container"></div></div>
-                    </div>
+<div class="main-content d-flex flex-column">
+    @include('partials.header')
+    <div class="wildfire-dashboard-container row g-0 flex-grow-1">
+        
+        <!-- MODIFICATION: Added ID="map-column" -->
+        <div class="col-lg-8 col-md-7" id="map-column">
+            <div class="map-wrapper">
+                <div id="map"></div>
+
+                <!-- NEW: Right Sidebar Toggle Button -->
+                <button id="right-sidebar-toggle" class="btn btn-dark" type="button" title="Toggle Sidebar">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+
+                <!-- Draggable Panels -->
+                <div class="map-overlay layers-panel card shadow-sm">
+                    <div class="card-header p-0" id="layersHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#layersCollapse" aria-expanded="true" aria-controls="layersCollapse"><i class="fas fa-layer-group fa-fw me-2"></i>Map Layers <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
+                    <div id="layersCollapse" class="collapse show" aria-labelledby="layersHeading"><div class="card-body p-3"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div><hr><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="active-incidents"><label class="form-check-label" for="active-incidents">Active Incidents (Manual)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="viirs-24"><label class="form-check-label" for="viirs-24">VIIRS Hotspots (24h)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="infrastructure"><label class="form-check-label" for="infrastructure">Infrastructure</label></div></div></div>
+                </div>
+                
+                <div class="map-overlay weather-widget card shadow-sm">
+                    <!-- <div class="card-header p-0" id="weatherHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#weatherCollapse" aria-expanded="true" aria-controls="weatherCollapse"><i class="fas fa-cloud-sun fa-fw me-2"></i>Local Weather <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div> -->
+                    <!-- <div id="weatherCollapse" class="collapse show" aria-labelledby="weatherHeading"><div class="card-body p-3"><ul class="list-group list-group-flush"><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Temperature <span class="badge text-bg-primary" id="temp">28°C</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Wind <span class="badge text-bg-primary" id="wind">15 km/h</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Humidity <span class="badge text-bg-primary" id="humidity">45%</span></li><li class="list-group-item d-flex justify-content-between align-items-center px-0 py-1 bg-transparent">Fire Risk <span class="badge text-bg-danger" id="fire-risk">High</span></li></ul></div></div> -->
+                </div>
+                
+                <div class="map-overlay basemap-panel card shadow-sm">
+                    <div class="card-header p-0" id="basemapHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#basemapCollapse" aria-expanded="true" aria-controls="basemapCollapse"><i class="fas fa-map fa-fw me-2"></i>Base Maps <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
+                    <div id="basemapCollapse" class="collapse show" aria-labelledby="basemapHeading"><div class="card-body p-3" id="basemap-selector-container"></div></div>
                 </div>
             </div>
-            <div class="col-lg-4 col-md-5 border-start">
-                <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
-                    <div class="card-header p-2">
-                        <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
-                            <li class="nav-item" role="presentation"><button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true"><i class="fas fa-comments me-1"></i> Ask Artemis</button></li>
-                            <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
-                            <li class="nav-item" role="presentation"><button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill" data-bs-target="#live-report-content" type="button" role="tab" aria-controls="live-report-content" aria-selected="false"><i class="fas fa-microphone-alt me-1"></i> Live Report</button></li>
-                            <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false"><i class="fas fa-route me-1"></i> Route</button></li>
-                        </ul>
-                    </div>
-                    <div class="card-body d-flex flex-column p-0">
-                        <div class="tab-content h-100">
-                            <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
-                                <div class="chat-container">
-                                    <div class="chat-messages mb-3" id="chat-messages"><div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">Hello! I'm Artemis. Ask me about active fires, resource status, or standard operating procedures from the knowledge base.</div></div></div>
-                                    <div class="chat-input-group d-flex gap-2"><input type="text" class="form-control" placeholder="Ask a question..." id="chat-input"><button class="btn btn-primary" id="send-chat-btn"><i class="fas fa-paper-plane"></i></button></div>
-                                </div>
+        </div>
+        
+        <!-- MODIFICATION: Added ID="right-sidebar-column" and changed col-md-5 to col-md-12 to handle its own stacking on medium screens -->
+        <div class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
+            <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
+                <div class="card-header p-2">
+                    <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
+                        <li class="nav-item" role="presentation"><button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true"><i class="fas fa-comments me-1"></i> Ask Artemis</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill" data-bs-target="#live-report-content" type="button" role="tab" aria-controls="live-report-content" aria-selected="false"><i class="fas fa-microphone-alt me-1"></i> Live Report</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false"><i class="fas fa-route me-1"></i> Route</button></li>
+                    </ul>
+                </div>
+                <div class="card-body d-flex flex-column p-0">
+                    <div class="tab-content h-100">
+                        <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
+                            <div class="chat-container">
+                                <div class="chat-messages mb-3" id="chat-messages"><div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">Hello! I'm Artemis. Ask me about active fires, resource status, or standard operating procedures from the knowledge base.</div></div></div>
+                                <div class="chat-input-group d-flex gap-2"><input type="text" class="form-control" placeholder="Ask a question..." id="chat-input"><button class="btn btn-primary" id="send-chat-btn"><i class="fas fa-paper-plane"></i></button></div>
                             </div>
-                            <div class="tab-pane fade" id="notifications-content" role="tabpanel">
-                                <div id="notifications-list" class="list-group list-group-flush overflow-auto">
-                                    <div id="notifications-placeholder" class="text-center text-muted p-5"><i class="fas fa-check-circle fa-3x mb-3"></i><p>No new notifications.</p></div>
-                                </div>
+                        </div>
+                        <div class="tab-pane fade" id="notifications-content" role="tabpanel">
+                            <div id="notifications-list" class="list-group list-group-flush overflow-auto">
+                                <div id="notifications-placeholder" class="text-center text-muted p-5"><i class="fas fa-check-circle fa-3x mb-3"></i><p>No new notifications.</p></div>
                             </div>
-                            <div class="tab-pane fade" id="live-report-content" role="tabpanel">
-                                 <div class="recording-controls p-3 d-flex flex-column align-items-center"><button class="record-btn mb-2" id="record-button"><i class="fas fa-microphone"></i></button><p class="recording-status" id="recording-status">Tap to Start Field Report</p></div>
-                                <div id="ai-analysis-results" class="ai-analysis-container px-3">
-                                    <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-wind fa-3x mb-3"></i><p>Awaiting field report...</p></div>
-                                    <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
-                                </div>
-                                <div class="px-3 pb-3 mt-4">
-                                    <hr>
-                                    <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
-                                    <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
-                                </div>
+                        </div>
+                        <div class="tab-pane fade" id="live-report-content" role="tabpanel">
+                                <div class="recording-controls p-3 d-flex flex-column align-items-center"><button class="record-btn mb-2" id="record-button"><i class="fas fa-microphone"></i></button><p class="recording-status" id="recording-status">Tap to Start Field Report</p></div>
+                            <div id="ai-analysis-results" class="ai-analysis-container px-3">
+                                <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-wind fa-3x mb-3"></i><p>Awaiting field report...</p></div>
+                                <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
                             </div>
-                            <div  class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
-                                <div " class="">
-                                    <h5 class="mb-3"><i class="fas fa-route me-2"></i>Fire Response Routing</h5>
-                                    <div class="card bg-body-tertiary mb-3">
-                                        <div class="card-body">
-                                            <h6 class="card-title">Instructions</h6>
-                                            <p class="card-text small mb-1"><strong>1. Select Fire:</strong> Click a fire icon <i class="fas fa-fire-alt text-danger"></i> on the map.</p>
-                                            <p class="card-text small mb-0"><strong>2. Calculate:</strong> Click the button below to find the route.</p>
-                                        </div>
+                            <div class="px-3 pb-3 mt-4">
+                                <hr>
+                                <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
+                                <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
+                            </div>
+                        </div>
+                        <div  class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
+                            <div " class="">
+                                <h5 class="mb-3"><i class="fas fa-route me-2"></i>Fire Response Routing</h5>
+                                <div class="card bg-body-tertiary mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Instructions</h6>
+                                        <p class="card-text small mb-1"><strong>1. Select Fire:</strong> Click a fire icon <i class="fas fa-fire-alt text-danger"></i> on the map.</p>
+                                        <p class="card-text small mb-0"><strong>2. Calculate:</strong> Click the button below to find the route.</p>
                                     </div>
-                                    <div class="mb-3 p-2 rounded" id="selected-fire-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No fire selected.</p></div>
-                                    <div class="d-grid gap-2">
-                                        <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
-                                        <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
+                                </div>
+                                <div class="mb-3 p-2 rounded" id="selected-fire-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No fire selected.</p></div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
+                                    <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
+                                </div>
+                                <hr>
+                                <div id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
+                                    <div id="route-summary" class="d-none">
+                                        <h6 class="text-white-50 mb-2">Route Summary</h6>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Responding From: <strong id="route-station-name" class="text-end"></strong></li>
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Distance: <span id="route-distance" class="badge text-bg-info fs-6"></span></li>
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Estimated Time: <span id="route-duration" class="badge text-bg-info fs-6"></span></li>
+                                        </ul>
                                     </div>
-                                    <hr>
-                                    <div id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
-                                        <div id="route-summary" class="d-none">
-                                            <h6 class="text-white-50 mb-2">Route Summary</h6>
-                                            <ul class="list-group list-group-flush">
-                                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Responding From: <strong id="route-station-name" class="text-end"></strong></li>
-                                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Distance: <span id="route-distance" class="badge text-bg-info fs-6"></span></li>
-                                                <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Estimated Time: <span id="route-duration" class="badge text-bg-info fs-6"></span></li>
-                                            </ul>
-                                        </div>
-                                        <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
-                                    </div>
+                                    <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
                                 </div>
                             </div>
                         </div>
@@ -201,8 +233,9 @@
                 </div>
             </div>
         </div>
-        @include('partials.footer')
     </div>
+    @include('partials.footer')
+</div>
 </div>
 
 @include('partials.theme_settings')
@@ -222,7 +255,71 @@
         let selectedFireMarker = null;
         let routeLayer = null;
 
+        // --- FULLSCREEN CONTROL LOGIC ---
+        const initFullScreenControl = () => {
+            if (!map) {
+                console.error("Map object not available for FullScreenControl initialization.");
+                return;
+            }
+
+            const FullScreenControl = L.Control.extend({
+                options: {
+                    position: 'bottomright' 
+                },
+                onAdd: function(map) {
+                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fullscreen');
+                    container.innerHTML = `<a href="#" title="Toggle Fullscreen View" role="button" aria-label="Toggle Fullscreen View"><i class="fas fa-expand"></i></a>`;
+                    
+                    L.DomEvent.disableClickPropagation(container);
+                    L.DomEvent.on(container, 'click', this._toggleFullScreen, this);
+                    
+                    this._map = map;
+                    return container;
+                },
+                _toggleFullScreen: function(e) {
+                    L.DomEvent.stop(e);
+
+                    const body = document.body;
+                    const dashboardContainer = document.querySelector('.wildfire-dashboard-container');
+                    const icon = this._container.querySelector('i');
+
+                    // Toggle the global fullscreen class on the body
+                    body.classList.toggle('map-fullscreen-active');
+                    
+                    const isFullscreen = body.classList.contains('map-fullscreen-active');
+                    
+                    if (isFullscreen) {
+                        // Action: Entering fullscreen mode
+                        // Also collapse the right sidebar if it's not already
+                        dashboardContainer.classList.add('right-sidebar-collapsed');
+                        icon.className = 'fas fa-compress';
+                        this._container.querySelector('a').title = 'Exit Fullscreen View';
+                    } else {
+                        // Action: Exiting fullscreen mode
+                        // Restore right sidebar to its default (visible) state
+                        dashboardContainer.classList.remove('right-sidebar-collapsed');
+                        icon.className = 'fas fa-expand';
+                        this._container.querySelector('a').title = 'Toggle Fullscreen View';
+                        
+                        // Also ensure the individual left sidebar class is removed if it was there
+                        body.classList.remove('left-sidebar-collapsed');
+                    }
+
+                    // Give the browser time for the CSS transitions to start before invalidating map size
+                    setTimeout(() => {
+                        if(this._map) {
+                            this._map.invalidateSize({ pan: true });
+                        }
+                    }, 300); // This should match the CSS transition duration
+                }
+            });
+
+            new FullScreenControl().addTo(map);
+            console.log('Fullscreen control initialized.');
+        };
+        
         const initMap = () => {
+            console.log('Map initialization started.');
             // --- BASEMAPS & WIDGET ---
             const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
             const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles © <a href="https://www.esri.com/">Esri</a> — Source: Esri, et al.' });
@@ -266,11 +363,12 @@
             }).addTo(map);
 
             // --- DATA LOADING FUNCTIONS ---
-            const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
+            const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); console.log(`Loading data for bounds: ${bbox}`); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
             const loadDataForDrawnRect = async (bounds) => { const bbox = bounds.toBBoxString(); searchResultsLayer.clearLayers(); const p = L.popup().setLatLng(bounds.getCenter()).setContent('Searching...').openOn(map); try { const [hr, sr] = await Promise.all([fetch(`/api/fire_hydrants?bbox=${bbox}`), fetch(`/api/fire_stations?bbox=${bbox}`)]); const h = await hr.json(); const s = await sr.json(); searchResultsLayer.addData(h); searchResultsLayer.addData(s); map.closePopup(p); const c = (h.features?.length || 0) + (s.features?.length || 0); L.popup().setLatLng(bounds.getCenter()).setContent(`Found ${c} assets.`).openOn(map); map.fitBounds(searchResultsLayer.getBounds().pad(0.1)); } catch (e) { console.error("Error during area search:", e); map.closePopup(p); L.popup().setLatLng(bounds.getCenter()).setContent('Error searching.').openOn(map); } };
             const loadModisFires = async () => {
                 if (!document.getElementById('modis-fires-toggle').checked) { modisFiresLayer.clearLayers(); return; }
                 try {
+                    console.log('Fetching MODIS fire incidents...');
                     const response = await fetch('/api/fire-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const geoJsonData = await response.json(); modisFiresLayer.clearLayers();
                     const fireMarkers = L.geoJson(geoJsonData, {
@@ -290,6 +388,7 @@
                         }
                     });
                     modisFiresLayer.addLayer(fireMarkers);
+                    console.log('MODIS fire incidents loaded successfully.');
                 } catch (e) { console.error("Could not fetch MODIS fire incidents:", e); }
             };
 
@@ -330,10 +429,85 @@
             // Initial Load
             loadDataForBounds(map.getBounds());
             loadModisFires();
+
+            // Initialize the custom fullscreen control after the main map setup is complete
+            initFullScreenControl();
+
+            console.log('Map initialization finished.');
+        };
+        
+        // --- SIDEBAR COLLAPSE LOGIC ---
+        const initSidebarToggles = () => {
+            console.log('Initializing sidebar toggles.');
+
+            // Left Sidebar Toggle Logic
+            const header = document.querySelector('.main-content .header'); 
+            if (header) {
+                const toggleBtnHtml = `<button class="left-sidebar-toggle p-0 border-0 bg-transparent ms-3" id="left-sidebar-toggle" title="Toggle Navigation"><i class="fas fa-bars"></i></button>`;
+                header.insertAdjacentHTML('afterbegin', toggleBtnHtml);
+                const leftSidebarToggle = document.getElementById('left-sidebar-toggle');
+                
+                if (leftSidebarToggle) {
+                    leftSidebarToggle.addEventListener('click', () => {
+                        console.log('Left sidebar toggle clicked.');
+                        document.body.classList.toggle('left-sidebar-collapsed');
+                        document.body.classList.remove('map-fullscreen-active'); // Exit fullscreen if toggling manually
+                        
+                        setTimeout(() => {
+                            if(map) {
+                                console.log('Invalidating map size after left sidebar toggle.');
+                                map.invalidateSize();
+                            }
+                        }, 300); 
+                    });
+                } else {
+                     console.error('Left sidebar toggle button could not be found after creation.');
+                }
+            } else {
+                console.warn('Header element not found. The left sidebar toggle button was not created.');
+            }
+            
+            // Right Sidebar Toggle Logic
+            const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
+            const dashboardContainer = document.querySelector('.wildfire-dashboard-container');
+            const rightSidebarColumn = document.getElementById('right-sidebar-column');
+
+            if(rightSidebarToggle && dashboardContainer && rightSidebarColumn) {
+                // Set initial position of the toggle button
+                const rightSidebarWidth = rightSidebarColumn.offsetWidth;
+                rightSidebarToggle.style.right = `${rightSidebarWidth - 580}px`; // 16px for rem padding
+                
+                rightSidebarToggle.addEventListener('click', () => {
+                    console.log('Right sidebar toggle clicked.');
+                    dashboardContainer.classList.toggle('right-sidebar-collapsed');
+                    document.body.classList.remove('map-fullscreen-active'); // Exit fullscreen if toggling manually
+                    
+                    const isCollapsed = dashboardContainer.classList.contains('right-sidebar-collapsed');
+
+                    if(isCollapsed) {
+                        console.log('Right sidebar is now collapsed.');
+                        rightSidebarToggle.style.right = '1rem';
+                    } else {
+                        console.log('Right sidebar is now expanded.');
+                        const newWidth = rightSidebarColumn.offsetWidth;
+                        rightSidebarToggle.style.right = `${newWidth - 580}px`;
+                    }
+                    
+                    setTimeout(() => {
+                        if(map) {
+                            console.log('Invalidating map size after right sidebar toggle.');
+                            map.invalidateSize();
+                        }
+                    }, 300);
+                });
+
+            } else {
+                console.error('One or more elements for right sidebar toggle are missing.');
+            }
         };
 
         // =========================================================================
-        // START: CHAT FUNCTIONALITY UPDATE
+        // START: CHAT FUNCTIONALITY (UNCHANGED)
         // =========================================================================
         const initChat = () => {
             const chatInput = document.getElementById('chat-input');
@@ -405,7 +579,7 @@
             });
         };
         // =========================================================================
-        // END: CHAT FUNCTIONALITY UPDATE
+        // END: CHAT FUNCTIONALITY
         // =========================================================================
         
         const initGeneralUI = () => {
@@ -564,6 +738,7 @@
         loadAndRenderReportHistory();
         initRouting();
         initSidebarFix();
+        initSidebarToggles();
     });
 </script>
 </body>
