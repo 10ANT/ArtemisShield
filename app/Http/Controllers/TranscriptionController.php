@@ -75,8 +75,8 @@ class TranscriptionController extends Controller
             throw new \Exception('Failed to convert audio file. Check FFmpeg path and permissions.');
         }
 
-        $speechKey = env('SPEECH_KEY');
-        $speechRegion = env('SPEECH_REGION');
+        $speechKey = env('AZURE_SPEECH_KEY');
+        $speechRegion = env('AZURE_SPEECH_REGION');
         if (!$speechKey || !$speechRegion) {
             throw new \Exception('Azure Speech credentials are not configured in the .env file.');
         }

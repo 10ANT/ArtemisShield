@@ -52,8 +52,7 @@ Route::middleware([
 // Wildfire Officer Routes
 Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function () {
 
-    Route::get('/officer-dashboard', [WildfireOfficerController::class, 'dashboard'])->name('officer.dashboard');
-    Route::get('/api/dashboard-data', [WildfireOfficerController::class, 'getDashboardData']);
+    
 
 
     Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
@@ -62,7 +61,7 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
 
     
 // Wildfire Officer Dashboard
-Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'index'])->name('wildfire-officer.dashboard');
+Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'dashboard'])->name('wildfire-officer.dashboard');
 
 
 

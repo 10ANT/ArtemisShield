@@ -19,13 +19,7 @@ return [
         'api_key' => env('NASA_FIRMS_API_KEY'),
     ],
 
-     'azure' => [
-        'search' => [
-            'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
-            'key' => env('AZURE_SEARCH_KEY'),
-            'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
-        ],
-    ],
+   
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
@@ -75,6 +69,12 @@ return [
         //below for speech
         'speech_key' => env('AZURE_SPEECH_KEY'),
         'speech_region' => env('AZURE_SPEECH_REGION'),
+
+        'search' => [
+            'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
+            'key' => env('AZURE_SEARCH_KEY'),
+            'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
+        ],
     ],
 
 
