@@ -1,3 +1,6 @@
+<!-- This file should ONLY contain your theme's pre-built JavaScript files. -->
+
+
 <script src="{{ url('/assets/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ url('/assets/js/sidebar-menu.js') }}"></script>
 <script src="{{ url('/assets/js/dragdrop.js') }}"></script>

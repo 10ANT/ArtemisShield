@@ -20,7 +20,9 @@ use App\Http\Controllers\FireIncidentController;
 use App\Http\Controllers\Api\ChatController;
 
 use App\Http\Controllers\GeocodingController; 
+use App\Http\Controllers\Api\StatusUpdateController;
 
+Route::get('/status-updates/poll', [StatusUpdateController::class, 'poll']);
 
 /*
 |--------------------------------------------------------------------------
@@ -79,6 +81,4 @@ Route::get('/fire-incidents', [FireIncidentController::class, 'getApiIncidents']
 Route::post('/chat', [ChatController::class, 'sendMessage']);
 
 Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this line
-
-
 
