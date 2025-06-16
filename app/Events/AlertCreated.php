@@ -14,34 +14,39 @@ class AlertCreated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    /**
+     * The clean data payload to broadcast.
+     * @var array
+     */
     public array $payload;
 
+    /**
+     * Create a new event instance.
+     */
     public function __construct(Alert $alert)
     {
-        // Build a simple, clean array to prevent any serialization errors.
+        // Build a simple array to prevent serialization errors.
         $this->payload = [
             'id' => $alert->id,
             'message' => $alert->message,
             'latitude' => $alert->latitude,
             'longitude' => $alert->longitude,
             'radius' => $alert->radius,
-            'created_at' => $alert->created_at->toIso8601String(),
         ];
+
         Log::info('AlertCreated event constructed with custom payload for alert ID: ' . $alert->id);
     }
 
+    /**
+     * Get the channels the event should broadcast on.
+     */
     public function broadcastOn(): array
     {
-        // This is a public channel that anyone can listen to.
-        return [new Channel('public-alerts')];
-    }
-
-    /**
-     * Define the event's broadcast name.
-     */
-    public function broadcastAs(): string
-    {
-        return 'alert.created';
+        Log::info('Broadcasting AlertCreated on public-alerts channel.');
+        // This is a public channel, so no authentication is needed.
+        return [
+            new Channel('public-alerts'),
+        ];
     }
 
     /**
@@ -49,7 +54,7 @@ class AlertCreated implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        // Send the payload directly.
-        return $this->payload;
+        // We nest the payload under an 'alert' key to match the original JS logic.
+        return ['alert' => $this->payload];
     }
 }
