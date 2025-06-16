@@ -28,6 +28,8 @@ return [
             'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
             'key' => env('AZURE_SEARCH_KEY'),
             'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
+            'function_url' => env('AZURE_FUNCTION_URL'),
+            'function_code' => env('AZURE_FUNCTION_CODE'),
         ],
     ],
 

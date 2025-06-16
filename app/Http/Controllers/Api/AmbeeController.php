@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Log;
 
 class AmbeeController extends Controller
 {
+    // ... (getFireDataByLatLng and getFireRiskDataByLatLng methods remain the same) ...
+
     /**
      * Fetches LIVE fire data from the Ambee API.
      */
     public function getFireDataByLatLng(Request $request)
     {
-        return $this->proxyRequest($request, 'https://api.ambeedata.com/fire/latest/by-lat-lng');
+        return $this->proxyAmbeeRequest($request, 'https://api.ambeedata.com/fire/latest/by-lat-lng');
     }
 
     /**
@@ -22,58 +24,76 @@ class AmbeeController extends Controller
      */
     public function getFireRiskDataByLatLng(Request $request)
     {
-        return $this->proxyRequest($request, 'https://api.ambeedata.com/fire/risk/by-lat-lng');
+        return $this->proxyAmbeeRequest($request, 'https://api.ambeedata.com/fire/risk/by-lat-lng');
     }
 
     /**
-     * Generic proxy function to handle requests to the Ambee API.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param string $apiUrlTemplate
-     * @return \Illuminate\Http\JsonResponse
+     * **NEW:** Proxies an image classification request to an Azure Function.
+     * Note: This assumes the Azure function can accept a Base64 string.
+     * The user's curl example uses a URL, but for a dynamic web app,
+     * sending Base64 data is a more direct approach.
      */
-    private function proxyRequest(Request $request, string $apiUrlTemplate)
+    public function classifyImage(Request $request)
     {
         $request->validate([
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
+            'image_b64' => 'required|string',
         ]);
 
-        $apiKey = config('services.ambee.key');
-        if (!$apiKey) {
-            Log::error('Ambee API Key is not set in services config.');
-            return response()->json(['error' => 'Server configuration error.'], 500);
+        $functionUrl = config('services.azure.function_url');
+        $functionCode = config('services.azure.function_code');
+
+        if (!$functionUrl || !$functionCode) {
+            Log::error('Azure Function URL or Code is not set.');
+            return response()->json(['error' => 'Server configuration error for image analysis.'], 500);
         }
 
-        $lat = $request->input('lat');
-        $lng = $request->input('lng');
-
-        $apiUrl = "{$apiUrlTemplate}?lat={$lat}&lng={$lng}";
+        $imageData = $request->input('image_b64');
+        
+        // This is a placeholder for the logic your Azure function might use.
+        // We are sending a payload with a base64 string. Your function might
+        // need a different key like 'image_data' instead of 'image_url'.
+        $payload = [
+            'image_url' => $imageData 
+        ];
 
         try {
-            $response = Http::withHeaders([
-                'x-api-key' => $apiKey,
-                'Content-type' => 'application/json'
-            ])->timeout(15)->get($apiUrl);
+            $response = Http::withHeaders(['Content-Type' => 'application/json'])
+                ->post("{$functionUrl}?code={$functionCode}", $payload);
 
             if ($response->successful()) {
                 return $response->json();
             }
 
-            Log::error('Ambee API request failed.', [
-                'url' => $apiUrl,
+            Log::error('Azure Function request failed.', [
                 'status' => $response->status(),
                 'body' => $response->body()
             ]);
-
-            $errorMsg = $response->json('message', 'Failed to retrieve data from Ambee.');
-            return response()->json(['error' => $errorMsg], $response->status());
+            return response()->json(['error' => 'Image analysis service failed.'], $response->status());
 
         } catch (\Exception $e) {
-            Log::error('Exception while calling Ambee API.', [
-                'url' => $apiUrl,
-                'message' => $e->getMessage()
-            ]);
+            Log::error('Exception while calling Azure Function.', ['message' => $e->getMessage()]);
+            return response()->json(['error' => 'An unexpected error occurred during image analysis.'], 500);
+        }
+    }
+
+    private function proxyAmbeeRequest(Request $request, string $apiUrlTemplate)
+    {
+        $request->validate(['lat' => 'required|numeric', 'lng' => 'required|numeric']);
+        $apiKey = config('services.ambee.key');
+        if (!$apiKey) {
+            Log::error('Ambee API Key is not set.');
+            return response()->json(['error' => 'Server configuration error.'], 500);
+        }
+        $lat = $request->input('lat');
+        $lng = $request->input('lng');
+        $apiUrl = "{$apiUrlTemplate}?lat={$lat}&lng={$lng}";
+        try {
+            $response = Http::withHeaders(['x-api-key' => $apiKey])->timeout(15)->get($apiUrl);
+            if ($response->successful()) return $response->json();
+            $errorMsg = $response->json('message', 'Failed to retrieve data from Ambee.');
+            return response()->json(['error' => $errorMsg], $response->status());
+        } catch (\Exception $e) {
+            Log::error('Exception calling Ambee API.', ['message' => $e->getMessage()]);
             return response()->json(['error' => 'An unexpected error occurred.'], 500);
         }
     }

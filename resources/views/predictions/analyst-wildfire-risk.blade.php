@@ -11,9 +11,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
     @include('partials.styles')
     <style>
@@ -31,6 +33,29 @@
         .accordion-body { padding: 1rem; background-color: var(--bs-tertiary-bg); }
         .raw-data-table { font-size: 0.8rem; }
         .raw-data-table td { word-break: break-all; }
+
+        .leaflet-draw-toolbar a,
+        .leaflet-draw-actions a {
+            background-color: white !important;
+            color: #333 !important;
+            border-color: #bbb !important;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+        }
+        .leaflet-draw-toolbar a:hover,
+        .leaflet-draw-actions a:hover {
+            background-color: #f4f4f4 !important;
+        }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip {
+            background: var(--bs-tertiary-bg) !important;
+            color: var(--bs-body-color) !important;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+        }
+        /* NEW: Style for coordinate tooltips */
+        .coord-tooltip {
+            background-color: rgba(var(--bs-dark-rgb), 0.8) !important;
+            border: 1px solid rgba(var(--bs-light-rgb), 0.5) !important;
+            color: var(--bs-light) !important;
+        }
     </style>
 </head>
 <body class="boxed-size">
@@ -60,6 +85,8 @@
                                 <button class="btn btn-primary w-100" id="enable-live-selection-btn"><i class="fas fa-crosshairs me-2"></i>Select Location</button>
                                 <button class="btn btn-outline-secondary" id="clear-fires-btn" title="Clear Live Fires"><i class="fas fa-times"></i></button>
                             </div>
+                             <!-- NEW: Dedicated location display -->
+                            <div id="report-location-display" class="mb-2"></div>
                             <div id="report-placeholder" class="text-center text-muted mt-4"><i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use 'Select Location' to get a live fire report.</p></div>
                             <div id="report-container" class="accordion"></div>
                         </div>
@@ -68,6 +95,8 @@
                             <div class="d-grid mb-3">
                                 <button class="btn btn-primary" id="enable-forecast-selection-btn"><i class="fas fa-crosshairs me-2"></i>Select Location</button>
                             </div>
+                            <!-- NEW: Dedicated location display -->
+                            <div id="forecast-location-display" class="mb-2"></div>
                             <div id="forecast-placeholder" class="text-center text-muted mt-4"><i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use 'Select Location' to get a risk forecast.</p></div>
                             <div id="forecast-container" class="accordion"></div>
                         </div>
@@ -107,17 +136,37 @@ document.addEventListener('DOMContentLoaded', function() {
     let clickMarker = null;
     let fireMarkersLayer = L.layerGroup();
     let routeLayers = L.layerGroup();
+    let drawnItems = L.featureGroup();
     let settingPoint = null, startPoint = null, endPoint = null;
     let currentFires = [];
     let selectionMode = null;
 
     const initMap = () => {
+        const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
         const darkMode = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' });
-        baseMaps = { "Streets": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }), "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' }), "Dark Mode": darkMode };
-        map = L.map('map', { center: [34.05, -118.25], zoom: 9, layers: [darkMode] });
+        baseMaps = { 
+            "Streets": streetMap, 
+            "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' }), 
+            "Dark Mode": darkMode 
+        };
+        
+        map = L.map('map', { center: [34.05, -118.25], zoom: 9, layers: [streetMap] });
         map.addLayer(fireMarkersLayer);
         map.addLayer(routeLayers);
+        map.addLayer(drawnItems);
         map.on('click', handleMapClick);
+
+        const drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems },
+            draw: {
+                polygon: false, marker: false, circlemarker: false,
+                rectangle: { shapeOptions: { color: '#0dcaf0' } },
+                circle: { shapeOptions: { color: '#0dcaf0' } },
+                polyline: { shapeOptions: { color: '#0dcaf0' } }
+            }
+        });
+        map.addControl(drawControl);
+        map.on(L.Draw.Event.CREATED, handleDrawingCreated);
         setupUI();
     };
 
@@ -125,10 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const basemapContainer = document.getElementById('basemap-selector-container');
         Object.keys(baseMaps).forEach(name => {
             const id = `basemap-radio-${name.replace(/\s+/g, '-')}`;
-            const isChecked = name === "Dark Mode" ? 'checked' : '';
+            const isChecked = name === "Streets" ? 'checked' : '';
             basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${isChecked}><label class="form-check-label" for="${id}">${name}</label></div>`;
         });
-        basemapContainer.addEventListener('change', (e) => { Object.values(baseMaps).forEach(layer => map.removeLayer(layer)); map.addLayer(baseMaps[e.target.value]); });
+        basemapContainer.addEventListener('change', (e) => { 
+            Object.values(baseMaps).forEach(layer => map.removeLayer(layer)); 
+            map.addLayer(baseMaps[e.target.value]); 
+        });
         
         document.getElementById('enable-live-selection-btn').addEventListener('click', () => setSelectionMode('live'));
         document.getElementById('enable-forecast-selection-btn').addEventListener('click', () => setSelectionMode('forecast'));
@@ -147,164 +199,230 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const handleMapClick = async (e) => {
         if (!selectionMode) return;
-        const mode = selectionMode; // Capture mode before resetting
-        selectionMode = null; // Deactivate selection mode immediately
-        document.getElementById('map').classList.remove('selection-active');
+        if (clickMarker) map.removeLayer(clickMarker);
+        
+        document.getElementById('report-location-display').innerHTML = '';
+        document.getElementById('forecast-location-display').innerHTML = '';
 
-        if (mode.startsWith('routing')) {
-            handleRoutingPointPlacement(e.latlng, mode);
+        if (selectionMode.startsWith('routing')) {
+            await handleRoutingPointPlacement(e.latlng);
         } else {
-            if (clickMarker) map.removeLayer(clickMarker);
             clickMarker = L.marker(e.latlng, { opacity: 0.7 }).addTo(map);
+            const address = await getAddressFromLatLng(e.latlng);
+            const addressHtml = `<div class="alert alert-info py-2"><strong>Selected Location:</strong><br>${address}</div>`;
 
-            if (mode === 'live') {
+            if (selectionMode === 'live') {
+                document.getElementById('report-location-display').innerHTML = addressHtml;
                 document.getElementById('report-placeholder').innerHTML = '<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Fetching live fires...</p>';
                 fetchAndDisplayFires(e.latlng);
-            } else if (mode === 'forecast') {
+            } else if (selectionMode === 'forecast') {
+                document.getElementById('forecast-location-display').innerHTML = addressHtml;
                 document.getElementById('forecast-placeholder').innerHTML = '<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Fetching risk forecast...</p>';
                 fetchAndDisplayRisk(e.latlng);
             }
         }
+        
+        selectionMode = null;
+        document.getElementById('map').classList.remove('selection-active');
+    };
+
+    const getAddressFromLatLng = async (latlng) => {
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`);
+            const data = await response.json();
+            return data.display_name || `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+        } catch (error) { return `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`; }
+    };
+
+    const formatFieldName = (key) => {
+        const result = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
+        return result.charAt(0).toUpperCase() + result.slice(1);
     };
     
-    // --- Data Fetching and Display ---
     const fetchAndDisplayFires = async (latlng) => {
+        const placeholder = document.getElementById('report-placeholder');
         try {
             const response = await fetch(`/api/ambee/fire-data?lat=${latlng.lat}&lng=${latlng.lng}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Request failed');
-            const placeholder = document.getElementById('report-placeholder');
-            const container = document.getElementById('report-container');
-            container.innerHTML = '';
+            
+            placeholder.innerHTML = '';
+            document.getElementById('report-container').innerHTML = '';
             
             if (data.message === 'success' && data.data.length > 0) {
-                placeholder.innerHTML = '';
                 currentFires = data.data;
                 fireMarkersLayer.clearLayers();
                 data.data.forEach((fire, index) => {
-                    const fireIcon = L.divIcon({ className: 'text-danger', html: '<i class="fas fa-fire-alt fa-2x"></i>', iconSize: [24, 24] });
-                    L.marker([fire.lat, fire.lng], { icon: fireIcon }).addTo(fireMarkersLayer).bindPopup(`<b>${fire.fireName || 'Unnamed Fire'}</b>`);
+                    L.marker([fire.lat, fire.lng], { icon: L.divIcon({ className: 'text-danger', html: '<i class="fas fa-fire-alt fa-2x"></i>', iconSize: [24, 24] }) }).addTo(fireMarkersLayer).bindPopup(`<b>${fire.fireName || 'Unnamed Fire'}</b>`);
                     const fwi = fire.fwi ? parseFloat(fire.fwi).toFixed(1) : 'N/A';
-                    const fwiColor = fwi >= 40 ? 'danger' : fwi >= 20 ? 'warning' : fwi > 0 ? 'success' : 'secondary';
-                    container.innerHTML += createAccordionItem(`live-fire-${index}`, fire.fireName || 'Unnamed Fire', new Date(fire.detectedAt).toLocaleString(), `FWI: ${fwi}`, fwiColor, fire);
+                    document.getElementById('report-container').innerHTML += createAccordionItem(`live-fire-${index}`, fire.fireName || 'Unnamed Fire', new Date(fire.detectedAt).toLocaleString(), `FWI: ${fwi}`, fwi >= 40 ? 'danger' : fwi >= 20 ? 'warning' : 'success', fire);
                 });
             } else {
                 placeholder.innerHTML = '<div class="alert alert-success">No active fires found near this location.</div>';
-                clearLiveFireData();
             }
-        } catch (error) { document.getElementById('report-placeholder').innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${error.message}</div>`; }
+        } catch (error) { placeholder.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${error.message}</div>`; }
     };
 
     const fetchAndDisplayRisk = async (latlng) => {
+        const placeholder = document.getElementById('forecast-placeholder');
         try {
             const response = await fetch(`/api/ambee/fire-risk?lat=${latlng.lat}&lng=${latlng.lng}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Request failed');
-            const placeholder = document.getElementById('forecast-placeholder');
-            const container = document.getElementById('forecast-container');
-            container.innerHTML = '';
+
+            placeholder.innerHTML = '';
+            document.getElementById('forecast-container').innerHTML = '';
             
             if (data.message === 'success' && data.data.length > 0) {
-                placeholder.innerHTML = '';
                 data.data.slice(0, 4).forEach((risk, index) => {
                     const riskColor = risk.predicted_risk_category === 'high' ? 'danger' : risk.predicted_risk_category === 'moderate' ? 'warning' : 'success';
-                    container.innerHTML += createAccordionItem(`forecast-${index}`, `Week ${risk.week} Forecast`, risk.predicted_risk_category, `Avg Temp: ${risk.temperature.toFixed(1)}°C`, riskColor, risk);
+                    document.getElementById('forecast-container').innerHTML += createAccordionItem(`forecast-${index}`, `Week ${risk.week} Forecast`, risk.predicted_risk_category, `Avg Temp: ${risk.temperature.toFixed(1)}°C`, riskColor, risk);
                 });
             } else {
                 placeholder.innerHTML = '<div class="alert alert-secondary">No risk forecast data available for this location.</div>';
             }
-        } catch (error) { document.getElementById('forecast-placeholder').innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${error.message}</div>`; }
-    };
-
-    const formatLabel = (key) => {
-        if (!key) return '';
-        const result = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1');
-        return result.charAt(0).toUpperCase() + result.slice(1);
+        } catch (error) { placeholder.innerHTML = `<div class="alert alert-danger"><strong>Error:</strong> ${error.message}</div>`; }
     };
 
     const createAccordionItem = (id, title, subtitle, badgeText, badgeColor, rawData) => {
         let rawDataHtml = '<table class="table table-bordered table-sm raw-data-table"><tbody>';
         for (const key in rawData) {
             let value = rawData[key];
-            if (typeof value === 'object' && value !== null) { value = JSON.stringify(value, null, 2); }
-             // NEW: Use the formatLabel function here
-            rawDataHtml += `<tr><td><strong>${formatLabel(key)}</strong></td><td>${value}</td></tr>`;
+            if (typeof value === 'object' && value !== null) value = `<pre>${JSON.stringify(value, null, 2)}</pre>`;
+            rawDataHtml += `<tr><td><strong>${formatFieldName(key)}</strong></td><td>${value}</td></tr>`;
         }
         rawDataHtml += '</tbody></table>';
-
-        return `<div class="accordion-item bg-transparent border-bottom"><h2 class="accordion-header" id="heading-${id}"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${id}" aria-expanded="false" aria-controls="collapse-${id}"><div class="w-100 d-flex justify-content-between align-items-center"><div class="me-2"><strong>${title}</strong><br><small class="text-muted">${subtitle}</small></div><span class="badge text-bg-${badgeColor} flex-shrink-0">${badgeText}</span></div></button></h2><div id="collapse-${id}" class="accordion-collapse collapse" aria-labelledby="heading-${id}"><div class="accordion-body">${rawDataHtml}</div></div></div>`;
+        return `<div class="accordion-item bg-transparent border-bottom"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${id}"><div class="w-100 d-flex justify-content-between align-items-center"><div><strong class="d-block">${title}</strong><small class="text-muted">${subtitle}</small></div><span class="badge text-bg-${badgeColor} me-2">${badgeText}</span></div></button></h2><div id="collapse-${id}" class="accordion-collapse collapse"><div class="accordion-body">${rawDataHtml}</div></div></div>`;
     };
 
     const clearLiveFireData = () => {
         currentFires = [];
         fireMarkersLayer.clearLayers();
         document.getElementById('report-container').innerHTML = '';
+        document.getElementById('report-location-display').innerHTML = '';
         document.getElementById('report-placeholder').innerHTML = '<i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use \'Select Location\' to get a live fire report.</p>';
     };
 
-    // --- Routing Logic ---
-    const handleRoutingPointPlacement = (latlng, mode) => {
-        const type = mode.split('-')[1];
-        const pointText = `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`;
+    const handleDrawingCreated = (e) => {
+        const layer = e.layer;
+        const type = e.layerType;
+
+        if (type === 'rectangle') {
+            const bounds = layer.getBounds();
+            const topRight = bounds.getNorthEast();
+            const topLeft = bounds.getNorthWest();
+            const bottomRight = bounds.getSouthEast();
+            const width = topLeft.distanceTo(topRight);
+            const height = topRight.distanceTo(bottomRight);
+            const area = width * height;
+            const perimeter = 2 * (width + height);
+            
+            const popupContent = `<strong>Rectangle Details:</strong><br>` +
+                                 `Area: ${formatArea(area)}<br>` +
+                                 `Perimeter: ${formatDistance(perimeter)}<br>` +
+                                 `Width: ${formatDistance(width)}<br>` +
+                                 `Height: ${formatDistance(height)}<br>` +
+                                 `Top-Right: ${topRight.lat.toFixed(4)}, ${topRight.lng.toFixed(4)}`;
+            layer.bindPopup(popupContent);
+            drawnItems.addLayer(layer);
+        } else if (type === 'circle') {
+            const center = layer.getLatLng();
+            const radius = layer.getRadius();
+            const area = Math.PI * Math.pow(radius, 2);
+
+            const popupContent = `<strong>Circle Details:</strong><br>` +
+                                 `Area: ${formatArea(area)}<br>` +
+                                 `Radius: ${formatDistance(radius)}<br>` +
+                                 `Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
+            layer.bindPopup(popupContent);
+            drawnItems.addLayer(layer);
+        } else if (type === 'polyline') {
+            const latlngs = layer.getLatLngs();
+            let distance = 0;
+            for (let i = 0; i < latlngs.length - 1; i++) {
+                distance += latlngs[i].distanceTo(latlngs[i + 1]);
+            }
+            
+            const lineGroup = L.featureGroup();
+            lineGroup.addLayer(layer);
+
+            latlngs.forEach(latlng => {
+                L.circleMarker(latlng, { radius: 1, opacity: 0 })
+                 .bindTooltip(`${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`, {
+                    permanent: true, direction: 'top', offset: [0, -10], className: 'coord-tooltip'
+                 })
+                 .addTo(lineGroup);
+            });
+            
+            lineGroup.bindPopup(`<strong>Total Line Distance:</strong><br>${formatDistance(distance)}`);
+            drawnItems.addLayer(lineGroup);
+        }
+    };
+    const formatDistance = (m) => m > 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(2)} m`;
+    const formatArea = (sqM) => sqM > 1000000 ? `${(sqM / 1000000).toFixed(2)} km²` : `${sqM.toFixed(2)} m²`;
+
+    const handleRoutingPointPlacement = async (latlng) => {
+        const type = selectionMode.split('-')[1];
+        const pointTextSpan = document.getElementById(`${type}-point-text`);
+        pointTextSpan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
+        
+        const address = await getAddressFromLatLng(latlng);
         const icon = L.divIcon({ className: `text-${type === 'start' ? 'success' : 'danger'}`, html: `<i class="fas fa-map-marker-alt fa-3x"></i>`, iconSize: [30, 42], iconAnchor: [15, 42] });
         const pointConfig = { latlng, marker: L.marker(latlng, { icon }).addTo(map) };
 
         if (type === 'start') {
             if (startPoint) map.removeLayer(startPoint.marker);
             startPoint = pointConfig;
-            document.getElementById('start-point-text').textContent = pointText;
         } else {
             if (endPoint) map.removeLayer(endPoint.marker);
             endPoint = pointConfig;
-            document.getElementById('end-point-text').textContent = pointText;
         }
+        pointTextSpan.textContent = address;
         document.getElementById('calculate-route-btn').disabled = !(startPoint && endPoint);
     };
-    
+
     const calculateAndCheckRoute = () => {
         if (!startPoint || !endPoint) return;
         clearAllRoutes(true);
-        const infoContainer = document.getElementById('route-info-container');
-        infoContainer.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Calculating direct route...';
+        const info = document.getElementById('route-info-container');
+        info.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Calculating...';
         
-        const directRouter = L.Routing.control({ waypoints: [startPoint.latlng, endPoint.latlng], createMarker: () => null }).on('routesfound', (e) => {
-            const route = e.routes[0];
-            routeLayers.addLayer(L.Routing.line(route, { styles: [{color: 'red', opacity: 0.8, weight: 6}] }));
-            const closestFire = findClosestFireToRoute(route.coordinates);
-            if (closestFire.distance < 2000) {
-                infoContainer.innerHTML = `<div class="alert alert-danger"><strong>DANGER:</strong> Direct route is unsafe. Finding an alternative...</div>`;
-                calculateAlternativeRoute(closestFire.fire);
-            } else {
-                infoContainer.innerHTML = `<div class="alert alert-success"><strong>Route Safe:</strong> The direct route appears clear of known fire zones.</div>`;
-            }
-        }).addTo(map);
+        L.Routing.control({ waypoints: [startPoint.latlng, endPoint.latlng], createMarker: () => null })
+            .on('routesfound', (e) => {
+                const route = e.routes[0];
+                routeLayers.addLayer(L.Routing.line(route, { styles: [{color: 'red', opacity: 0.8, weight: 6}] }));
+                const closest = findClosestFireToRoute(route.coordinates);
+                if (closest.distance < 2000) {
+                    info.innerHTML = `<div class="alert alert-danger"><strong>DANGER:</strong> Route is unsafe. Finding alternative...</div>`;
+                    calculateAlternativeRoute(closest.fire);
+                } else {
+                    info.innerHTML = `<div class="alert alert-success"><strong>Route Safe.</strong></div>`;
+                }
+            }).addTo(map);
         document.getElementById('clear-route-btn').style.display = 'block';
     };
     
-    const calculateAlternativeRoute = (problemFire) => {
-        const fireLatLng = L.latlng(problemFire.lat, problemFire.lng);
-        const bearing = map.options.crs.bearing(startPoint.latlng, fireLatLng);
-        const detourPoint = map.options.crs.destination(fireLatLng, bearing + 90, 3000);
-
-        const altRouter = L.Routing.control({ waypoints: [startPoint.latlng, detourPoint, endPoint.latlng], createMarker: () => null }).on('routesfound', (e) => {
-            routeLayers.addLayer(L.Routing.line(e.routes[0], { styles: [{color: 'blue', opacity: 0.8, weight: 6}] }));
-            document.getElementById('route-info-container').innerHTML += `<div class="alert alert-success"><strong>Alternative Route Found (Blue):</strong> Review carefully.</div>`;
-        }).on('routingerror', () => {
-             document.getElementById('route-info-container').innerHTML += `<div class="alert alert-warning">Could not calculate an alternative.</div>`;
-        }).addTo(map);
+    const calculateAlternativeRoute = (fire) => {
+        const detour = map.options.crs.destination(L.latLng(fire.lat, fire.lng), map.options.crs.bearing(startPoint.latlng, L.latLng(fire.lat, fire.lng)) + 90, 3000);
+        L.Routing.control({ waypoints: [startPoint.latlng, detour, endPoint.latlng], createMarker: () => null })
+            .on('routesfound', (e) => {
+                routeLayers.addLayer(L.Routing.line(e.routes[0], { styles: [{color: 'blue', opacity: 0.8, weight: 6}] }));
+                document.getElementById('route-info-container').innerHTML += `<div class="alert alert-success"><strong>Alternative Route Found (Blue).</strong></div>`;
+            }).on('routingerror', () => {
+                document.getElementById('route-info-container').innerHTML += `<div class="alert alert-warning">Could not calculate an alternative.</div>`;
+            }).addTo(map);
     };
 
-    const findClosestFireToRoute = (routeCoords) => {
-        let closestDistance = Infinity, closestFire = null;
-        if (currentFires.length === 0) return { distance: Infinity, fire: null };
-        routeCoords.forEach(coord => {
-            const routePoint = L.latLng(coord.lat, coord.lng);
-            currentFires.forEach(fire => {
-                const distance = routePoint.distanceTo(L.latLng(fire.lat, fire.lng));
-                if (distance < closestDistance) { closestDistance = distance; closestFire = fire; }
+    const findClosestFireToRoute = (coords) => {
+        let closest = { distance: Infinity, fire: null };
+        if (currentFires.length === 0) return closest;
+        coords.forEach(c => {
+            currentFires.forEach(f => {
+                const d = L.latLng(c.lat, c.lng).distanceTo(L.latLng(f.lat, f.lng));
+                if (d < closest.distance) { closest = { distance: d, fire: f }; }
             });
         });
-        return { distance: closestDistance, fire: closestFire };
+        return closest;
     };
     
     const clearAllRoutes = (keepPoints = false) => {
@@ -312,8 +430,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!keepPoints) {
             if (startPoint) map.removeLayer(startPoint.marker);
             if (endPoint) map.removeLayer(endPoint.marker);
-            startPoint = null;
-            endPoint = null;
+            startPoint = endPoint = null;
             document.getElementById('start-point-text').textContent = 'Not set';
             document.getElementById('end-point-text').textContent = 'Not set';
             document.getElementById('calculate-route-btn').disabled = true;

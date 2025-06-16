@@ -96,3 +96,7 @@ Route::get('/wildfire-risk/point-data', [WildfireRiskController::class, 'getPoin
 // Ambee Fire Data Proxy
 Route::get('/ambee/fire-data', [AmbeeController::class, 'getFireDataByLatLng']);
 Route::get('/ambee/fire-risk', [AmbeeController::class, 'getFireRiskDataByLatLng']);
+
+
+
+Route::post('/ambee/classify-image', [AmbeeController::class, 'classifyImage']); // NEW ROUTE
