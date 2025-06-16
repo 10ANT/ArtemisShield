@@ -18,7 +18,7 @@ class ReportController extends Controller
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
 
-    private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
+    private const FFMPEG_PATH = 'D:\ffmpeg-2025-05-21-git-4099d53759-essentials_build\ffmpeg-2025-05-21-git-4099d53759-essentials_build\bin\ffmpeg.exe';
     
     /**
      * Main processing function for the audio report.

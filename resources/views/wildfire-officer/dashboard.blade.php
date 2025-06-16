@@ -61,8 +61,10 @@
         #zoomed-goes-modal .modal-dialog { max-width: 90vw; }
         #zoomed-goes-modal .modal-content { background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border: 1px solid #555; }
         #zoomed-goes-image-container { position: relative; cursor: crosshair; }
-        #zoomed-goes-image { width: 100%; height: auto; max-height: 80vh; object-fit: contain; }
+        #zoomed-goes-image { width: 100%; height: auto; max-height: 80vh; object-fit: contain; background-color: #000;}
+        #detection-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
         #magnifier-loupe { width: 200px; height: 200px; position: absolute; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; display: none; background-repeat: no-repeat; }
+        #image-analysis-loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
         
         #timeline-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 800px; z-index: 1001; background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: 10px 20px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; }
         #timeline-label { font-size: 0.9em; font-weight: bold; white-space: nowrap; min-width: 100px; text-align: center; color: var(--bs-body-color); }
@@ -107,6 +109,10 @@
         .search-result-card .result-name { font-weight: 500; }
         .search-result-card .result-details { font-size: 0.8em; color: var(--bs-secondary-color); }
         .spinner-border { position: absolute; right: 10px; top: 50%; margin-top: -0.5rem; }
+
+        .analysis-card { border-left-width: 5px; }
+        .analysis-card .spinner-border { width: 1rem; height: 1rem; }
+
     </style>
 </head>
 
@@ -139,6 +145,7 @@
                             <button id="goes-fire-temp-btn" class="btn btn-secondary" title="Toggle GOES Fire Temp Preview"><i class="fas fa-fire-alt"></i></button>
                             <button id="toggle-contained-btn" class="btn btn-secondary" title="Hide Contained & Out Fires"><i class="fas fa-shield-alt"></i></button>
                             <button id="create-alert-btn" class="btn btn-secondary" title="Create Community Alert"><i class="fas fa-bullhorn text-warning"></i></button>
+                            <button id="analyze-all-goes-btn" class="btn btn-warning" title="Analyze All GOES Sectors"><i class="fas fa-satellite"></i><i class="fas fa-search ms-1"></i></button>
                         </div>
                         <div id="layers-sidebar">
                             <div id="layers-sidebar-header" class="card-header d-flex justify-content-between align-items-center p-2">
@@ -172,6 +179,18 @@
                                     <div class="form-check form-switch"><input class="form-check-input layer-toggle" type="checkbox" role="switch" id="viirs-hotspots" data-source="VIIRS" ><label class="form-check-label legend-item" for="viirs-hotspots"><span class="legend-icon"><i class="fas fa-satellite-dish text-primary"></i></span>VIIRS Hotspots</label></div>
                                     <div class="form-check form-switch"><input class="form-check-input layer-toggle" type="checkbox" role="switch" id="modis-hotspots" data-source="MODIS" checked><label class="form-check-label legend-item" for="modis-hotspots"><span class="legend-icon"><i class="fas fa-satellite-dish text-success"></i></span>MODIS Hotspots</label></div>
                                     <div class="d-flex align-items-center justify-content-around small text-muted mt-1 px-2"><span>Low</span><span class="frp-legend-dot" style="background-color: #ffff00;"></span><span class="frp-legend-dot" style="background-color: #ffaa00;"></span><span class="frp-legend-dot" style="background-color: #ff4500;"></span><span class="frp-legend-dot" style="background-color: #d40202;"></span><span>High</span></div>
+                                </div>
+                                <hr class="my-2">
+                                <div class="mb-3">
+                                    <h6>Automated Analysis</h6>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="recurring-analysis-toggle">
+                                        <label class="form-check-label" for="recurring-analysis-toggle">Run every</label>
+                                    </div>
+                                    <div class="input-group input-group-sm mt-2">
+                                        <input type="number" class="form-control" id="analysis-interval-minutes" value="30" min="5">
+                                        <span class="input-group-text">minutes</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -237,7 +256,58 @@
     
     <div class="modal fade" id="fire-details-modal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="fire-details-modal-title"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body" id="fire-details-modal-body"></div></div></div></div>
     <div id="goes-preview"><img id="goes-preview-img" src="" alt="GOES Preview"><p id="goes-preview-label">Move mouse over map</p></div>
-    <div class="modal fade" id="zoomed-goes-modal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-xl"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="zoomed-goes-modal-title">Fire Temperature</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center" id="zoomed-goes-image-container"><img id="zoomed-goes-image" src="" alt="Zoomed GOES Fire Temperature Image"><div id="magnifier-loupe"></div></div></div></div></div>
+    
+    <div class="modal fade" id="zoomed-goes-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="zoomed-goes-modal-title">Fire Temperature</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center" id="zoomed-goes-image-container">
+                    <img id="zoomed-goes-image" src="" alt="Zoomed GOES Fire Temperature Image">
+                    <canvas id="detection-canvas"></canvas>
+                    <div id="magnifier-loupe"></div>
+                    <div id="image-analysis-loader" class="d-none">
+                        <div class="spinner-border text-light" role="status">
+                            <span class="visually-hidden">Analyzing...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <div class="text-start">
+                        <div id="analysis-result-text" class="text-muted small"></div>
+                        <p class="text-white-50 small mb-0">Click 'Analyze for Fire' to send this image to the Custom Vision AI.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="analyze-image-btn"><i class="fas fa-search-location me-2"></i>Analyze for Fire</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="analysis-results-modal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">GOES Sector Analysis Results</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Analysis in progress. Results will appear below as they are completed. Green means no fire detected, Red means potential fire found.</p>
+                    <div id="analysis-results-grid" class="row g-3">
+                        <!-- Results will be injected here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span id="analysis-progress-text" class="me-auto"></span>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="alert-modal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -280,6 +350,10 @@
         Cesium.Ion.defaultAccessToken = "{{ config('services.cesium.ion_access_token', 'YOUR_FALLBACK_KEY') }}";
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
+        // --- Custom Vision API Credentials ---
+        const VISION_PREDICTION_URL = 'https://southcentralus.api.cognitive.microsoft.com/customvision/v3.0/Prediction/3ea6c153-66ff-4e81-9ca7-e42b28785583/detect/iterations/firetempiteration2/image';
+        const VISION_PREDICTION_KEY = 'e88a49568d634bdc8ebedcb798b18f29';
+
         let agentHandler;
         let map, fireDetailsModal, weatherMarkerDrawer, drawnItems;
         const fireLayerGroups = { 'VIIRS': L.layerGroup(), 'MODIS': L.layerGroup() };
@@ -298,9 +372,10 @@
         let alertModal, alertDrawer, communityAlertsLayer;
         let activeAlerts = {};
         
-        let mediaRecorder;
-        let audioChunks = [];
-        let isRecording = false;
+        let mediaRecorder, audioChunks = [], isRecording = false;
+        
+        let analysisResultsModal;
+        let recurringAnalysisTimer = null;
 
         class AgentHandler {
             constructor(chatMessagesContainer, chatInput) {
@@ -500,6 +575,7 @@
                 initializeMap();
                 fireDetailsModal = new bootstrap.Modal(document.getElementById('fire-details-modal'));
                 alertModal = new bootstrap.Modal(document.getElementById('alert-modal'));
+                analysisResultsModal = new bootstrap.Modal(document.getElementById('analysis-results-modal'));
                 goesPreviewContainer = document.getElementById('goes-preview'); 
                 goesPreviewImg = document.getElementById('goes-preview-img'); 
                 goesPreviewLabel = document.getElementById('goes-preview-label');
@@ -671,6 +747,29 @@
             document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
             document.getElementById('alert-form').addEventListener('submit', saveAlert);
             document.getElementById('create-alert-btn').addEventListener('click', toggleAlertCreation);
+            
+            // --- Event listeners for new image analysis feature ---
+            document.getElementById('analyze-image-btn').addEventListener('click', analyzeGoesImageForFire);
+            const zoomedModalEl = document.getElementById('zoomed-goes-modal');
+            zoomedModalEl.addEventListener('hidden.bs.modal', () => {
+                console.log("Zoomed GOES modal hidden. Clearing canvas and image source.");
+                const canvas = document.getElementById('detection-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('zoomed-goes-image').src = ''; // Clear src to prevent re-analysis
+                document.getElementById('analysis-result-text').textContent = '';
+            });
+             zoomedModalEl.addEventListener('shown.bs.modal', () => {
+                console.log("Zoomed GOES modal shown. Clearing any previous drawings.");
+                const canvas = document.getElementById('detection-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                document.getElementById('analysis-result-text').textContent = '';
+            });
+
+            // --- Event listeners for Automated Analysis ---
+            document.getElementById('analyze-all-goes-btn').addEventListener('click', analyzeAllGoesSectors);
+            document.getElementById('recurring-analysis-toggle').addEventListener('change', handleRecurringAnalysisToggle);
         }
 
         function loadInitialData() { 
@@ -734,7 +833,308 @@
         function handleGoesMouseLeave() { goesPreviewContainer.style.display = 'none'; }
         function getNoaaSector(latlng) { let bestFit = null; let smallestArea = Infinity; for (const code in NOAA_SECTORS) { const sector = NOAA_SECTORS[code]; if (sector.bounds.contains(latlng)) { const area = sector.bounds.getNorthEast().distanceTo(sector.bounds.getSouthWest()); if (area < smallestArea) { smallestArea = area; bestFit = { code: code.toUpperCase(), ...sector }; } } } return bestFit; }
         function updateGoesPreviewImage(latlng) { const sector = getNoaaSector(latlng); if (!sector) { goesPreviewLabel.textContent = "Outside GOES coverage"; goesPreviewImg.style.display = 'none'; lastValidGoesUrl = ''; return; } const imageUrl = `https://cdn.star.nesdis.noaa.gov/${sector.satellite}/ABI/SECTOR/${sector.code}/FireTemperature/latest.jpg`; const cacheBusterUrl = `${imageUrl}?t=${new Date().getTime()}`; goesPreviewLabel.textContent = `Loading ${sector.name}...`; goesPreviewImg.style.display = 'none'; goesPreviewImg.src = cacheBusterUrl; goesPreviewImg.onerror = () => { goesPreviewLabel.textContent = `Image unavailable for ${sector.name}`; goesPreviewImg.style.display = 'none'; lastValidGoesUrl = ''; }; goesPreviewImg.onload = () => { goesPreviewLabel.textContent = `${sector.name} - Click to Pin/Zoom`; goesPreviewImg.style.display = 'block'; lastValidGoesUrl = cacheBusterUrl; }; }
-        function initializeMagnifier() { const img = zoomedGoesImage; const container = zoomedGoesContainer; const loupe = magnifierLoupe; const zoom = 2.5; const showLoupe = () => { loupe.style.display = 'block'; loupe.style.backgroundImage = `url('${img.src}')`; }; const hideLoupe = () => { loupe.style.display = 'none'; }; const moveLoupe = (e) => { const rect = img.getBoundingClientRect(); let x = e.clientX - rect.left; let y = e.clientY - rect.top; x = Math.max(0, Math.min(x, rect.width)); y = Math.max(0, Math.min(y, rect.height)); const bgX = -(x * zoom - loupe.offsetWidth / 2); const bgY = -(y * zoom - loupe.offsetHeight / 2); loupe.style.left = (x - loupe.offsetWidth / 2) + 'px'; loupe.style.top = (y - loupe.offsetHeight / 2) + 'px'; loupe.style.backgroundPosition = `${bgX}px ${bgY}px`; loupe.style.backgroundSize = `${img.width * zoom}px ${img.height * zoom}px`; }; container.addEventListener('mouseenter', showLoupe); container.addEventListener('mouseleave', hideLoupe); container.addEventListener('mousemove', moveLoupe); }
+        
+        function getRenderedImageDimensions(img) {
+            const { naturalWidth, naturalHeight, width, height } = img;
+            if (!naturalWidth || !naturalHeight) return { renderedWidth: 0, renderedHeight: 0, offsetX: 0, offsetY: 0};
+            
+            const naturalRatio = naturalWidth / naturalHeight;
+            const elementRatio = width / height;
+
+            let renderedWidth, renderedHeight, offsetX, offsetY;
+
+            if (naturalRatio > elementRatio) {
+                renderedWidth = width;
+                renderedHeight = width / naturalRatio;
+                offsetX = 0;
+                offsetY = (height - renderedHeight) / 2;
+            } else {
+                renderedHeight = height;
+                renderedWidth = height * naturalRatio;
+                offsetY = 0;
+                offsetX = (width - renderedWidth) / 2;
+            }
+            return { renderedWidth, renderedHeight, offsetX, offsetY };
+        }
+
+        function initializeMagnifier() {
+            const img = zoomedGoesImage;
+            const container = zoomedGoesContainer;
+            const loupe = magnifierLoupe;
+            const zoom = 2.5;
+
+            const moveLoupe = (e) => {
+                const { renderedWidth, renderedHeight, offsetX, offsetY } = getRenderedImageDimensions(img);
+
+                if (renderedWidth === 0) {
+                    loupe.style.display = 'none';
+                    return;
+                }
+                
+                const rect = img.getBoundingClientRect();
+                let mouseX = e.clientX - rect.left;
+                let mouseY = e.clientY - rect.top;
+
+                if (mouseX < offsetX || mouseX > offsetX + renderedWidth || mouseY < offsetY || mouseY > offsetY + renderedHeight) {
+                    loupe.style.display = 'none';
+                    return;
+                }
+                
+                loupe.style.display = 'block';
+                const imgX = mouseX - offsetX;
+                const imgY = mouseY - offsetY;
+                
+                loupe.style.left = (mouseX - loupe.offsetWidth / 2) + 'px';
+                loupe.style.top = (mouseY - loupe.offsetHeight / 2) + 'px';
+
+                loupe.style.backgroundImage = `url('${img.src}')`;
+                loupe.style.backgroundSize = `${renderedWidth * zoom}px ${renderedHeight * zoom}px`;
+
+                const bgX = -(imgX * zoom - loupe.offsetWidth / 2);
+                const bgY = -(imgY * zoom - loupe.offsetHeight / 2);
+                loupe.style.backgroundPosition = `${bgX}px ${bgY}px`;
+            };
+
+            const hideLoupe = () => { loupe.style.display = 'none'; };
+
+            container.addEventListener('mousemove', moveLoupe);
+            container.addEventListener('mouseleave', hideLoupe);
+            console.log("Magnifier initialized with aspect-ratio correction.");
+        }
+
+        async function analyzeGoesImageForFire(imageUrl) {
+            const img = document.getElementById('zoomed-goes-image');
+            const loader = document.getElementById('image-analysis-loader');
+            const analyzeBtn = document.getElementById('analyze-image-btn');
+            const resultText = document.getElementById('analysis-result-text');
+
+            const targetUrl = typeof imageUrl === 'string' ? imageUrl : img.src;
+
+            if (!targetUrl || !targetUrl.startsWith('http')) {
+                alert('No valid image loaded to analyze.');
+                return;
+            }
+            
+            console.log("Starting fire analysis for image:", targetUrl);
+            if (loader) loader.classList.remove('d-none');
+            if (analyzeBtn) analyzeBtn.disabled = true;
+            if (resultText) resultText.textContent = "Analyzing...";
+
+            try {
+                // Construct the URL to our own Laravel proxy
+                const urlParts = new URL(targetUrl);
+                const noaaPath = urlParts.pathname.substring(1) + urlParts.search; // Remove leading '/'
+                const proxyUrl = `/proxy/noaa/${noaaPath}`;
+
+                console.log('Requesting image via internal proxy:', proxyUrl);
+
+                const imageResponse = await fetch(proxyUrl);
+                
+                if (!imageResponse.ok) {
+                    throw new Error(`Failed to fetch image via proxy: ${imageResponse.status} ${imageResponse.statusText}`);
+                }
+                const imageBlob = await imageResponse.blob();
+                console.log("Image fetched via proxy, size:", imageBlob.size);
+
+                if (imageBlob.size === 0) {
+                    throw new Error("Fetched image blob is empty.");
+                }
+
+                const predictionResponse = await axios.post(VISION_PREDICTION_URL, imageBlob, {
+                    headers: {
+                        'Prediction-Key': VISION_PREDICTION_KEY,
+                        'Content-Type': 'application/octet-stream'
+                    }
+                });
+                
+                console.log("Custom Vision API Response:", predictionResponse.data);
+                
+                if (typeof imageUrl !== 'string') {
+                    // Only draw boxes if we are in the single-image modal view
+                    drawDetectionBoxes(predictionResponse.data.predictions);
+                }
+                
+                // Return the predictions for the "Analyze All" function
+                return predictionResponse.data.predictions;
+
+            } catch (error) {
+                console.error("Error during fire analysis:", error.response?.data || error.message, error);
+                if (resultText) resultText.textContent = "Analysis failed.";
+                if (typeof imageUrl !== 'string') {
+                    alert('An error occurred while analyzing the image. Check the browser console for details.');
+                }
+                // Return null to indicate failure for the "Analyze All" function
+                return null;
+            } finally {
+                if (loader) loader.classList.add('d-none');
+                if (analyzeBtn) analyzeBtn.disabled = false;
+            }
+        }
+
+        function drawDetectionBoxes(predictions) {
+            const img = document.getElementById('zoomed-goes-image');
+            const canvas = document.getElementById('detection-canvas');
+            const resultText = document.getElementById('analysis-result-text');
+            const ctx = canvas.getContext('2d');
+
+            const { renderedWidth, renderedHeight, offsetX, offsetY } = getRenderedImageDimensions(img);
+
+            canvas.width = renderedWidth;
+            canvas.height = renderedHeight;
+            canvas.style.left = `${offsetX}px`;
+            canvas.style.top = `${offsetY}px`;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const fireDetections = predictions.filter(p => p.tagName.toLowerCase() === 'fire' && p.probability > 0.6);
+
+            if (fireDetections.length === 0) {
+                console.log("No fires detected above threshold.");
+                resultText.textContent = "Result: No significant fire detected.";
+                return;
+            }
+
+            console.log(`Found ${fireDetections.length} fire detections.`);
+            resultText.textContent = `Result: ${fireDetections.length} potential fire(s) detected!`;
+
+            fireDetections.forEach(pred => {
+                const { boundingBox } = pred;
+                const x = boundingBox.left * canvas.width;
+                const y = boundingBox.top * canvas.height;
+                const w = boundingBox.width * canvas.width;
+                const h = boundingBox.height * canvas.height;
+                
+                ctx.strokeStyle = 'rgba(255, 221, 0, 0.9)';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(x, y, w, h);
+
+                ctx.fillStyle = 'rgba(255, 221, 0, 0.9)';
+                ctx.font = '16px sans-serif';
+                const label = `${(pred.probability * 100).toFixed(0)}% Fire`;
+                const textMetrics = ctx.measureText(label);
+                ctx.fillRect(x, y - 20, textMetrics.width + 8, 20);
+                ctx.fillStyle = '#000';
+                ctx.fillText(label, x + 4, y - 5);
+                console.log(`Drew box for detection with ${label} confidence.`);
+            });
+        }
+
+        async function analyzeSingleSector(sector, sectorCode) {
+            console.log(`[All-Scan] Analyzing sector: ${sector.name}`);
+            const card = document.getElementById(`analysis-card-${sectorCode}`);
+            const statusIcon = card.querySelector('.status-icon');
+            const statusText = card.querySelector('.status-text');
+
+            statusIcon.innerHTML = `<div class="spinner-border text-primary" role="status"></div>`;
+            statusText.textContent = "Analyzing...";
+
+            const imageUrl = `https://cdn.star.nesdis.noaa.gov/${sector.satellite}/ABI/SECTOR/${sectorCode.toUpperCase()}/FireTemperature/latest.jpg`;
+            
+            const predictions = await analyzeGoesImageForFire(imageUrl);
+
+            if (predictions) {
+                const fireDetections = predictions.filter(p => p.tagName.toLowerCase() === 'fire' && p.probability > 0.6);
+
+                if (fireDetections.length > 0) {
+                    card.classList.remove('border-secondary');
+                    card.classList.add('border-danger');
+                    statusIcon.innerHTML = `<i class="fas fa-fire-alt text-danger fa-lg"></i>`;
+                    statusText.textContent = `Fire Detected (${fireDetections.length})`;
+                    console.log(`[All-Scan] Fire DETECTED in ${sector.name}`);
+                } else {
+                    card.classList.remove('border-secondary');
+                    card.classList.add('border-success');
+                    statusIcon.innerHTML = `<i class="fas fa-check-circle text-success fa-lg"></i>`;
+                    statusText.textContent = "Clear";
+                    console.log(`[All-Scan] Sector ${sector.name} is clear.`);
+                }
+            } else {
+                console.error(`[All-Scan] Failed to analyze sector ${sector.name}`);
+                card.classList.remove('border-secondary');
+                card.classList.add('border-warning');
+                statusIcon.innerHTML = `<i class="fas fa-exclamation-triangle text-warning fa-lg"></i>`;
+                statusText.textContent = "Error";
+            }
+        }
+
+        async function analyzeAllGoesSectors() {
+            console.log("--- STARTING FULL GOES SECTOR ANALYSIS ---");
+            const grid = document.getElementById('analysis-results-grid');
+            const progressText = document.getElementById('analysis-progress-text');
+            grid.innerHTML = '';
+            progressText.textContent = '';
+            
+            analysisResultsModal.show();
+            
+            const sectorEntries = Object.entries(NOAA_SECTORS);
+            let completedCount = 0;
+
+            sectorEntries.forEach(([code, sector]) => {
+                const cardHtml = `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card analysis-card border-secondary" id="analysis-card-${code}">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3 status-icon">
+                                    <i class="fas fa-hourglass-start text-secondary fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h6 class="card-title mb-0">${sector.name}</h6>
+                                    <small class="text-muted status-text">Pending...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+
+            const promises = sectorEntries.map(([code, sector]) => () => 
+                analyzeSingleSector(sector, code).finally(() => {
+                    completedCount++;
+                    progressText.textContent = `Analysis complete for ${completedCount} of ${sectorEntries.length} sectors.`;
+                })
+            );
+
+            const concurrency = 4;
+            for (let i = 0; i < promises.length; i += concurrency) {
+                const batch = promises.slice(i, i + concurrency).map(p => p());
+                await Promise.allSettled(batch);
+                console.log(`[All-Scan] Batch ${Math.floor(i/concurrency) + 1} completed.`);
+            }
+            
+            console.log("--- FULL GOES SECTOR ANALYSIS COMPLETE ---");
+            progressText.textContent = `All ${sectorEntries.length} sectors analyzed. Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        function handleRecurringAnalysisToggle(event) {
+            const toggle = event.target;
+            const intervalInput = document.getElementById('analysis-interval-minutes');
+
+            if (toggle.checked) {
+                if (recurringAnalysisTimer) {
+                    clearInterval(recurringAnalysisTimer);
+                }
+                const minutes = parseInt(intervalInput.value, 10);
+                if (isNaN(minutes) || minutes < 5) {
+                    alert("Please enter a valid interval of 5 minutes or more.");
+                    toggle.checked = false;
+                    return;
+                }
+                const intervalMs = minutes * 60 * 1000;
+                console.log(`Starting recurring analysis every ${minutes} minutes.`);
+                analyzeAllGoesSectors();
+                recurringAnalysisTimer = setInterval(analyzeAllGoesSectors, intervalMs);
+                intervalInput.disabled = true;
+
+            } else {
+                if (recurringAnalysisTimer) {
+                    clearInterval(recurringAnalysisTimer);
+                    recurringAnalysisTimer = null;
+                    console.log("Stopped recurring analysis.");
+                }
+                intervalInput.disabled = false;
+            }
+        }
+
         function updateRecentFires(fires) { const container = document.getElementById('recent-fires'); container.innerHTML = ''; const threeHoursAgo = new Date(Date.now() - 3 * 3600 * 1000); const recentFires = fires.filter(fire => new Date(`${fire.acq_date}T${fire.acq_time.slice(0,2)}:${fire.acq_time.slice(2)}:00Z`) > threeHoursAgo).sort((a, b) => b.frp - a.frp).slice(0, 15); if (recentFires.length === 0) { container.innerHTML = '<p class="text-muted small p-2">No detections in the last 3 hours.</p>'; return; } recentFires.forEach(fire => { const fireCard = document.createElement('div'); fireCard.className = 'card bg-body-tertiary mb-2'; fireCard.innerHTML = `<div class="card-body p-2"><div class="d-flex justify-content-between align-items-center"><div><h6 class="card-title mb-1 small"><i class="fas fa-fire me-1" style="color: ${getColorForFRP(fire.frp)}"></i>${fire.satellite} at ${fire.acq_time.slice(0,2)}:${fire.acq_time.slice(2)}</h6><p class="card-text mb-1 small text-muted">FRP: ${fire.frp} MW</p></div><span class="badge text-bg-${fire.confidence.toLowerCase() === 'high' ? 'success' : 'warning'}">${fire.confidence}</span></div></div>`; fireCard.addEventListener('click', () => { map.setView([fire.latitude, fire.longitude], 12); showSatelliteFireModal(fire); }); container.appendChild(fireCard); }); }
         async function getAndShowWeatherForPoint(latlng) { if (weatherPointMarker) map.removeLayer(weatherPointMarker); weatherPointMarker = L.marker(latlng).addTo(map); const popup = L.popup({className: 'weather-popup', minWidth: 280}); try { const response = await axios.get('/api/weather-for-point', { params: { lat: latlng.lat, lon: latlng.lng } }); const data = response.data; const windSpeedKmh = (data.wind.speed * 3.6).toFixed(1); const popupContent = `<div class="card bg-body-tertiary shadow-sm"><div class="card-body"><div class="weather-main mb-3"><h4 class="d-flex align-items-center"><i class="fas fa-map-marker-alt fa-xs me-2"></i> Local Weather</h4><img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" alt="weather icon" width="50" height="50"></div><h5 class="mb-1">${data.main.temp.toFixed(1)} °C <small class="text-muted">(${data.weather[0].description})</small></h5><p class="small text-muted mb-3">Feels like ${data.main.feels_like.toFixed(1)} °C</p><div class="weather-details"><div class="d-flex align-items-center" title="Wind Speed & Direction"><i class="fas fa-wind fa-fw me-2 text-info"></i> ${windSpeedKmh} km/h <i class="fas fa-location-arrow ms-2" style="transform: rotate(${data.wind.deg - 45}deg);"></i></div><div class="d-flex align-items-center" title="Humidity"><i class="fas fa-tint fa-fw me-2 text-primary"></i> ${data.main.humidity}%</div><div class="d-flex align-items-center" title="Pressure"><i class="fas fa-tachometer-alt fa-fw me-2 text-warning"></i> ${data.main.pressure} hPa</div><div class="d-flex align-items-center" title="Visibility"><i class="fas fa-eye fa-fw me-2 text-success"></i> ${(data.visibility / 1000).toFixed(1)} km</div></div></div></div>`; popup.setLatLng(latlng).setContent(popupContent).openOn(map); } catch (error) { console.error("Weather fetch failed:", error.response?.data?.error || error.message); popup.setLatLng(latlng).setContent('Could not retrieve weather data.').openOn(map); } }
         function toggle3DView() { is3D = !is3D; const cesiumContainer = document.getElementById('cesium-container'); const mapContainer = document.getElementById('map'); const toggleBtn = document.getElementById('toggle-3d-btn'); if (is3D) { mapContainer.style.visibility = 'hidden'; cesiumContainer.classList.remove('d-none'); toggleBtn.innerHTML = '<i class="fas fa-map"></i> 2D'; if (!cesiumViewer) initializeCesium(); synchronizeCamera(); synchronizeLayersToCesium(); } else { mapContainer.style.visibility = 'visible'; cesiumContainer.classList.add('d-none'); toggleBtn.innerHTML = '<i class="fas fa-cube"></i> 3D'; } }
@@ -849,6 +1249,7 @@
             }
         }
         
+        // --- ALERT CODE --- RESTORED AND UNTOUCHED ---
         function initializeAlertManagement() {
             console.log("Initializing community alert management.");
             alertDrawer = new L.Draw.Circle(map, { shapeOptions: { color: '#ffc107', weight: 3, fillColor: '#ffc107', fillOpacity: 0.3 }, showRadius: true, metric: true });
@@ -877,7 +1278,7 @@
                 btn.disabled = false; btn.innerHTML = `Save and Broadcast Alert`;
             }
         }
-        
+
         function deleteAlert(alertId) {
             if (!confirm('Are you sure you want to delete this community alert? This will remove it for all users immediately.')) return;
             
@@ -885,9 +1286,6 @@
             axios.delete(`/api/alerts/${alertId}`)
                 .then(() => {
                     console.log(`Successfully requested deletion for alert ${alertId}. Removing locally for immediate feedback.`);
-                    // *** FIX: IMMEDIATE REMOVAL ***
-                    // This is the crucial fix. Remove the alert from the map immediately 
-                    // for the user who clicked the button, without waiting for the broadcast.
                     removeAlertFromMap(alertId);
                 })
                 .catch(error => {
@@ -895,7 +1293,7 @@
                     alert('Failed to delete alert.');
                 });
         }
-
+        
         function loadCommunityAlerts() {
             axios.get("{{ route('api.alerts.index') }}")
                 .then(response => { communityAlertsLayer.clearLayers(); activeAlerts = {}; response.data.forEach(alert => addAlertToMap(alert)); console.log(`Loaded ${response.data.length} community alerts.`); })
@@ -915,7 +1313,7 @@
                  console.log(`Removing alert ${alertId} from map.`); 
                  communityAlertsLayer.removeLayer(activeAlerts[alertId]); 
                  delete activeAlerts[alertId];
-                 map.closePopup(); // Close any open popups, like the one on the deleted alert
+                 map.closePopup();
             }
         }
 
@@ -931,6 +1329,7 @@
         }
 
         function escapeHTML(str) { let p = document.createElement("p"); if (str) { p.appendChild(document.createTextNode(str)); } return p.innerHTML; }
+        // --- END OF ALERT CODE ---
 
     </script>
 </body>

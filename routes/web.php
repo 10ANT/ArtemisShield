@@ -27,10 +27,11 @@ use App\Http\Controllers\EndUser\DashboardController as EndUserDashboardControll
 use App\Http\Controllers\EndUser\AgentController as EndUserAgentController;
 use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\StatusUpdateController;
+use App\Http\Controllers\ProxyController;
 
 
-
-
+// Proxy route for NOAA images
+Route::get('/proxy/noaa/{path}', [ProxyController::class, 'getNoaaImage'])->where('path', '.*');
 
 Route::get('/', function () {
     return view('main');
