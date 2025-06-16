@@ -24,6 +24,9 @@ use App\Http\Controllers\Api\HospitalController;
 use app\Http\Controllers\Api\AedLocationController;
 use App\Http\Controllers\Api\MedicalIncidentController;
 use App\Http\Controllers\Api\WildfireRiskController;
+use App\Http\Controllers\Api\AmbeeController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -89,3 +92,6 @@ Route::get('/medical-incidents', [MedicalIncidentController::class, 'index']);
 
 
 Route::get('/wildfire-risk/point-data', [WildfireRiskController::class, 'getPointData']);
+
+// Ambee Fire Data Proxy
+Route::get('/ambee/fire-data', [AmbeeController::class, 'getFireDataByLatLng']);

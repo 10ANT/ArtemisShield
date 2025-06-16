@@ -19,6 +19,10 @@ return [
         'api_key' => env('NASA_FIRMS_API_KEY'),
     ],
 
+    'ambee' => [
+        'key' => env('AMBEE_API_KEY'),
+    ],
+
      'azure' => [
         'search' => [
             'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
