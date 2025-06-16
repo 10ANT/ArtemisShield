@@ -9,6 +9,11 @@ class PredictionController extends Controller
     //
     function dashboard()
     {
-        return view('prediction.dashboard');
+        return view('predictions.dashboard');
+    }
+
+    function wildfireRisk()
+    {
+        return view('predictions.analyst-wildfire-risk');
     }
 }

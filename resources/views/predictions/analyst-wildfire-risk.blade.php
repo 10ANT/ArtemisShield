@@ -118,7 +118,6 @@
                                 <!-- Populated by JavaScript -->
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -178,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             map.addLayer(baseMaps[e.target.value]);
         });
 
-        map.addLayer(whpLayer); // Add default WMS layer to map
+        map.addLayer(whpLayer);
 
         map.on('click', handleMapClick);
     };
@@ -195,15 +194,14 @@ document.addEventListener('DOMContentLoaded', function() {
         if (analysisMarker) map.removeLayer(analysisMarker);
         analysisMarker = L.marker([lat, lon]).addTo(map);
 
-        // **CHANGE:** Point fetch to our own backend proxy API
+        // **CORE FIX:** This URL now points to YOUR local server API route.
         const apiUrl = `/api/wildfire-risk/point-data?lat=${lat}&lon=${lon}`;
 
         try {
             const response = await fetch(apiUrl);
-            const data = await response.json(); // Always try to parse JSON
+            const data = await response.json();
 
             if (!response.ok) {
-                // Use error message from our API if available, otherwise use default
                 throw new Error(data.error || `Request failed with status: ${response.status}`);
             }
 

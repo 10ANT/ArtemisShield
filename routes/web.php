@@ -45,7 +45,9 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
     Route::get('/reports/history', [ReportController::class, 'history'])->middleware('auth');
 
     Route::get('/responder-dashboard',  [ParamedicsController::class, 'dashboard'])->name('rescue.dashboard');
-    Route::get('/prediction-dashboard', [PredictionController::class, 'dashboard'])->name('prediction.dashboard');
+    Route::get('/analyst-dashboard', [PredictionController::class, 'dashboard'])->name('prediction.dashboard');
+    Route::get('analyst-wildfire-risk', [PredictionController::class, 'wildfireRisk'])->name('prediction.wildfire-risk');
+    
 });
 
     

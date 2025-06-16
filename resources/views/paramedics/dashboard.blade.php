@@ -440,20 +440,77 @@
             searchResultsLayer = L.geoJson(null, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: feature.properties.hasOwnProperty('access') ? "#0dcaf0" : "#28a745", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9 }), onEachFeature: (f, l) => l.bindPopup(f.properties.hasOwnProperty('access') ? formatAEDPopupContent(f.properties) : formatHospitalPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
             medicalIncidentsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const c = cluster.getChildCount(); let s = ' incident-cluster-small'; if (c > 100) s = ' incident-cluster-medium'; if (c > 500) s = ' incident-cluster-large'; return L.divIcon({ html: `<div><span>${c}</span></div>`, className: 'cluster-icon' + s, iconSize: L.point(40, 40) }); }, maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true }).addTo(map);
             
-            const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); if (document.getElementById('aed-locations-toggle').checked) { try { const r = await fetch(`/api/aed-locations?bbox=${bbox}&limit=5000`); const d = await r.json(); aedLayer.clearLayers(); const aedGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatAEDPopupContent(f.properties), { className: 'custom-popup' }) }); aedLayer.addLayer(aedGeoJson); } catch (e) { console.error("Could not fetch AEDs:", e); } } if (document.getElementById('hospitals-toggle').checked) { try { const r = await fetch(`/api/hospitals?bbox=${bbox}&limit=1000`); const d = await r.json(); hospitalsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#28a745", color: "#198754", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHospitalPopupContent(f.properties), { className: 'custom-popup' }) }); hospitalsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch hospitals:", e); } } };
+            // MODIFIED: This function is now only for AEDs, which are still loaded dynamically.
+            const loadDataForBounds = async (bounds) => { 
+                const bbox = bounds.toBBoxString(); 
+                if (document.getElementById('aed-locations-toggle').checked) { 
+                    try { 
+                        const r = await fetch(`/api/aed-locations?bbox=${bbox}&limit=5000`); 
+                        const d = await r.json(); 
+                        aedLayer.clearLayers(); 
+                        const aedGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatAEDPopupContent(f.properties), { className: 'custom-popup' }) }); 
+                        aedLayer.addLayer(aedGeoJson); 
+                    } catch (e) { 
+                        console.error("Could not fetch AEDs:", e); 
+                    } 
+                }
+                // REMOVED: The hospital fetching logic has been moved out of this function.
+            };
+
+            // NEW: Function to load ALL hospitals at once.
+            const loadAllHospitals = async () => {
+                if (!document.getElementById('hospitals-toggle').checked) {
+                    hospitalsLayer.clearLayers();
+                    return;
+                }
+                try {
+                    // MODIFIED: The API call no longer has bbox or limit, so it gets all data.
+                    const response = await fetch(`/api/hospitals`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const hospitalsData = await response.json();
+
+                    hospitalsLayer.clearLayers();
+                    const stationsGeoJson = L.geoJson(hospitalsData, {
+                        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+                            radius: 9,
+                            fillColor: "#28a745",
+                            color: "#198754",
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.8
+                        }),
+                        onEachFeature: (f, l) => l.bindPopup(formatHospitalPopupContent(f.properties), {
+                            className: 'custom-popup'
+                        })
+                    });
+                    hospitalsLayer.addLayer(stationsGeoJson);
+                    console.log(`${hospitalsData.features.length} hospitals loaded.`);
+                } catch (e) {
+                    console.error("Could not fetch all hospitals:", e);
+                }
+            };
+            
             const loadMedicalIncidents = async () => { if (!document.getElementById('medical-incidents-toggle').checked) { medicalIncidentsLayer.clearLayers(); return; } try { const response = await fetch('/api/medical-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); medicalIncidentsLayer.clearLayers(); const incidentMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const severity = feature.properties.severity; let iconClass = 'medical-incident-icon-low'; if (severity === 'High') iconClass = 'medical-incident-icon-high'; else if (severity === 'Medium') iconClass = 'medical-incident-icon-medium'; const incidentIcon = L.divIcon({ html: '<i class="fas fa-briefcase-medical fa-2x"></i>', className: `medical-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: incidentIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatMedicalIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedIncidentMarker) L.DomUtil.removeClass(selectedIncidentMarker.getElement(), 'medical-incident-icon-selected'); selectedIncidentFeature = feature; selectedIncidentMarker = layer; L.DomUtil.addClass(layer.getElement(), 'medical-incident-icon-selected'); const infoDiv = document.getElementById('selected-incident-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Incident:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); medicalIncidentsLayer.addLayer(incidentMarkers); } catch (e) { console.error("Could not fetch medical incidents:", e); } };
             
             document.getElementById('aed-locations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else aedLayer.clearLayers(); });
-            document.getElementById('hospitals-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else hospitalsLayer.clearLayers(); });
+            
+            // MODIFIED: The hospitals toggle now calls our new function.
+            document.getElementById('hospitals-toggle').addEventListener('change', loadAllHospitals);
+            
             document.getElementById('medical-incidents-toggle').addEventListener('change', loadMedicalIncidents);
             
+            // MODIFIED: We only call this for the AED layer now.
             map.on('moveend', () => loadDataForBounds(map.getBounds()));
             
             const legend = L.control({ position: 'bottomright' });
             legend.onAdd = function(map) { const div = L.DomUtil.create('div', 'info legend-control'); let labels = []; labels.push('<h4>Incident Severity</h4>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-high"></i> High</div>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-medium"></i> Medium</div>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-low"></i> Low</div>'); const aedGrades = [1, 26, 101]; const aedColors = [ 'rgba(2, 117, 216, 0.85)', 'rgba(13, 202, 240, 0.85)', 'rgba(13, 110, 253, 0.9)' ]; labels.push('<br><h4>AED Density</h4>'); for (let i = 0; i < aedGrades.length; i++) { const from = aedGrades[i]; const to = aedGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${aedColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } const hospitalGrades = [1, 6, 16]; const hospitalColors = [ 'rgba(40, 167, 69, 0.9)', 'rgba(253, 126, 20, 0.9)', 'rgba(220, 53, 69, 0.9)' ]; labels.push('<br><h4 class="mt-2">Hospital Density</h4>'); for (let i = 0; i < hospitalGrades.length; i++) { const from = hospitalGrades[i]; const to = hospitalGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${hospitalColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } div.innerHTML = labels.join(''); return div; };
             legend.addTo(map);
-            loadDataForBounds(map.getBounds());
+
+            // --- INITIAL DATA LOAD ---
+            loadDataForBounds(map.getBounds()); // For AEDs
+            loadAllHospitals(); // NEW: Call this to load all hospitals on startup
             loadMedicalIncidents();
+
             initFullScreenControl(); 
             console.log('Map initialization finished.');
         };
