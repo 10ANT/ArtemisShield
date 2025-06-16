@@ -125,6 +125,7 @@
     @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } }
     @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
 
+
 </style>
 </head>
 <body class="boxed-size">
@@ -311,10 +312,10 @@
             </div>
         </div>
         
-        <div class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
+        <div  class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
             <!-- All your right sidebar content here... -->
-            <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
-                <div class="card-header p-2">
+            <div  class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
+                <div  class="card-header p-2">
                     <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
                         <li class="nav-item" role="presentation"><button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true"><i class="fas fa-comments me-1"></i> Ask Artemis</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
@@ -324,7 +325,7 @@
                         <li class="nav-item" role="presentation"><button class="nav-link" id="config-tab-btn" data-bs-toggle="pill" data-bs-target="#config-content" type="button" role="tab" aria-controls="config-content" aria-selected="false"><i class="fas fa-cogs me-1"></i> Config</button></li>
                     </ul>
                 </div>
-                <div class="card-body d-flex flex-column p-0">
+                <div  class="card-body d-flex flex-column p-0">
                     <div class="tab-content h-100">
                         <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
                             <div class="chat-container">
@@ -364,7 +365,7 @@
                                 <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
                             </div>
                             <hr>
-                            <div id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
+                            <div style="height:10px;" id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
                                 <div id="route-summary" class="d-none">
                                     <h6 class="text-white-50 mb-2">Route Summary</h6>
                                     <ul class="list-group list-group-flush">
@@ -377,7 +378,7 @@
                             </div>
                         </div>
                         <!-- NEW CONFIGURATION TAB CONTENT -->
-                        <div class="tab-pane fade p-3" id="config-content" role="tabpanel" aria-labelledby="config-tab-btn">
+                        <div " class="tab-pane fade p-3" id="config-content" role="tabpanel" aria-labelledby="config-tab-btn">
                             <h5 class="mb-3"><i class="fas fa-layer-group me-2"></i> Map Layers</h5>
                             <div class="mb-4">
                                 <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div>
@@ -386,7 +387,7 @@
                             </div>
                             <hr>
                             <h5 class="mb-3 mt-4"><i class="fas fa-map me-2"></i> Base Maps</h5>
-                            <div id="basemap-selector-container">
+                            <div  id="basemap-selector-container">
                                 <!-- This container is populated by JavaScript -->
                             </div>
                         </div>
