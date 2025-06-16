@@ -21,6 +21,13 @@ use App\Http\Controllers\AgentController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\TranscriptionController;
 
+//new controller for end user and alerting
+use App\Http\Controllers\WildfireOfficer\StatusUpdatesController;
+use App\Http\Controllers\EndUser\DashboardController as EndUserDashboardController;
+use App\Http\Controllers\EndUser\AgentController as EndUserAgentController;
+use App\Http\Controllers\Api\AlertController;
+use App\Http\Controllers\Api\StatusUpdateController;
+
 
 
 
@@ -42,6 +49,25 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // END USER DASHBOARD
+    Route::prefix('end-user')->name('end-user.')->middleware('auth')->group(function () {
+        Route::get('/dashboard', [EndUserDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/agent/chat', [EndUserAgentController::class, 'chat'])->name('agent.chat');
+        Route::post('/agent/reset', [EndUserAgentController::class, 'reset'])->name('agent.reset');
+    });
+
+    // API-like routes using web authentication
+    Route::prefix('api')->middleware('auth')->group(function () {
+        // Status Updates (from end-user)
+        Route::post('/status-updates', [StatusUpdateController::class, 'store'])->name('api.status-updates.store');
+        
+        // Alerts (for officers)
+        Route::get('/alerts', [AlertController::class, 'index'])->name('api.alerts.index');
+        Route::post('/alerts', [AlertController::class, 'store'])->name('api.alerts.store')->middleware('role:Wildfire Management Officer');
+        Route::delete('/alerts/{alert}', [AlertController::class, 'destroy'])->name('api.alerts.destroy')->middleware('role:Wildfire Management Officer');
+    });
+
 });
 
 
@@ -50,14 +76,11 @@ Route::middleware([
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Wildfire Officer Routes
-Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function () {
-
-    
-
-
-    Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
-    Route::get('/reports/history', [ReportController::class, 'history'])->middleware('auth');
+Route::middleware(['auth', 'role:Wildfire Management Officer'])->prefix('wildfire-officer')->name('wildfire-officer.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/status-updates', [StatusUpdatesController::class, 'index'])->name('status-updates');
 });
+
 
     
 // Wildfire Officer Dashboard
@@ -73,6 +96,12 @@ Route::get('/', function () {
 
 Route::get('/terms-of-service', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
+
+
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
+});
 
 
 

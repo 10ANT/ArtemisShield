@@ -74,6 +74,18 @@ return [
             'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
             'key' => env('AZURE_SEARCH_KEY'),
             'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
+
+        ],
+        
+                'status_update_agent' => [
+            'id' => env('AZURE_STATUS_AGENT_ID'),
+            'tenant_id' => env('AZURE_STATUS_TENANT_ID'),
+            // CORRECTED: Use the specific environment variables for this agent
+            'client_id' => env('AZURE_STATUS_CLIENT_ID'),
+            'client_secret' => env('AZURE_STATUS_CLIENT_SECRET'),
+
+
+
         ],
     ],
 
