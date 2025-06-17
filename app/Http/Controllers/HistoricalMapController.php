@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\HistoricalFire; // Import the model
+use App\Models\HistoricalFire;
 
 class HistoricalMapController extends Controller
 {
@@ -12,33 +12,48 @@ class HistoricalMapController extends Controller
      */
     public function showMap()
     {
-        // This method just returns the Blade view for the map.
-        // The data will be loaded asynchronously via an API call.
         return view('predictions.historical-map');
     }
 
     /**
-     * Provide historical fire data as a JSON API endpoint.
+     * Provide historical fire data as a JSON API endpoint, with filtering capabilities.
      */
-    public function getFireData()
+    public function getFireData(Request $request)
     {
-        // IMPORTANT: Sending millions of records at once will crash the browser.
-        // We will fetch a large, random sample of the data. 50,000 is a good number
-        // that balances map density with performance, especially with marker clustering.
-        // You can adjust this number based on your needs.
-        $fires = HistoricalFire::inRandomOrder()
-            ->limit(50000)
-            ->get([
-                'latitude',
-                'longitude',
-                'brightness',
-                'acq_date',
-                'acq_time',
-                'satellite',
-                'confidence',
-                'frp'
-            ]);
+        $query = HistoricalFire::query();
 
-        return response()->json($fires);
+        // Filter by date range
+        if ($request->has('start_date') && $request->filled('start_date')) {
+            $query->where('acq_date', '>=', $request->input('start_date'));
+        }
+        if ($request->has('end_date') && $request->filled('end_date')) {
+            $query->where('acq_date', '<=', $request->input('end_date'));
+        }
+
+        // Filter by geographic bounding box (bbox)
+        if ($request->has('bbox') && $request->filled('bbox')) {
+            $bbox = explode(',', $request->input('bbox'));
+            if (count($bbox) === 4) {
+                $minLng = $bbox[0];
+                $minLat = $bbox[1];
+                $maxLng = $bbox[2];
+                $maxLat = $bbox[3];
+                $query->whereBetween('longitude', [$minLng, $maxLng])
+                      ->whereBetween('latitude', [$minLat, $maxLat]);
+            }
+        }
+        
+        // Limit the results
+        if (!$request->hasAny(['start_date', 'end_date', 'bbox'])) {
+             $fires = $query->inRandomOrder()->limit(50000);
+        } else {
+            $fires = $query->limit(100000);
+        }
+
+        // **MODIFIED: Fetch all columns for the details modal**
+        // We no longer restrict the columns with ->get([...])
+        $data = $fires->get(); 
+
+        return response()->json($data);
     }
 }
