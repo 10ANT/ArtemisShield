@@ -54,7 +54,7 @@ class AlertCreated implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
-        // We nest the payload under an 'alert' key to match the original JS logic.
+        // We nest the payload under an 'alert' key to match the original JS logic
         return ['alert' => $this->payload];
     }
 }
