@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ChatController;
 
 use App\Http\Controllers\GeocodingController; 
 use App\Http\Controllers\Api\StatusUpdateController;
+use App\Http\Controllers\WildfirePredictionController;
 
 Route::get('/status-updates/poll', [StatusUpdateController::class, 'poll']);
 
@@ -82,3 +83,9 @@ Route::post('/chat', [ChatController::class, 'sendMessage']);
 
 Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this line
 
+// this new route for AI intensity prediction
+Route::post('/predict-intensity', [WildfirePredictionController::class, 'predictIntensity'])->name('api.predict.intensity');
+
+
+// NEW route for classification-based spread prediction
+Route::post('/predict-spread', [App\Http\Controllers\WildfirePredictionController::class, 'predictSpread'])->name('api.predict.spread');

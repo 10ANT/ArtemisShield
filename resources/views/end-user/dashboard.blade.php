@@ -16,7 +16,7 @@
         html, body { height: 100%; overflow: hidden; }
         .main-content { height: 100vh; }
         .dashboard-container { flex-grow: 1; min-height: 0; }
-        #map { height: 500px; width: 100%; border-radius: .5rem; }
+        #map { height: 100%; min-height: 200px; width: 100%; border-radius: .5rem; }
         .sidebar-column { height: 100%; display: flex; flex-direction: column; }
         .sidebar-column .card { flex-grow: 1; min-height: 0; display: flex; flex-direction: column; }
         .sidebar-column .card-body { flex-grow: 1; min-height: 0; overflow-y: auto; }
@@ -29,20 +29,45 @@
             box-shadow: 0 0 0 0.25rem var(--bs-primary-border-subtle);
         }
 
-           /* Responsive behavior for smaller screens */
-    @media (max-width: 768px) {
-        #map {
-            height: 150px; /* Shrink on tablets and phones */
+        /* Responsive behavior for smaller screens */
+        @media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
+            #map {
+                height: 300px; /* Adjust map height for stacked layout */
+            }
         }
-    }
 
-    @media (max-width: 576px) {
-        #map {
-            height: 150px; /* Further shrink on very small screens */
-        }
-    }
+        /* --- FIX FOR INVISIBLE ACCORDION TEXT --- */
+        /* This rule targets the accordion body and its list items specifically */
+        /* within #safetyAccordion, and uses !important to override external styles. */
+        #safetyAccordion .accordion-body,
+#safetyAccordion .accordion-body *,
+#safetyAccordion .accordion-body ul,
+#safetyAccordion .accordion-body ul li,
+#safetyAccordion .accordion-body p {
+    color: var(--bs-body-color) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
+
+.sidebar-column {
+    position: relative;
+    z-index: 1000;
+}
+
+.sidebar-column .card {
+    position: relative;
+    z-index: 1001;
+}
+        /* --- END OF FIX --- */
     
+        #map {
+    z-index: 1;
+    position: relative;
+}
+
+
+
     </style>
 </head>
 <body class="boxed-size">
@@ -54,7 +79,9 @@
             @include('partials.header')
             <div class="main_content_iner overly_inner dashboard-container">
                 <div class="row g-3 h-100">
-                    <div class="col-lg-8 " style="height: 150px;"><div id="map"></div></div>
+                    <div class="col-lg-8 d-flex flex-column">
+                        <div id="map"></div>
+                    </div>
                     <div class="col-lg-4 h-100 sidebar-column">
                         <div class="card">
                             <div class="card-header p-2">
@@ -73,6 +100,14 @@
                                     </div>
                                     <div class="tab-pane fade" id="report" role="tabpanel">
                                         <h5 class="mb-3">Submit a Status Update</h5>
+
+                                        <div class="alert alert-info d-flex align-items-center small p-2" role="alert">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <div>
+                                                <strong>Data Notice:</strong> By submitting, you acknowledge your location and any contact details provided will be collected to assist response teams.
+                                            </div>
+                                        </div>
+
                                         <form id="status-update-form">
                                             <input type="hidden" id="status-latitude" name="latitude">
                                             <input type="hidden" id="status-longitude" name="longitude">
@@ -138,7 +173,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        // This robust check confirms Vite loaded Echo before we try to use it.
         if (window.Echo) {
             console.log("SUCCESS: Echo is loaded on end-user page. Attaching real-time alert listeners.");
             setupRealtimeAlertListeners();
@@ -155,7 +189,6 @@
         let alertObjects = {};
         const alertSound = document.getElementById('alert-sound');
 
-        // This is the new, clean listener setup.
         function setupRealtimeAlertListeners() {
             window.Echo.channel('public-alerts')
                 .listen('AlertCreated', (e) => {
@@ -237,7 +270,7 @@
             }, 
             (error) => {
                 console.warn("Geolocation failed or was denied:", error.message);
-                loadAllAlertsAndDisplay(); // Still load alerts even without user location
+                loadAllAlertsAndDisplay(); 
             }
         );
 

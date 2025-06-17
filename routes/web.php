@@ -80,12 +80,13 @@ Route::middleware([
 Route::middleware(['auth', 'role:Wildfire Management Officer'])->prefix('wildfire-officer')->name('wildfire-officer.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
     Route::get('/status-updates', [StatusUpdatesController::class, 'index'])->name('status-updates');
-});
-
-
-    
+        
 // Wildfire Officer Dashboard
 Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'dashboard'])->name('wildfire-officer.dashboard');
+
+
+});
+
 
 
 
@@ -158,11 +159,20 @@ Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
 Route::post('/process-report', [ReportController::class, 'process'])->middleware('auth:sanctum');
 
 
+
+
+
+Route::middleware(['auth', 'role:Wildfire Management Officer,Firefighter'])->prefix('wildfire-officer')->name('wildfire-officer.')->group(function () {
+ 
 // Replace your old route for the dashboard with this one
+
+
+});
 Route::get('/firefighter-dashboard', [FireIncidentController::class, 'dashboard'])->name('firefighter.dashboard');
 Route::post('/agent/chat', [AgentController::class, 'chat']);
 Route::post('/agent/submit-tool-output', [AgentController::class, 'submitToolOutput']);
 Route::post('/agent/reset', [AgentController::class, 'reset']);
+
 
 
 Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');

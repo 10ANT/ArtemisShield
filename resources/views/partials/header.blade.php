@@ -302,6 +302,7 @@
                     <li class="header-right-item">
                         <div class="dropdown admin-profile">
                             @auth
+                            {{ \Log::info('Header dropdown is being rendered for user: ' . Auth::user()->name) }}
                             <div
                                 class="d-xxl-flex align-items-center bg-transparent border-0 text-start p-0 cursor dropdown-toggle"
                                 data-bs-toggle="dropdown"
@@ -354,121 +355,16 @@
                                     class="admin-link ps-0 mb-0 list-unstyled"
                                 >
                                     <li>
-                                        
+                                        <a
                                             class="dropdown-item d-flex align-items-center text-body"
-                                            href="/my-profile"
+                                            href="{{ route('profile.show') }}"
                                         >
                                             <i
                                                 class="material-symbols-outlined"
                                                 >account_circle</i
                                             >
                                             <span class="ms-2"
-                                                >My
-                                                Profile</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/chat"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >chat</i
-                                            >
-                                            <span class="ms-2"
-                                                >Messages</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/to-do-list"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >format_list_bulleted
-                                            </i>
-                                            <span class="ms-2"
-                                                >My Task</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/my-profile"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >credit_card
-                                            </i>
-                                            <span class="ms-2"
-                                                >Billing</span
-                                            >
-                                        </a>
-                                    </li>
-                                </ul>
-                                <ul
-                                    class="admin-link ps-0 mb-0 list-unstyled"
-                                >
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/settings"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >settings
-                                            </i>
-                                            <span class="ms-2"
-                                                >Settings</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/tickets"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >support</i
-                                            >
-                                            <span class="ms-2"
-                                                >Support</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/lock-screen"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >lock</i
-                                            >
-                                            <span class="ms-2"
-                                                >Lock
-                                                Screen</span
-                                            >
-                                        </a>
-                                    </li>
-                                    <li>
-                                        
-                                            class="dropdown-item d-flex align-items-center text-body"
-                                            href="/login"
-                                        >
-                                            <i
-                                                class="material-symbols-outlined"
-                                                >logout</i
-                                            >
-                                            <span class="ms-2"
-                                                >Logout
-                                                </span
+                                                >{{ __('Profile') }}</span
                                             >
                                         </a>
                                     </li>
@@ -479,6 +375,26 @@
                             @endauth
                         </div>
                     </li>
+
+                    @auth
+                    {{ \Log::info('Dedicated logout button is being rendered for user: ' . Auth::user()->name) }}
+                    <li class="header-right-item">
+                         <!-- Authentication -->
+                        <form method="POST" action="{{ route('logout') }}" x-data>
+                            @csrf
+
+                            <button type="submit" class="bg-transparent p-0 border-0"
+                                    title="Logout"
+                                     @click.prevent="$root.submit();">
+                                <i
+                                class="material-symbols-outlined text-body"
+                                style="font-size: 36px; vertical-align: middle;"
+                                >logout</i>
+                            </button>
+                        </form>
+                    </li>
+                    @endauth
+                    
                     <li class="header-right-item">
                         <button
                             class="theme-settings-btn p-0 border-0 bg-transparent"
