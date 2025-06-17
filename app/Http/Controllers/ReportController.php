@@ -17,18 +17,15 @@ class ReportController extends Controller
     // PASTE YOUR FULL FFMPEG PATH HERE
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
-<<<<<<< rag
-    private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
+
+    private const FFMPEG_PATH = 'D:\ffmpeg-2025-05-21-git-4099d53759-essentials_build\ffmpeg-2025-05-21-git-4099d53759-essentials_build\bin\ffmpeg.exe';
     
     /**
      * Main processing function for the audio report.
      * Injects the AzureSearchService for RAG capabilities.
      */
     public function process(Request $request, AzureSearchService $searchService) // <-- Inject service here
-=======
-private const FFMPEG_PATH = 'D:\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe';
-    public function process(Request $request)
->>>>>>> main
+
     {
         
         $request->validate(['audio' => 'required|file']);
