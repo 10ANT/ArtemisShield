@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ParamedicsController;
+use App\Http\Controllers\PredictionController;
 
 use App\Http\Controllers\FireIncidentController;
 =======
@@ -60,6 +62,16 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
 
     Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
     Route::get('/reports/history', [ReportController::class, 'history'])->middleware('auth');
+
+    Route::get('/responder-dashboard',  [ParamedicsController::class, 'dashboard'])->name('rescue.dashboard');
+    Route::get('/analyst-dashboard', [PredictionController::class, 'dashboard'])->name('prediction.dashboard');
+    Route::get('analyst-wildfire-risk', [PredictionController::class, 'wildfireRisk'])->name('prediction.wildfire-risk');
+    // In routes/web.php
+
+// TEMPORARY DEBUGGING ROUTE
+Route::get('/debug-config', function () {
+    dd(config('services.azure'));
+});
 });
 
     
