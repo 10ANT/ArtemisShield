@@ -75,8 +75,12 @@
         .sidebar-wrapper .tab-content { flex: 1; min-height: 0; position: relative; }
         
         .sidebar-wrapper .tab-pane {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            display: none;
             flex-direction: column;
         }
         
@@ -358,7 +362,7 @@
         let map, fireDetailsModal, weatherMarkerDrawer, drawnItems;
         const fireLayerGroups = { 'VIIRS': L.layerGroup(), 'MODIS': L.layerGroup() };
         const fireDataCache = { 'VIIRS': [], 'MODIS': [] };
-        let officialPerimetersLayer, stateBoundariesLayer, droughtLayer, weatherPrecipLayer, weatherTempLayer, staticWeatherWindLayer, animatedWindLayer, goesLayer, weatherPointMarker;
+        let officialPerimetersLayer, stateBoundariesLayer, droughtLayer, weatherPrecipLayer, weatherTempLayer, staticWeatherWindLayer, animatedWindLayer, goesLayer, weatherPointMarker, predictedSpreadLayer, lastOfficialFireLayer;
         let cesiumViewer, is3D = false;
         let startMarker = null, endMarker = null, currentRouteControl = null, savedRoutesLayer = null;
         let isGoesPreviewActive = false;
@@ -606,34 +610,37 @@
         });
 
         function initializeRobustTabSystem() {
-            console.log("Initializing robust tab system.");
+            console.log("[Tab System] Initializing robust tab system.");
             const tabContainer = document.querySelector('#sidebar-tabs');
             if (!tabContainer) {
-                console.error("Tab container #sidebar-tabs not found. Tab system will not work.");
+                console.error("[Tab System] CRITICAL: Tab container #sidebar-tabs not found. Tab system will not work.");
                 return;
             }
             const tabPanes = document.querySelectorAll('.sidebar-wrapper .tab-pane');
             const syncTabView = (activeTab) => {
                 if (!activeTab) return;
                 const activePaneId = activeTab.getAttribute('data-bs-target');
-                console.log(`Syncing tab view for active pane: ${activePaneId}`);
+                console.log(`[Tab System] Syncing tab view. Active pane should be: ${activePaneId}`);
                 tabPanes.forEach(pane => {
                     if (`#${pane.id}` === activePaneId) {
                         pane.style.display = 'flex';
+                        console.log(`[Tab System] -> Set #${pane.id} to 'display: flex'.`);
                     } else {
                         pane.style.display = 'none';
                     }
                 });
             };
+            
             tabContainer.addEventListener('shown.bs.tab', (event) => {
                 syncTabView(event.target);
             });
+            
             const initialActiveTab = tabContainer.querySelector('.nav-link.active');
             if (initialActiveTab) {
-                console.log("Found initial active tab. Setting its view directly.");
+                console.log("[Tab System] Found initial active tab on page load. Setting its view directly.");
                 syncTabView(initialActiveTab);
             } else {
-                console.warn("No initial active tab found. The sidebar might appear empty.");
+                console.warn("[Tab System] No initial active tab found. The sidebar might appear empty until a tab is clicked.");
             }
         }
 
@@ -652,6 +659,7 @@
             droughtLayer = L.layerGroup(); 
             savedRoutesLayer = L.layerGroup().addTo(map);
             communityAlertsLayer = L.layerGroup().addTo(map);
+            predictedSpreadLayer = L.layerGroup().addTo(map); 
             weatherPrecipLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
             weatherTempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
             staticWeatherWindLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
@@ -666,16 +674,31 @@
         }
 
         function handleTimelineInput() {
+            const dateFilterInput = document.getElementById('discovery-date-filter');
             const daysAgo = parseInt(timelineSlider.value, 10);
             const targetDate = new Date();
             targetDate.setUTCDate(targetDate.getUTCDate() - daysAgo);
             selectedDate = targetDate.toISOString().split('T')[0];
-            if (daysAgo === 0) { timelineLabel.textContent = 'Current'; } else if (daysAgo === 1) { timelineLabel.textContent = 'Yesterday'; } else { timelineLabel.textContent = targetDate.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' }); }
+
+            if (daysAgo === 0) {
+                timelineLabel.textContent = 'Current';
+                dateFilterInput.value = '';
+                console.log("Timeline set to Current. Clearing date filter.");
+            } else {
+                const dateLabel = targetDate.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: 'numeric' });
+                timelineLabel.textContent = daysAgo === 1 ? 'Yesterday' : dateLabel;
+                dateFilterInput.value = selectedDate;
+                console.log(`Timeline set to ${dateLabel}. Date filter input set to ${selectedDate}.`);
+            }
         }
         
         function handleTimelineChange() {
+            console.log("Timeline change committed. Reloading filtered data for date:", selectedDate);
             if (document.getElementById('viirs-hotspots').checked) { loadFireData('VIIRS'); }
             if (document.getElementById('modis-hotspots').checked) { loadFireData('MODIS'); }
+            if (document.getElementById('official-perimeters').checked) {
+                loadOfficialPerimeters();
+            }
         }
 
         function setupEventListeners() {
@@ -737,7 +760,16 @@
             });
             document.getElementById('toggle-contained-btn').addEventListener('click', function() { hideContainedFires = !hideContainedFires; this.classList.toggle('active', hideContainedFires); loadOfficialPerimeters(); });
             document.getElementById('apply-date-filter').addEventListener('click', loadOfficialPerimeters);
-            document.getElementById('clear-date-filter').addEventListener('click', () => { document.getElementById('discovery-date-filter').value = ''; loadOfficialPerimeters(); });
+            document.getElementById('clear-date-filter').addEventListener('click', () => {
+                console.log("Clear date filter button clicked.");
+                document.getElementById('discovery-date-filter').value = '';
+                if (timelineSlider) {
+                    timelineSlider.value = 0;
+                    handleTimelineInput();
+                }
+                loadOfficialPerimeters();
+            });
+
             document.getElementById('route-search-input').addEventListener('input', filterSavedRoutes);
             document.getElementById('calculate-route-btn').addEventListener('click', calculateAndSaveRoute);
             document.getElementById('clear-markers-btn').addEventListener('click', clearRouteMarkers);
@@ -748,7 +780,6 @@
             document.getElementById('alert-form').addEventListener('submit', saveAlert);
             document.getElementById('create-alert-btn').addEventListener('click', toggleAlertCreation);
             
-            // --- Event listeners for new image analysis feature ---
             document.getElementById('analyze-image-btn').addEventListener('click', analyzeGoesImageForFire);
             const zoomedModalEl = document.getElementById('zoomed-goes-modal');
             zoomedModalEl.addEventListener('hidden.bs.modal', () => {
@@ -756,7 +787,7 @@
                 const canvas = document.getElementById('detection-canvas');
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('zoomed-goes-image').src = ''; // Clear src to prevent re-analysis
+                document.getElementById('zoomed-goes-image').src = '';
                 document.getElementById('analysis-result-text').textContent = '';
             });
              zoomedModalEl.addEventListener('shown.bs.modal', () => {
@@ -766,10 +797,25 @@
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 document.getElementById('analysis-result-text').textContent = '';
             });
-
-            // --- Event listeners for Automated Analysis ---
             document.getElementById('analyze-all-goes-btn').addEventListener('click', analyzeAllGoesSectors);
             document.getElementById('recurring-analysis-toggle').addEventListener('change', handleRecurringAnalysisToggle);
+
+            document.getElementById('fire-details-modal-body').addEventListener('click', function(event) {
+                const intensityBtn = event.target.closest('#get-ai-prediction-btn');
+                if (intensityBtn) {
+                    const fireData = JSON.parse(intensityBtn.dataset.fire);
+                    fetchIntensityPrediction(fireData, intensityBtn);
+                }
+                const spreadBtn = event.target.closest('#predict-spread-btn');
+                if (spreadBtn) {
+                    const fireProps = JSON.parse(spreadBtn.dataset.fireProperties);
+                    getPredictedSpread(fireProps, spreadBtn);
+                }
+                const revertBtn = event.target.closest('#revert-to-perimeter-btn');
+                if (revertBtn) {
+                    revertToPerimeterView();
+                }
+            });
         }
 
         function loadInitialData() { 
@@ -792,15 +838,25 @@
             if (!document.getElementById('official-perimeters').checked) return;
             document.getElementById('main-loader').classList.remove('d-none');
             officialPerimetersLayer.clearLayers();
+            predictedSpreadLayer.clearLayers(); 
             const params = new URLSearchParams();
             const dateValue = document.getElementById('discovery-date-filter').value;
-            if (dateValue) { params.append('discovery_date', dateValue); }
+            if (dateValue) {
+                params.append('discovery_date', dateValue);
+                console.log(`[Official Fires] Loading data for discovery date: ${dateValue}`);
+            } else {
+                console.log(`[Official Fires] Loading data without a date filter.`);
+            }
             if (hideContainedFires) { params.append('hide_contained', 'true'); }
             const queryString = params.toString();
             const url = `/api/wildfire-perimeters${queryString ? '?' + queryString : ''}`;
             try {
                 const response = await axios.get(url); 
-                if (!response.data || !response.data.features || response.data.features.length === 0) { return; }
+                console.log(`[Official Fires] Received ${response.data.features?.length || 0} features.`);
+                if (!response.data || !response.data.features || response.data.features.length === 0) { 
+                    if (is3D) synchronizeLayersToCesium();
+                    return; 
+                }
                 const now = Date.now(), oneDay = 86400000, threeDays = 3 * oneDay;
                 L.geoJSON(response.data, { 
                     onEachFeature: (feature, layer) => {
@@ -811,9 +867,10 @@
                             const bounds = layer.getBounds();
                             if (bounds.isValid()) {
                                 const center = bounds.getCenter();
-                                const dot = L.circleMarker(center, { radius, fillColor: color, color: '#fff', weight: 1.5, opacity: 1, fillOpacity: 0.8, fireProperties: props }).on('click', e => showOfficialFireModal(e.target.options.fireProperties));
+                                layer.fireProperties = props; // Attach properties to the layer itself for the revert function
+                                const dot = L.circleMarker(center, { radius, fillColor: color, color: '#fff', weight: 1.5, opacity: 1, fillOpacity: 0.8 }).on('click', () => showOfficialFireModal(props, layer));
                                 officialPerimetersLayer.addLayer(dot);
-                                layer.setStyle({ color, weight: 2, opacity: 0.6, fillOpacity: 0.15 }).on('click', e => showOfficialFireModal(e.target.feature.properties));
+                                layer.setStyle({ color, weight: 2, opacity: 0.6, fillOpacity: 0.15 }).on('click', () => showOfficialFireModal(props, layer));
                                 officialPerimetersLayer.addLayer(layer);
                             }
                         }
@@ -921,13 +978,10 @@
             if (resultText) resultText.textContent = "Analyzing...";
 
             try {
-                // Construct the URL to our own Laravel proxy
                 const urlParts = new URL(targetUrl);
-                const noaaPath = urlParts.pathname.substring(1) + urlParts.search; // Remove leading '/'
+                const noaaPath = urlParts.pathname.substring(1) + urlParts.search;
                 const proxyUrl = `/proxy/noaa/${noaaPath}`;
-
                 console.log('Requesting image via internal proxy:', proxyUrl);
-
                 const imageResponse = await fetch(proxyUrl);
                 
                 if (!imageResponse.ok) {
@@ -936,34 +990,21 @@
                 const imageBlob = await imageResponse.blob();
                 console.log("Image fetched via proxy, size:", imageBlob.size);
 
-                if (imageBlob.size === 0) {
-                    throw new Error("Fetched image blob is empty.");
-                }
+                if (imageBlob.size === 0) { throw new Error("Fetched image blob is empty."); }
 
                 const predictionResponse = await axios.post(VISION_PREDICTION_URL, imageBlob, {
-                    headers: {
-                        'Prediction-Key': VISION_PREDICTION_KEY,
-                        'Content-Type': 'application/octet-stream'
-                    }
+                    headers: { 'Prediction-Key': VISION_PREDICTION_KEY, 'Content-Type': 'application/octet-stream' }
                 });
                 
                 console.log("Custom Vision API Response:", predictionResponse.data);
                 
-                if (typeof imageUrl !== 'string') {
-                    // Only draw boxes if we are in the single-image modal view
-                    drawDetectionBoxes(predictionResponse.data.predictions);
-                }
-                
-                // Return the predictions for the "Analyze All" function
+                if (typeof imageUrl !== 'string') { drawDetectionBoxes(predictionResponse.data.predictions); }
                 return predictionResponse.data.predictions;
 
             } catch (error) {
                 console.error("Error during fire analysis:", error.response?.data || error.message, error);
                 if (resultText) resultText.textContent = "Analysis failed.";
-                if (typeof imageUrl !== 'string') {
-                    alert('An error occurred while analyzing the image. Check the browser console for details.');
-                }
-                // Return null to indicate failure for the "Analyze All" function
+                if (typeof imageUrl !== 'string') { alert('An error occurred while analyzing the image. Check the browser console for details.'); }
                 return null;
             } finally {
                 if (loader) loader.classList.add('d-none');
@@ -972,6 +1013,9 @@
         }
 
         function drawDetectionBoxes(predictions) {
+
+            const HORIZONTAL_OFFSET = 15; // Nudge left/right. E.g., 2 moves it 2px to the right.
+            const VERTICAL_OFFSET = 15;   // Nudge up/down. E.g., -1 moves it 1px up.
             const img = document.getElementById('zoomed-goes-image');
             const canvas = document.getElementById('detection-canvas');
             const resultText = document.getElementById('analysis-result-text');
@@ -981,12 +1025,17 @@
 
             canvas.width = renderedWidth;
             canvas.height = renderedHeight;
-            canvas.style.left = `${offsetX}px`;
-            canvas.style.top = `${offsetY}px`;
+            canvas.style.left = (offsetX + HORIZONTAL_OFFSET) + 'px';
+            canvas.style.top = (offsetY + VERTICAL_OFFSET) + 'px';
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            const fireDetections = predictions.filter(p => p.tagName.toLowerCase() === 'fire' && p.probability > 0.6);
+            // === THE FIX IS HERE ===
+            // 1. Lower the probability threshold to 0.61
+            // 2. Make the tagName check more flexible
+            const fireDetections = predictions.filter(p => 
+                p.tagName.toLowerCase().includes('fire') && p.probability > 0.61
+            );
 
             if (fireDetections.length === 0) {
                 console.log("No fires detected above threshold.");
@@ -1010,7 +1059,7 @@
 
                 ctx.fillStyle = 'rgba(255, 221, 0, 0.9)';
                 ctx.font = '16px sans-serif';
-                const label = `${(pred.probability * 100).toFixed(0)}% Fire`;
+                const label = `${(pred.probability * 100).toFixed(0)}% ${pred.tagName}`;
                 const textMetrics = ctx.measureText(label);
                 ctx.fillRect(x, y - 20, textMetrics.width + 8, 20);
                 ctx.fillStyle = '#000';
@@ -1033,7 +1082,10 @@
             const predictions = await analyzeGoesImageForFire(imageUrl);
 
             if (predictions) {
-                const fireDetections = predictions.filter(p => p.tagName.toLowerCase() === 'fire' && p.probability > 0.6);
+                // === THE FIX IS HERE (for batch analysis) ===
+                const fireDetections = predictions.filter(p => 
+                    p.tagName.toLowerCase().includes('fire') && p.probability > 0.61
+                );
 
                 if (fireDetections.length > 0) {
                     card.classList.remove('border-secondary');
@@ -1146,8 +1198,296 @@
         function updateAllFireStats() { const fires = (fireDataCache['VIIRS'] || []).concat(fireDataCache['MODIS'] || []); const totalFires = fires.length; const highConfidenceFires = fires.filter(f => (f.confidence?.toLowerCase() === 'high' || (typeof f.confidence === 'number' && f.confidence >= 80))).length; document.getElementById('active-fires-count').textContent = totalFires.toLocaleString(); document.getElementById('high-confidence-count').textContent = highConfidenceFires.toLocaleString(); }
         async function loadStateBoundaries() { try { const r = await axios.get('/us-states.json'); L.geoJSON(r.data, { style: () => ({ color: "#fff", weight: 1, opacity: 0.6, fill: false, interactive: false }) }).addTo(stateBoundariesLayer); } catch(e) { console.error("us-states.json not found in /public."); } }
         function toggleDroughtLayer(show) { if (show) { if (droughtLayer.getLayers().length === 0) { L.rectangle([[25, -125], [50, -65]], { color: "#FFC107", weight: 0, fillOpacity: 0.1, interactive: false }).addTo(droughtLayer); L.rectangle([[30, -100], [35, -90]], { color: "#FFC107", weight: 1, fillOpacity: 0.4, interactive: false }).bindPopup("Abnormally Dry Area").addTo(droughtLayer); } map.addLayer(droughtLayer); } else { map.removeLayer(droughtLayer); } }
-        function showOfficialFireModal(props) { document.getElementById('fire-details-modal-title').innerHTML = `<i class="fas fa-certificate text-danger me-2"></i> Official Incident`; document.getElementById('fire-details-modal-body').innerHTML = `<div class="mb-3"><h4>${props.poly_IncidentName || 'Unknown'}</h4><p class="text-muted mb-0">${props.UniqueFireIdentifier || ''}</p></div><div class="row g-3"><div class="col-md-6"><div class="card bg-body-tertiary h-100"><div class="card-body"><h6 class="card-title">Details</h6><p class="mb-1 d-flex justify-content-between"><strong>Cause:</strong> <span>${props.attr_FireCause || 'N/A'}</span></p><p class="mb-1 d-flex justify-content-between"><strong>Size:</strong> <span>${props.poly_GISAcres ? props.poly_GISAcres.toFixed(2) + ' acres' : 'N/A'}</span></p></div></div></div><div class="col-md-6"><div class="card bg-body-tertiary h-100"><div class="card-body"><h6 class="card-title">Timeline</h6><p class="mb-1 d-flex justify-content-between"><strong>Discovered:</strong> <span>${formatDate(props.attr_FireDiscoveryDateTime)}</span></p><p class="mb-1 d-flex justify-content-between"><strong>Contained:</strong> <span>${formatDate(props.attr_ContainmentDateTime)}</span></p><p class="mb-1 d-flex justify-content-between"><strong>Fire Out:</strong> <span>${formatDate(props.attr_FireOutDateTime)}</span></p><p class="mb-1 d-flex justify-content-between"><strong>Last Update:</strong> <span>${formatDate(props.poly_PolygonDateTime)}</span></p></div></div></div></div>`; fireDetailsModal.show(); }
-        async function showSatelliteFireModal(fire) { document.getElementById('fire-details-modal-title').innerHTML = `<i class="fas fa-satellite-dish text-info me-2"></i> Satellite Detection`; const modalBody = document.getElementById('fire-details-modal-body'); modalBody.innerHTML = `<div>Loading details...</div>`; fireDetailsModal.show(); let weatherHtml = '<p class="text-muted">Weather data unavailable.</p>'; try { const response = await axios.get('/api/weather-for-point', { params: { lat: fire.latitude, lon: fire.longitude } }); const w = response.data; weatherHtml = `<p class="mb-2 d-flex justify-content-between">Temperature: <strong>${w.main.temp.toFixed(1)}°C</strong></p><p class="mb-2 d-flex justify-content-between">Humidity: <strong>${w.main.humidity}%</strong></p><p class="mb-0 d-flex justify-content-between">Winds: <strong>${(w.wind.speed * 3.6).toFixed(1)} km/h</strong></p>`; } catch (error) { console.error('Failed to load weather for modal:', error); } modalBody.innerHTML = `<div class="d-flex justify-content-between align-items-start mb-3"><div><span class="badge text-bg-secondary">${fire.satellite || 'N/A'}</span><h4 class="mt-1">Detection at ${fire.latitude.toFixed(4)}, ${fire.longitude.toFixed(4)}</h4></div></div><div class="row g-2 text-center mb-4"><div class="col"><div class="p-2 bg-body-tertiary rounded"><small class="text-muted">CONFIDENCE</small><div class="fs-5 fw-bold text-warning">${fire.confidence}</div></div></div><div class="col"><div class="p-2 bg-body-tertiary rounded"><small class="text-muted">DETECTED</small><div class="fs-5 fw-bold">${fire.acq_date} ${fire.acq_time.slice(0,2)}:${fire.acq_time.slice(2)}</div></div></div><div class="col"><div class="p-2 bg-body-tertiary rounded"><small class="text-muted">FRP (MW)</small><div class="fs-5 fw-bold" style="color:${getColorForFRP(fire.frp)}">${fire.frp}</div></div></div></div><div class="row g-3"><div class="col-md-6"><div class="card h-100"><div class="card-body"><h6 class="card-title mb-3"><i class="fas fa-cloud-sun me-2"></i>Nearby Weather</h6>${weatherHtml}</div></div></div><div class="col-md-6"><div class="card h-100"><div class="card-body"><h6 class="card-title mb-3"><i class="fas fa-chart-line me-2"></i>Sensor Data</h6><p class="mb-2 d-flex justify-content-between">Brightness: <strong>${fire.bright_ti4 || fire.brightness} K</strong></p><p class="mb-0 d-flex justify-content-between">Scan/Track: <strong>${fire.scan}° / ${fire.track}°</strong></p></div></div></div></div>`; }
+        
+        async function fetchIntensityPrediction(fire, button) {
+            const resultContainer = document.getElementById('intensity-prediction-result');
+            if (!resultContainer) {
+                console.error("Could not find the prediction result container in the modal.");
+                return;
+            }
+            button.disabled = true;
+            button.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span>Querying...`;
+            resultContainer.innerHTML = '';
+
+            const confidenceMap = { 'low': 30, 'nominal': 70, 'high': 95 };
+            const numericConfidence = typeof fire.confidence === 'string' 
+                ? (confidenceMap[fire.confidence.toLowerCase()] || 50) 
+                : fire.confidence;
+
+            const payload = {
+                latitude: fire.latitude,
+                longitude: fire.longitude,
+                brightness: fire.brightness,
+                confidence: numericConfidence,
+                bright_t31: fire.bright_t31,
+                daynight: fire.daynight,
+            };
+
+            console.log("Sending data for AI prediction:", payload);
+            
+            for (const key in payload) {
+                if (payload[key] === undefined || payload[key] === null) {
+                    console.error(`AI Prediction Aborted: Missing required feature '${key}'.`, fire);
+                    resultContainer.innerHTML = `<p class="text-danger mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Prediction failed.</p><small class="text-muted">The satellite data is missing the required '${key}' field.</small>`;
+                    button.disabled = false;
+                    button.innerHTML = `<i class="fas fa-brain me-2"></i>Get AI Prediction`;
+                    return;
+                }
+            }
+
+            try {
+                const response = await axios.post("{{ route('api.predict.intensity') }}", payload);
+                const prediction = response.data.predicted_frp;
+                console.log("Received prediction from backend:", prediction);
+
+                if (prediction !== undefined && prediction !== null) {
+                    resultContainer.innerHTML = `<p class="fs-3 mb-0 text-center fw-bold" style="color:${getColorForFRP(prediction)}">${prediction.toFixed(2)} <span class="fs-6 text-muted fw-normal">MW</span></p><p class="text-center text-muted small mb-0">(AI Predicted FRP)</p>`;
+                } else {
+                    throw new Error("Prediction value not found in the server response.");
+                }
+            } catch (error) {
+                console.error('AI Prediction Failed:', error.response ? error.response.data : error.message);
+                let errorMessage = "Could not retrieve prediction from the model.";
+                if (error.response?.data?.message) {
+                    errorMessage = `<small class="text-muted d-block">${error.response.data.message}</small>`;
+                }
+                resultContainer.innerHTML = `<p class="text-danger mb-0 text-center"><i class="fas fa-exclamation-triangle me-2"></i>Prediction Failed</p><div class="text-center">${errorMessage}</div>`;
+            } finally {
+                button.disabled = false;
+                button.innerHTML = `<i class="fas fa-brain me-2"></i>Get AI Prediction`;
+            }
+        }
+        
+        async function showSatelliteFireModal(fire) { 
+            document.getElementById('fire-details-modal-title').innerHTML = `<i class="fas fa-satellite-dish text-info me-2"></i> Satellite Detection`; 
+            const modalBody = document.getElementById('fire-details-modal-body');
+            
+            modalBody.innerHTML = `<div>Loading details...</div>`; 
+            fireDetailsModal.show(); 
+            
+            let weatherHtml = '<p class="text-muted">Weather data unavailable.</p>'; 
+            try { 
+                const response = await axios.get('/api/weather-for-point', { params: { lat: fire.latitude, lon: fire.longitude } }); 
+                const w = response.data; weatherHtml = `<p class="mb-2 d-flex justify-content-between">Temperature: <strong>${w.main.temp.toFixed(1)}°C</strong></p><p class="mb-2 d-flex justify-content-between">Humidity: <strong>${w.main.humidity}%</strong></p><p class="mb-0 d-flex justify-content-between">Winds: <strong>${(w.wind.speed * 3.6).toFixed(1)} km/h</strong></p>`; 
+            } catch (error) { 
+                console.error('Failed to load weather for modal:', error); 
+            } 
+            
+            modalBody.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <span class="badge text-bg-secondary">${fire.satellite || 'N/A'}</span>
+                        <h4 class="mt-1">Detection at ${fire.latitude.toFixed(4)}, ${fire.longitude.toFixed(4)}</h4>
+                    </div>
+                </div>
+                <div class="row g-2 text-center mb-4">
+                    <div class="col">
+                        <div class="p-2 bg-body-tertiary rounded">
+                            <small class="text-muted">CONFIDENCE</small>
+                            <div class="fs-5 fw-bold text-warning">${fire.confidence}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-2 bg-body-tertiary rounded">
+                            <small class="text-muted">DETECTED</small>
+                            <div class="fs-5 fw-bold">${fire.acq_date} ${fire.acq_time.slice(0,2)}:${fire.acq_time.slice(2)}</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                         <div class="p-2 bg-body-tertiary rounded">
+                            <small class="text-muted">FRP (MW)</small>
+                            <div class="fs-5 fw-bold" style="color:${getColorForFRP(fire.frp)}">${fire.frp}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h6 class="card-title mb-3"><i class="fas fa-cloud-sun me-2"></i>Nearby Weather</h6>
+                                ${weatherHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                             <div class="card-body">
+                                <h6 class="card-title mb-3"><i class="fas fa-chart-line me-2"></i>Sensor Data</h6>
+                                <p class="mb-2 d-flex justify-content-between">Brightness (Ch I4): <strong>${fire.brightness || 'N/A'} K</strong></p>
+                                <p class="mb-2 d-flex justify-content-between">Brightness (Ch I5): <strong>${fire.bright_t31 || 'N/A'} K</strong></p>
+                                <p class="mb-0 d-flex justify-content-between">Day/Night: <strong>${fire.daynight || 'N/A'}</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card h-100 bg-body-tertiary">
+                            <div class="card-body">
+                                <h6 class="card-title mb-2 text-center">Azure ML Intensity Prediction</h6>
+                                <div class="text-center mb-3">
+                                    <button class="btn btn-primary" id="get-ai-prediction-btn" data-fire='${escapeHTML(JSON.stringify(fire))}'>
+                                        <i class="fas fa-brain me-2"></i>Get AI Prediction
+                                    </button>
+                                </div>
+                                <div id="intensity-prediction-result" style="min-height: 50px;">
+                                    <!-- Prediction result will be injected here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        async function getPredictedSpread(fireProperties, button) {
+            console.log("Requesting AI spread prediction for fire:", fireProperties.poly_IncidentName);
+            button.disabled = true;
+            button.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Predicting...`;
+            
+            try {
+                const payload = {
+                    latitude: fireProperties.attr_InitialLatitude,
+                    longitude: fireProperties.attr_InitialLongitude,
+                    fire_properties: fireProperties
+                };
+
+                const response = await axios.post("{{ route('api.predict.spread') }}", payload);
+
+                if (response.data.success) {
+                    console.log("Spread prediction received:", response.data);
+                    drawPredictedSpread(fireProperties, response.data);
+                } else {
+                    throw new Error(response.data.message || "Prediction failed on the server.");
+                }
+            } catch (error) {
+                console.error("Failed to get predicted spread:", error.response?.data?.message || error.message);
+                alert(`Could not get spread prediction: ${error.response?.data?.message || error.message}`);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = `<i class="fas fa-wind me-2"></i>Predict Potential Spread`;
+            }
+        }
+        
+        function drawPredictedSpread(fireProperties, predictionData) {
+            predictedSpreadLayer.clearLayers(); 
+
+            const fireSizeClassToDistanceKm = {
+                'A': 0.1, 'B': 0.5, 'C': 2.0, 'D': 5.0,
+                'E': 10.0, 'F': 20.0, 'G': 50.0
+            };
+
+            const distanceKm = fireSizeClassToDistanceKm[predictionData.spread_class] || 0.1;
+            const windBearing = predictionData.wind_direction;
+            const center = L.latLng(fireProperties.attr_InitialLatitude, fireProperties.attr_InitialLongitude);
+            const coneAngle = 40; 
+            const p1 = center;
+            const p2 = calculateDestinationPoint(center.lat, center.lng, windBearing - coneAngle / 2, distanceKm);
+            const p3 = calculateDestinationPoint(center.lat, center.lng, windBearing + coneAngle / 2, distanceKm);
+            
+            lastOfficialFireLayer = findOfficialFireLayer(fireProperties.GlobalID);
+
+            const spreadPolygon = L.polygon([p1, p2, p3], {
+                color: '#0dcaf0', weight: 2, fillColor: '#0dcaf0', fillOpacity: 0.4
+            });
+
+            // === NEW "REVERT" BUTTON LOGIC ===
+            const popupContent = `
+                <div class="text-center">
+                    <h6 class="mb-1"><i class="fas fa-brain me-1"></i> AI Spread Suggestion</h6>
+                    <p class="mb-2 small text-muted">This is a heuristic projection based on current wind and a classification model. Not a guarantee.</p>
+                    <ul class="list-unstyled text-start small">
+                        <li><strong>Wind Direction:</strong> ${windBearing}°</li>
+                        <li><strong>Predicted Class:</strong> ${predictionData.spread_class}</li>
+                        <li><strong>Projected Distance:</strong> ${distanceKm} km</li>
+                    </ul>
+                    <button class="btn btn-sm btn-outline-light" id="revert-to-perimeter-btn">Revert to Perimeter</button>
+                </div>`;
+            spreadPolygon.bindPopup(popupContent).openPopup();
+
+            predictedSpreadLayer.addLayer(spreadPolygon);
+            if (!map.hasLayer(predictedSpreadLayer)) {
+                map.addLayer(predictedSpreadLayer);
+            }
+            map.fitBounds(spreadPolygon.getBounds().pad(0.2)); 
+            fireDetailsModal.hide();
+        }
+
+        // === NEW HELPER AND BUTTON FUNCTIONS ===
+        function findOfficialFireLayer(globalId) {
+            let foundLayer = null;
+            officialPerimetersLayer.eachLayer(layer => {
+                if (layer.fireProperties && layer.fireProperties.GlobalID === globalId) {
+                    foundLayer = layer;
+                }
+            });
+            return foundLayer;
+        }
+
+        function revertToPerimeterView() {
+            predictedSpreadLayer.clearLayers();
+            if (lastOfficialFireLayer) {
+                map.fitBounds(lastOfficialFireLayer.getBounds());
+                lastOfficialFireLayer.openPopup(); // Or re-open the modal if you prefer
+            }
+        }
+
+        function calculateDestinationPoint(lat, lon, bearing, distanceKm) {
+            const R = 6371; 
+            const latRad = (lat * Math.PI) / 180;
+            const lonRad = (lon * Math.PI) / 180;
+            const bearingRad = (bearing * Math.PI) / 180;
+
+            const lat2Rad = Math.asin(Math.sin(latRad) * Math.cos(distanceKm / R) +
+                Math.cos(latRad) * Math.sin(distanceKm / R) * Math.cos(bearingRad));
+            
+            let lon2Rad = lonRad + Math.atan2(Math.sin(bearingRad) * Math.sin(distanceKm / R) * Math.cos(latRad),
+                Math.cos(distanceKm / R) - Math.sin(latRad) * Math.sin(lat2Rad));
+            
+            return L.latLng((lat2Rad * 180) / Math.PI, (lon2Rad * 180) / Math.PI);
+        }
+
+        function showOfficialFireModal(props, layer) {
+            lastOfficialFireLayer = layer; // Store the layer that was clicked
+            document.getElementById('fire-details-modal-title').innerHTML = `<i class="fas fa-certificate text-danger me-2"></i> Official Incident`;
+            
+            const propertiesJson = escapeHTML(JSON.stringify(props));
+
+            document.getElementById('fire-details-modal-body').innerHTML = `
+                <div class="mb-3">
+                    <h4>${props.poly_IncidentName || 'Unknown'}</h4>
+                    <p class="text-muted mb-0">${props.UniqueFireIdentifier || ''}</p>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card bg-body-tertiary h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Details</h6>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Cause:</strong> <span>${props.attr_FireCause || 'N/A'}</span></p>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Size:</strong> <span>${props.poly_GISAcres ? props.poly_GISAcres.toFixed(2) + ' acres' : 'N/A'}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-body-tertiary h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Timeline</h6>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Discovered:</strong> <span>${formatDate(props.attr_FireDiscoveryDateTime)}</span></p>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Contained:</strong> <span>${formatDate(props.attr_ContainmentDateTime)}</span></p>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Fire Out:</strong> <span>${formatDate(props.attr_FireOutDateTime)}</span></p>
+                                <p class="mb-1 d-flex justify-content-between"><strong>Last Update:</strong> <span>${formatDate(props.poly_PolygonDateTime)}</span></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <div class="d-grid">
+                            <button id="predict-spread-btn" class="btn btn-info" data-fire-properties='${propertiesJson}'>
+                                <i class="fas fa-wind me-2"></i>Predict Potential Spread
+                            </button>
+                        </div>
+                        <p class="text-center small text-muted mt-1">Uses live weather & AI to project potential spread direction.</p>
+                    </div>
+                </div>`;
+            fireDetailsModal.show();
+        }
+
         function updateCalculateButtonState() { document.getElementById('calculate-route-btn').disabled = !(startMarker && endMarker); }
         function clearRouteMarkers() { if (startMarker) map.removeLayer(startMarker); if (endMarker) map.removeLayer(endMarker); if (currentRouteControl) map.removeControl(currentRouteControl); startMarker = null; endMarker = null; currentRouteControl = null; updateCalculateButtonState(); }
         function calculateAndSaveRoute() { if (!startMarker || !endMarker) return; const routeName = document.getElementById('route-name').value.trim(); if (!routeName) return alert('Please enter a name for the route.'); if (currentRouteControl) map.removeControl(currentRouteControl); currentRouteControl = L.Routing.control({ waypoints: [startMarker.getLatLng(), endMarker.getLatLng()], routeWhileDragging: false, addWaypoints: false, createMarker: () => null, lineOptions: { styles: [{ color: 'blue', opacity: 0.8, weight: 6 }] } }).on('routesfound', function(e) { const route = e.routes[0]; const geometry = L.polyline(route.coordinates.map(c => [c.lat, c.lng])).toGeoJSON(); const routeData = { name: routeName, start_latitude: startMarker.getLatLng().lat, start_longitude: startMarker.getLatLng().lng, end_latitude: endMarker.getLatLng().lat, end_longitude: endMarker.getLatLng().lng, geometry: JSON.stringify(geometry.geometry) }; axios.post('/api/routes', routeData).then(() => { alert('Route saved successfully!'); clearRouteMarkers(); document.getElementById('route-name').value = ''; fetchAndDisplaySavedRoutes(); }).catch(error => { console.error('Error saving route:', error.response?.data); alert('Failed to save route.'); }); }).addTo(map); }
@@ -1182,7 +1522,7 @@
                         const props = layer.feature?.properties || layer.options?.fireProperties;
                         if (!props || !props.poly_IncidentName || addedFireNames.has(props.poly_IncidentName)) return;
                         const cleanFireName = props.poly_IncidentName.toLowerCase().replace(/\s+fire$/, '').trim();
-                        if (cleanFireName.includes(cleanQuery)) { const bounds = layer.getBounds(); if (bounds && bounds.isValid()) { addedFireNames.add(props.poly_IncidentName); results.push({ name: props.poly_IncidentName, details: `${props.poly_GISAcres ? props.poly_GISAcres.toFixed(0) : 'N/A'} acres`, bbox: bounds, type: 'fire' }); } }
+                        if (cleanFireName.includes(cleanQuery)) { const bounds = layer.getBounds(); if (bounds.isValid()) { addedFireNames.add(props.poly_IncidentName); results.push({ name: props.poly_IncidentName, details: `${props.poly_GISAcres ? props.poly_GISAcres.toFixed(0) : 'N/A'} acres`, bbox: bounds, type: 'fire' }); } }
                     } catch (e) { console.warn('[Search] Error processing fire layer:', e); }
                 });
             }
@@ -1249,7 +1589,6 @@
             }
         }
         
-        // --- ALERT CODE --- RESTORED AND UNTOUCHED ---
         function initializeAlertManagement() {
             console.log("Initializing community alert management.");
             alertDrawer = new L.Draw.Circle(map, { shapeOptions: { color: '#ffc107', weight: 3, fillColor: '#ffc107', fillOpacity: 0.3 }, showRadius: true, metric: true });
@@ -1328,8 +1667,15 @@
             } catch(e) { console.error("Pusher/Echo initialization failed. Real-time alerts will not function. Check that pusher.min.js and echo.js are loaded.", e); }
         }
 
-        function escapeHTML(str) { let p = document.createElement("p"); if (str) { p.appendChild(document.createTextNode(str)); } return p.innerHTML; }
-        // --- END OF ALERT CODE ---
+        function escapeHTML(str) { 
+            if (typeof str !== 'string') return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
     </script>
 </body>

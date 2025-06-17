@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\AmbeeController;
 
 
 use App\Http\Controllers\Api\StatusUpdateController;
+use App\Http\Controllers\WildfirePredictionController;
 
 Route::get('/status-updates/poll', [StatusUpdateController::class, 'poll']);
 
@@ -117,3 +118,9 @@ Route::get('/ambee/fire-risk', [AmbeeController::class, 'getFireRiskDataByLatLng
 
 
 Route::post('/ambee/classify-image', [AmbeeController::class, 'classifyImage']); // NEW ROUTE
+// this new route for AI intensity prediction
+Route::post('/predict-intensity', [WildfirePredictionController::class, 'predictIntensity'])->name('api.predict.intensity');
+
+
+// NEW route for classification-based spread prediction
+Route::post('/predict-spread', [App\Http\Controllers\WildfirePredictionController::class, 'predictSpread'])->name('api.predict.spread');
