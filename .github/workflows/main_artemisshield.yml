@@ -80,5 +80,5 @@ jobs:
         id: deploy-to-webapp
         with:
           app-name: 'artemisshield'
-          slot-name: 'Production'
+          slot-name: 'production'
           package: .
