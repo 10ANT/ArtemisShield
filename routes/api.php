@@ -32,6 +32,9 @@ use App\Http\Controllers\Api\AmbeeController;
 
 
 
+use App\Http\Controllers\Api\StatusUpdateController;
+
+Route::get('/status-updates/poll', [StatusUpdateController::class, 'poll']);
 
 /*
 |--------------------------------------------------------------------------

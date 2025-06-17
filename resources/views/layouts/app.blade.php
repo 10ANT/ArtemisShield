@@ -22,6 +22,9 @@
 
         <div class="min-h-screen bg-gray-100">
             @livewire('navigation-menu')
+            
+            {{-- If your sidebar is included via the livewire navigation, this is fine --}}
+            {{-- Or if it's separate, it would be @include('partials.sidebar') --}}
 
             <!-- Page Heading -->
             @if (isset($header))
@@ -41,5 +44,8 @@
         @stack('modals')
 
         @livewireScripts
+        @yield('page-scripts')
+
+        {{-- The global notification script has been DELETED from here --}}
     </body>
 </html>

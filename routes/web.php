@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
-<<<<<<< rag
+
+
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
 use App\Http\Controllers\NotificationController;
@@ -16,23 +17,31 @@ use App\Http\Controllers\ParamedicsController;
 use App\Http\Controllers\PredictionController;
 
 use App\Http\Controllers\FireIncidentController;
-=======
-use App\Http\Controllers\WildfireOfficer\DashboardController;
+
+
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\TranscriptionController;
+
+//new controller for end user and alerting
+use App\Http\Controllers\WildfireOfficer\StatusUpdatesController;
+use App\Http\Controllers\EndUser\DashboardController as EndUserDashboardController;
+use App\Http\Controllers\EndUser\AgentController as EndUserAgentController;
+use App\Http\Controllers\Api\AlertController;
+use App\Http\Controllers\Api\StatusUpdateController;
+use App\Http\Controllers\ProxyController;
 
 
-
-
->>>>>>> main
+// Proxy route for NOAA images
+Route::get('/proxy/noaa/{path}', [ProxyController::class, 'getNoaaImage'])->where('path', '.*');
 
 Route::get('/', function () {
     return view('main');
 });
-<<<<<<< rag
-=======
 
->>>>>>> main
+
+
+
 
 
 Route::middleware([
@@ -43,6 +52,25 @@ Route::middleware([
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // END USER DASHBOARD
+    Route::prefix('end-user')->name('end-user.')->middleware('auth')->group(function () {
+        Route::get('/dashboard', [EndUserDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/agent/chat', [EndUserAgentController::class, 'chat'])->name('agent.chat');
+        Route::post('/agent/reset', [EndUserAgentController::class, 'reset'])->name('agent.reset');
+    });
+
+    // API-like routes using web authentication
+    Route::prefix('api')->middleware('auth')->group(function () {
+        // Status Updates (from end-user)
+        Route::post('/status-updates', [StatusUpdateController::class, 'store'])->name('api.status-updates.store');
+        
+        // Alerts (for officers)
+        Route::get('/alerts', [AlertController::class, 'index'])->name('api.alerts.index');
+        Route::post('/alerts', [AlertController::class, 'store'])->name('api.alerts.store')->middleware('role:Wildfire Management Officer');
+        Route::delete('/alerts/{alert}', [AlertController::class, 'destroy'])->name('api.alerts.destroy')->middleware('role:Wildfire Management Officer');
+    });
+
 });
 
 
@@ -51,14 +79,10 @@ Route::middleware([
 //Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Wildfire Officer Routes
+
 Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function () {
-<<<<<<< rag
     Route::get('/officer-dashboard', [DashboardController::class, 'dashboard'])->name('officer.dashboard');
     Route::get('/api/dashboard-data', [DashboardController::class, 'getDashboardData']);
-=======
-    Route::get('/officer-dashboard', [WildfireOfficerController::class, 'dashboard'])->name('officer.dashboard');
-    Route::get('/api/dashboard-data', [WildfireOfficerController::class, 'getDashboardData']);
->>>>>>> main
 
     Route::get('/firefighter-dashboard', [FirefighterController::class, 'dashboard'])->name('firefighter.dashboard');
     Route::get('/reports/history', [ReportController::class, 'history'])->middleware('auth');
@@ -67,16 +91,22 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
     Route::get('/analyst-dashboard', [PredictionController::class, 'dashboard'])->name('prediction.dashboard');
     Route::get('analyst-wildfire-risk', [PredictionController::class, 'wildfireRisk'])->name('prediction.wildfire-risk');
     // In routes/web.php
+});
 
 // TEMPORARY DEBUGGING ROUTE
 Route::get('/debug-config', function () {
     dd(config('services.azure'));
 });
+
+Route::middleware(['auth', 'role:Wildfire Management Officer'])->prefix('wildfire-officer')->name('wildfire-officer.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard');
+    Route::get('/status-updates', [StatusUpdatesController::class, 'index'])->name('status-updates');
 });
+
 
     
 // Wildfire Officer Dashboard
-Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'index'])->name('wildfire-officer.dashboard');
+Route::get('/wildfire-officer/dashboard', [DashboardController::class, 'dashboard'])->name('wildfire-officer.dashboard');
 
 
 
@@ -85,14 +115,21 @@ Route::get('/', function () {
 });
 
 
-<<<<<<< rag
-=======
+
 Route::get('/terms-of-service', [PageController::class, 'terms'])->name('pages.terms');
 Route::get('/faq', [PageController::class, 'faq'])->name('pages.faq');
 
 
+Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
+    Route::get('/', [NotificationController::class, 'index']);
+    Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
+});
 
->>>>>>> main
+
+
+
+
+
 
 
 
@@ -133,7 +170,7 @@ Route::get('/wildfire-officer/wind-global.json', function () {
 });
 
 
-<<<<<<< rag
+
 Route::middleware('auth:sanctum')->prefix('notifications')->group(function () {
     Route::get('/', [NotificationController::class, 'index']);
     Route::post('/mark-as-read', [NotificationController::class, 'markAsRead']);
@@ -144,8 +181,9 @@ Route::post('/process-report', [ReportController::class, 'process'])->middleware
 
 // Replace your old route for the dashboard with this one
 Route::get('/firefighter-dashboard', [FireIncidentController::class, 'dashboard'])->name('firefighter.dashboard');
-=======
 Route::post('/agent/chat', [AgentController::class, 'chat']);
 Route::post('/agent/submit-tool-output', [AgentController::class, 'submitToolOutput']);
 Route::post('/agent/reset', [AgentController::class, 'reset']);
->>>>>>> main
+
+
+Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');
