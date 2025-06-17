@@ -1,25 +1,154 @@
-# **Table of Contents:**
+# 🔥 ArtemisShield: AI-Powered Wildfire Command Center
 
-* [Repository Structure](#repository-structure)
-* [The Problem](#the-problem)
-* [Our Solution](#our-solution)
+[![Microsoft Azure](https://img.shields.io/badge/Built%20with-Microsoft%20Azure-0078D4?style=for-the-badge&logo=microsoftazure)](https://azure.microsoft.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Laravel v10.x](https://img.shields.io/badge/Laravel-v10.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)](https://laravel.com/)
+[![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Built with ❤️](https://img.shields.io/badge/Built%20with-❤️-ff69b4.svg?style=for-the-badge)](https://github.com/10ANT/ArtemisShield)
+
+
+
+
+---
+
+
+
+## Table of Contents
+
+1.  [Introduction](#introduction)
+2.  [The Problem](#the-problem)
+3.  [Our Solution: ArtemisShield - Your AI-Powered Command Center](#our-solution-artemisshield---your-ai-powered-command-center)
     * [Key Features](#key-features)
-* [Technical Architecture](#technical-architecture)
-* [Technology Stack](#technology-stack)
-* [Our Commitment to Responsible AI](#our-commitment-to-responsible-ai)
-* [Setup & Installation](#setup--installation)
-* [Team Members](#team-members)
+4.  [High-Level System Architecture](#high-level-system-architecture)
+5.  [Lower-Level System Architecture](#lower-level-system-architecture)
+6.  [Technology Stack](#technology-stack)
+7.  [Our Commitment to Responsible AI](#our-commitment-to-responsible-ai)
+8.  [Repository Structure](#repository-structure)
+9.  [Setup & Installation](#setup--installation)
+10. [Deployment](#deployment)
+11. [How to Contribute](#how-to-contribute)
+12. [Team Members](#team-members)
+13. [Acknowledgements](#acknowledgements)
+14. [License](#license)
 
 
-# Introduction 
-ArtemisShield is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
+
+
+--- 
+
+ 
+## Introduction 
+**ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
 
 
 
-# **Repository Structure:** 
+**[Live Demonstration](https://www.your-live-demo-url.com)**
+
+**[Video Presentation](https://www.your-video-presentation-url.com)**
+
+<br>
+
+
+ ## The Problem 
+
+Wildfire management is often a race against time with fragmented information. Officers need to synthesize data from satellites, field reports, and weather forecasts under immense pressure. Making the right decision can be the difference between containment and catastrophe. 
+
+ <br>
+
+## Our Solution: ArtemisShield - Your AI-Powered Command Center
+
+ArtemisShield is a unified, intelligent command and control platform that transforms wildfire management from reactive to proactive. It centralizes real-time data from satellites, weather, and field reports, augmenting human decision-making with powerful Azure AI. This includes an **AI Co-Pilot** for natural language queries, **Azure Custom Vision** for early hotspot detection, and **Azure Machine Learning** for predicting fire behavior. **Azure Speech-to-Text** also simplifies field reporting. ArtemisShield provides clear, actionable intelligence, helping commanders save lives, protect property, and manage wildfires more effectively.
+
+ <br>
+
+## Key Features 
+Our Solution provides a unified, intelligent dashboard that centralizes real-time data and augments human decision-making with powerful AI. Here are its *key features*:
+
+*   🗺️ **Interactive Geo-Dashboard:** A multi-layered Leaflet map showing official perimeters, live satellite hotspots (MODIS/VIIRS), weather overlays, and community-sourced alerts. Also allows for measuring and annoting of the maps for a more controlled and personal analyzation done by the user.
+
+*   🤖 **AI Co-Pilot (Azure AI Agent):** A conversational agent that interacts with the map. Officers can ask questions in natural language like *"Show me the risk to infrastructure near the Canyon Fire"* or *"Plan an evacuation route from Pine Ridge to the nearest shelter."* 
+
+*   🛰️ **Automated GOES Analysis (Azure Custom Vision):** Users can analyze GOES satellite imagery in real-time. Our Custom Vision model detects and highlights potential fire hotspots that may not yet be in official reports. 
+
+*   🧠 **Predictive Intelligence (Azure ML):** A machine learning model predicts fire intensity (FRP) and fire spread based on satellite data, giving officers a forward-looking view of a fire's potential It also uses image classification to predict risk of wildfire in particular areas based on satelite imagery giving analysts key data to analyse vulnerable places and suggest environmental assistances. 
+
+*   🎤 **Voice-to-Text Field Reporting (Azure Speech):** Firefighters in the field can log reports using their voice. Azure Speech services transcribe the audio, which is then translated to appropriate languages for individual users and analyzed for key entities (locations, resources needed). 
+
+*   🚨 **Real-Time Alerting (Pusher & Laravel Echo):** Community alerts and critical updates are broadcast to all users in real-time using Pusher and Echo which allows for a speedy and easy accessibilty to updated information by end users. 
+
+---
+
+<br>
+
+
+ 
+## **High-Level System Architecture** 
+*(Embed the generated architecture diagram here)* 
+
+<br> 
+
+---
+
+## Lower-Level System Architecture 
+
+*(Embed the generated architecture diagram here)* 
+
+<br>
+
+---
+ 
+
+## Technology Stack 
+
+This project proudly utilizes a wide range of Azure services and modern technologies: 
 
  
 
+| Category          | Technology / Azure Service                                                              | 
+
+| ----------------- | --------------------------------------------------------------------------------------- | 
+
+| **Frontend**      | Laravel Blade, Bootstrap 5, Leaflet.js, CesiumJS (for 3D), Axios                        | 
+
+| **Backend**       | Laravel 11, PHP 8.2                                                                     | 
+
+| **Database**      | Azure SQL, MySQL Database                                                                      | 
+
+| **Hosting**       | Azure App Service, Azure Function Service                                                                       | 
+
+| **Intelligence**  | **Azure AI Agent Service**, **Azure OpenAI (GPT-4o)**, **Azure Machine Learning**, **Azure Custom Vision** | 
+
+| **AI Services**   | **Azure AI Speech** (Speech-to-Text), **Azure AI Translator**, **Azure AI Language** (Entity Recognition), **Azure AI Search**          | 
+
+| **Real-Time**     | Pusher, Laravel Echo                                                                    | 
+
+| **Data Sources**  | ArcGIS REST Services, NASA FIRMS API, NOAA GOES,  Imagery, Ambee, Google Earth Engine API                                 | 
+
+ <b>
+
+ ---
+
+## Our Commitment to Responsible AI 
+
+We built ArtemisShield with Microsoft's Responsible AI principles at its core: 
+
+*   **Fairness:** The AI model for intensity prediction was trained on a diverse dataset to avoid geographical bias. The AI Agent's tools are designed to provide objective data, not make final life-or-death decisions. All natural language content can be translated to a multitude of languages.
+
+*   **Reliability & Safety:** Critical AI outputs (like predictions) are clearly labeled as "AI-Generated" with confidence scores to prevent over-reliance. The system has fallbacks for when an AI service is unavailable. All data used in association with the AI has been verified and chosen to be some of the most useful and relevant for it usage in the system.
+
+*   **Privacy & Security:** All user data is handled securely. Field reports are anonymized before analysis, and authentication is managed by Laravel Jetstream which enforces several encryption techniques to keep personal user data in safe hands and out of harms way when used in machine learning analytics. 
+
+*   **Inclusiveness:** The UI uses high-contrast themes and clear iconography. Voice-to-text reporting aids users who cannot type in the field as well as text translation for non-native speakers to have equal access to the platform. 
+
+*   **Transparency:** Our architecture and the role of each AI component are clearly documented here. The AI Agent explains which tool it is using to fulfill a request. All data sources are cited and the project is made opensourced.
+
+*   **Accountability:** The system is designed as a decision-support tool, keeping the human officer in the loop and accountable for the final commands.
+
+ <br>
+
+ ---
+
+ ## Repository Structure
 ``` 
 
 artemis-shield/ 
@@ -76,7 +205,7 @@ artemis-shield/
 
 │   └── web.php 
 
-├── .env.example       <-- MUST be clean, with all keys listed 
+├── .env.example 
 
 ├── .gitignore 
 
@@ -84,258 +213,128 @@ artemis-shield/
 
 ├── package.json 
 
-└── README.md          <-- THE MOST IMPORTANT FILE 
+└── README.md 
 
 ``` 
 
- 
+---
+
+## Setup & Installation
+
+1.  **Clone the repository:**
+    `git clone https://github.com/10ANT/ArtemisShield.git`
+    *(If you're using XAMPP, clone this into your `c:/xampp/htdocs` directory.)*
+
+2.  **Install PHP and Node.js dependencies:**
+    `composer install && npm install`
+
+3.  **Install FFmpeg CLI tools:**
+    Download and install the appropriate FFmpeg version from [https://github.com/BtbN/FFmpeg-Builds/releases](https://github.com/BtbN/FFmpeg-Builds/releases). Ensure `ffmpeg` is accessible in your system's PATH.
+
+4.  **Set up environment file:**
+    `cp .env.example .env`
+
+5.  **Configure environment variables:**
+    Open the newly created `.env` file and fill in your Azure service keys (Azure OpenAI, Speech, Custom Vision, etc.) and database credentials.
+
+6.  **Generate application key:**
+    `php artisan key:generate`
+
+7.  **Run database migrations and seeders:**
+    `php artisan migrate`
+    `php artisan db:seed --class=RoleSeeder`
+    `php artisan db:seed --class=UserSeeder`
+
+8.  **Run initial data imports:**
+    `php artisan import:fire_hydrants`
+    `php artisan import:stations`
+
+9.  **Build frontend assets:**
+    `npm run build`
+
+10. **Start the development server:**
+    If using XAMPP, ensure Apache and MySQL are running. Then, from the project root, run:
+    `php artisan serve`
+
+
 
 --- 
 
+
+## Deployment
+
+ArtemisShield is designed for deployment on **Microsoft Azure App Service**, leveraging its scalable and managed environment.
+
+**Key Azure Services for Deployment:**
+
+* **Azure App Service:** For hosting the Laravel application.
+* **Azure SQL Database:** For robust and scalable database needs.
+* **Azure Function Apps:** For background tasks or processing (e.g., image analysis, data imports).
+
+For detailed deployment instructions, refer to the [Azure documentation on deploying Laravel applications](https://learn.microsoft.com/en-us/azure/app-service/quickstart-php?pivots=platform-linux). Ensure all your Azure service keys and configurations are correctly set in the `.env` file within your App Service environment.
  
+---
 
-# 🔥 ArtemisShield: AI-Powered Wildfire Command Center 
+## How to Contribute
 
- 
+We welcome contributions to ArtemisShield! Whether you're fixing a bug, adding a new feature, or improving documentation, your help is valuable.
 
-[![Microsoft Azure](https://img.shields.io/badge/Built%20with-Microsoft%20Azure-0078D4?style=for-the-badge&logo=microsoftazure)](https://azure.microsoft.com/) 
+1.  **Fork the repository.**
+2.  **Create a new branch** for your feature or bug fix (`git checkout -b feature/your-feature-name` or `bugfix/issue-description`).
+3.  **Make your changes**, ensuring your code adheres to our coding standards (PSR-12 for PHP).
+4.  **Write clear, concise commit messages** explaining your changes.
+5.  **Push your branch** to your forked repository.
+6.  **Open a Pull Request** to the `main` branch of this repository. Please describe your changes thoroughly and reference any relevant issues.
 
- 
+For major changes or new features, please open an issue first to discuss the proposed changes.
 
-ArtemisShield is an integrated command and control platform built for the Microsoft Innovation Challenge 2025. It leverages the full power of Azure AI and data services to provide wildfire management officers with unprecedented situational awareness and predictive intelligence. 
+---
 
- 
 
-**[Live Demo Link]** - *(If you host it on Azure App Service)* 
+## Team Members
 
-**[Video Presentation Link]** 
+**[Adrian Tennant](https://github.com/10ANT)**
 
- 
+**[Gary Bryan](https://github.com/SlugVortex)**
 
-### The Problem 
+---
+## Acknowledgements
 
-Wildfire management is often a race against time with fragmented information. Officers need to synthesize data from satellites, field reports, and weather forecasts under immense pressure. Making the right decision can be the difference between containment and catastrophe. 
+* **NASA FIRMS:** For providing real-time fire and thermal anomaly data.
+* **NOAA GOES:** For satellite imagery data.
+* **Ambee API:** For weather and environmental data.
+* **Google Earth Engine API:** For geospatial data processing capabilities.
+* This project was developed as part of the **Microsoft Innovation Challenge 2025**.
 
- 
 
-### Our Solution 
+---
 
-ArtemisShield provides a unified, intelligent dashboard that centralizes real-time data and augments human decision-making with powerful AI. 
 
- 
 
-### Key Features 
-Our Solution provides a unified, intelligent dashboard that centralizes real-time data and augments human decision-making with powerful AI. Here are its *key features*:
+## License
 
-*   🗺️ **Interactive Geo-Dashboard:** A multi-layered Leaflet map showing official perimeters, live satellite hotspots (MODIS/VIIRS), weather overlays, and community-sourced alerts. Also allows for measuring and annoting of the maps for a more controlled and personal analyzation done by the user.
+MIT License
 
-*   🤖 **AI Co-Pilot (Azure AI Agent):** A conversational agent that interacts with the map. Officers can ask questions in natural language like *"Show me the risk to infrastructure near the Canyon Fire"* or *"Plan an evacuation route from Pine Ridge to the nearest shelter."* 
+Copyright (c) 2025 Artemis
 
-*   🛰️ **Automated GOES Analysis (Azure Custom Vision):** Users can analyze GOES satellite imagery in real-time. Our Custom Vision model detects and highlights potential fire hotspots that may not yet be in official reports. 
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-*   🧠 **Predictive Intelligence (Azure ML):** A machine learning model predicts fire intensity (FRP) and fire spread based on satellite data, giving officers a forward-looking view of a fire's potential It also uses image classification to predict risk of wildfire in particular areas based on satelite imagery giving analysts key data to analyse vulnerable places and suggest environmental assistances. 
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-*   🎤 **Voice-to-Text Field Reporting (Azure Speech):** Firefighters in the field can log reports using their voice. Azure Speech services transcribe the audio, which is then translated to appropriate languages for individual users and analyzed for key entities (locations, resources needed). 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
-*   🚨 **Real-Time Alerting (Pusher & Laravel Echo):** Community alerts and critical updates are broadcast to all users in real-time using Pusher and Echo which allows for a speedy and easy accessibilty to updated information by end users. 
 
- 
-
-### Technical Architecture 
-
-*(Embed the generated architecture diagram here)* 
-
- 
-
-### Technology Stack 
-
-This project proudly utilizes a wide range of Azure services and modern technologies: 
-
- 
-
-| Category          | Technology / Azure Service                                                              | 
-
-| ----------------- | --------------------------------------------------------------------------------------- | 
-
-| **Frontend**      | Laravel Blade, Bootstrap 5, Leaflet.js, CesiumJS (for 3D), Axios                        | 
-
-| **Backend**       | Laravel 10, PHP 8.2                                                                     | 
-
-| **Database**      | Azure SQL, MySQL Database                                                                      | 
-
-| **Hosting**       | Azure App Service, Azure Function Service                                                                       | 
-
-| **Intelligence**  | **Azure AI Agent Service**, **Azure OpenAI (GPT-4o)**, **Azure Machine Learning**, **Azure Custom Vision** | 
-
-| **AI Services**   | **Azure AI Speech** (Speech-to-Text), **Azure AI Translator**, **Azure AI Language** (Entity Recognition), **Azure AI Search**          | 
-
-| **Real-Time**     | Pusher, Laravel Echo                                                                    | 
-
-| **Data Sources**  | ArcGIS REST Services, NASA FIRMS API, NOAA GOES,  Imagery, Ambee, Google Earth Engine API                                 | 
-
- 
-
-### Our Commitment to Responsible AI 
-
-We built ArtemisShield with Microsoft's Responsible AI principles at its core: 
-
-*   **Fairness:** The AI model for intensity prediction was trained on a diverse dataset to avoid geographical bias. The AI Agent's tools are designed to provide objective data, not make final life-or-death decisions. All natural language content can be translated to a multitude of languages.
-
-*   **Reliability & Safety:** Critical AI outputs (like predictions) are clearly labeled as "AI-Generated" with confidence scores to prevent over-reliance. The system has fallbacks for when an AI service is unavailable. All data used in association with the AI has been verified and chosen to be some of the most useful and relevant for it usage in the system.
-
-*   **Privacy & Security:** All user data is handled securely. Field reports are anonymized before analysis, and authentication is managed by Laravel Jetstream which enforces several encryption techniques to keep personal user data in safe hands and out of harms way when used in machine learning analytics. 
-
-*   **Inclusiveness:** The UI uses high-contrast themes and clear iconography. Voice-to-text reporting aids users who cannot type in the field as well as text translation for non-native speakers to have equal access to the platform. 
-
-*   **Transparency:** Our architecture and the role of each AI component are clearly documented here. The AI Agent explains which tool it is using to fulfill a request. All data sources are cited and the project is made opensourced.
-
-*   **Accountability:** The system is designed as a decision-support tool, keeping the human officer in the loop and accountable for the final commands.
-
- 
-
-### Setup & Installation 
-
-1.  Clone the repository: `git clone https://github.com/10ANT/ArtemisShield.git` in your `c:/xampp/htdocs` directory
-
-2.  Install dependencies: `composer install && npm install`
-
-3. Install cli tools: Go to `https://github.com/BtbN/FFmpeg-Builds/releases` and install your appropriate ffmpeg version.
-
-3.  Copy the environment file: `cp .env.example .env` 
-
-4.  Configure your `.env` file with your Azure service keys (Azure OpenAI, Speech, Custom Vision, etc.) and database credentials. 
-
-5.  Generate app key: `php artisan key:generate` 
-
-6.  Run migrations and seeders: `php artisan migrate`. `php artisan db:seed --class=RoleSeeder`.  `php artisan db:seed --class=UserSeeder`. 
-
-6.  Run migrations and seeders: `php artisan migrate --seed` 
-
-7. Run imports: `php artisan import:fire_hydrants`. `php artisan import:stations`
-
-7.  Build assets: `npm run build` 
-
-8.  Start the server: Start Apache and MySQL in xampp then run `php artisan serve` 
-
- 
-
-### Team Members 
-
-*   Adrian Tennant 
-
-*   Gary Bryan 
-
-
---- 
-
- 
-
- 
-
-**Constraint: Max 15 minutes.** We must be efficient and powerful. The PowerPoint is your script and visual aid for the video. 
-
- 
-
-**Video Flow (Narrated over screen recording & slides):** 
-
- 
-
-| Time (Approx) | Slide # | Content & Narration                                                                                                                                                                                                                                   | Judging Criteria Hit                               | 
-
-| :------------ | :------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------- | 
-
-| 0:00 - 0:30   | 1       | **Title Slide:** "ArtemisShield by [Team Name]". Introduce the project and the problem you're solving (the Executive Challenge).                                                                                                                           | -                                                  | 
-
-| 0:30 - 1:30   | 2       | **The Problem:** Show images of wildfires. Explain the chaos of data and the pressure on commanders. *"...they need more than a map, they need a co-pilot."*                                                                                              | -                                                  | 
-
-| 1:30 - 8:30   | -       | **LIVE DEMO (THE MAIN EVENT):** This is where you shine.                                                                                                                                                                                                | Performance, Innovation, Breadth of Azure Tools    | 
-
-|               |         | 1. **Show the Officer Dashboard.** Explain the layers. Pan around. *"This is our command center..."*                                                                                                                                                   |                                                    | 
-
-|               |         | 2. **Use the AI Agent.** Type a query: *"Search for the 'Canyon Fire' and get me its details."* The map zooms, a modal pops up. *"ArtemisShield's AI Agent, powered by Azure AI, understands my intent and interacts with the map for me."*               | **Innovation**, **Azure Tools**                    | 
-
-|               |         | 3. **AI Analysis.** Type: *"Analyze the risk to habitat around the Canyon Fire."* The AI draws a polygon. *"This isn't just search; this is spatial analysis on demand."*                                                                               | **Innovation**                                     | 
-
-|               |         | 4. **GOES Custom Vision.** Click the GOES preview button. Show the modal. Click "Analyze for Fire". A bounding box appears. *"We're using Azure Custom Vision to find fires before they're officially reported, a true game-changer."*                  | **Innovation**, **Performance**, **Azure Tools**   | 
-
-|               |         | 5. **Azure ML Prediction.** Click on a satellite hotspot. In the modal, click "Get AI Prediction". Show the predicted FRP. *"This isn't just where the fire is, but where it's going, thanks to our Azure ML model."*                                  | **Innovation**, **Performance**, **Azure Tools**   | 
-
-|               |         | 6. **Show an alert** being created and appearing in real-time.                                                                                                                                                                                          | **Performance**                                    | 
-
-| 8:30 - 10:00  | 3, 4    | **Technical Architecture & Azure Showcase:** Show the architecture diagram slide. Then switch to a slide with the logos of **every Azure service you used**. Briefly explain each one's role. *"Our solution is born in the cloud, deeply integrated with the Azure ecosystem..."* | **Breadth of Azure Tools**                         | 
-
-| 10:00 - 11:00 | 5       | **Responsible AI:** Show the slide dedicated to this. Quickly go through 2-3 principles. *"We didn't just build a powerful tool; we built a responsible one. For example, for Fairness..."*                                                              | **Adherence to Responsible AI**                    | 
-
-| 11:00 - 12:00 | 6       | **Future Work & Conclusion:** "Our vision is to expand this..." Thank Microsoft and the program partners.                                                                                                                                               | -                                                  | 
-
-| 12:00 - 15:00 | -       | *Buffer time / Deeper dive if needed.*                                                                                                                                                                                                                | -                                                  | 
-
- 
-
-### **Prompts for Your Architecture Diagrams** 
-
- 
-
-Use an AI image generator (like Midjourney with `/describe`, or other diagramming tools) with these prompts. 
-
- 
-
-**High-Level System Architecture** 
-
- 
-
-> "Create a clean, professional cloud architecture diagram for a web application named 'ArtemisShield'. The style should be modern, using Microsoft Azure icons. 
-
-> 
-
-> On the left, show three user roles: 'Wildfire Officer', 'Firefighter', and 'Public'. Arrows should point from them to a central component labeled 'ArtemisShield Platform (Azure App Service)'. 
-
-> 
-
-> The central platform should be connected to a large box on the right labeled 'Microsoft Azure Cloud'. Inside this box, show icons for: 'Azure AI Agent Service', 'Azure ML', 'Azure Custom Vision', 'Azure AI Speech', and 'Azure SQL Database'. 
-
-> 
-
-> From the central platform, show outbound arrows to external data sources labeled 'NASA FIRMS API', 'ArcGIS API', and 'NOAA Satellite Feeds'. 
-
-> 
-
-> The diagram should illustrate a clear flow from users, through the platform, leveraging Azure services and external data. Use a dark theme with blue and orange accent colors." 
-
- 
-
-**Detailed AI Agent Data Flow** 
-
- 
-
-> "Create a detailed sequence diagram illustrating the data flow for an AI-driven map query in the 'ArtemisShield' platform. The style should be technical and clear. 
-
-> 
-
-> Create columns for: 'User (Browser)', 'ArtemisShield Frontend (Leaflet.js)', 'ArtemisShield Backend (Laravel)', 'Azure AI Agent Service', and 'Geocoding/Data API'. 
-
-> 
-
-> 1.  An arrow from 'User' to 'Frontend' labeled 'User types: "Show me hospitals near the Canyon Fire"'. 
-
-> 2.  An arrow from 'Frontend' to 'Backend' labeled 'POST /agent/chat with message'. 
-
-> 3.  An arrow from 'Backend' to 'Azure AI Agent Service' labeled 'Create Run with message & function tools'. 
-
-> 4.  An arrow back from 'Azure AI Agent' to 'Backend' labeled 'Response: requires_action (tool_call: searchFires)'. 
-
-> 5.  An arrow from 'Backend' to 'Geocoding/Data API' labeled 'Query: "Canyon Fire"'. 
-
-> 6.  An arrow back from 'Geocoding/Data API' to 'Backend' labeled 'Returns Fire Coordinates'. 
-
-> 7.  The 'Backend' then sends a request to the 'Azure AI Agent Service' again, labeled 'Submit Tool Output (Fire Coordinates)'. 
-
-> 8.  Finally, an arrow from 'Azure AI Agent' to 'Backend' labeled 'Response: completed (Final message: "Okay, I have zoomed...")' 
-
-> 9.  The 'Backend' sends this final message back to the 'Frontend', which updates the chat UI and triggers a map zoom action. 
-
-> 
-
-> Use dotted lines for return data and solid lines for requests. Highlight the Azure AI Agent Service column to emphasize its role." 
 
  
