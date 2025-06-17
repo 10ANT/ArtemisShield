@@ -91,7 +91,7 @@ Our Solution provides a unified, intelligent dashboard that centralizes real-tim
 
 ## Lower-Level System Architecture 
 
-![Alt text for the image](https://i.ibb.co/SwJzhFLG/system-architecture-diagram.jpg "System Architecture")
+![Alt text for the image](https://i.ibb.co/SwJzhFLG/system-architecture-diagram.jpg)
 
 <br>
 
