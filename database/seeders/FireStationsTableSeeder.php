@@ -17,7 +17,7 @@ class FireStationsTableSeeder extends Seeder
         // Clear existing data to prevent duplicates on re-seeding
         FireStation::truncate();
 
-        $csvFile = database_path('seeders/firestations.csv');
+        $csvFile = database_path('seeders\firestations.csv');
         if (!file_exists($csvFile)) {
             $this->command->error("CSV file not found at: {$csvFile}");
             return;
