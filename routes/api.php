@@ -19,8 +19,19 @@ use App\Http\Controllers\Api\RoutingController;
 use App\Http\Controllers\FireIncidentController;
 use App\Http\Controllers\Api\ChatController;
 
+
 use App\Http\Controllers\GeocodingController; 
->>>>>>> main
+
+
+use App\Http\Controllers\Api\HospitalController;
+// use App\Http\Controllers\Api\AedLocationController;
+use app\Http\Controllers\Api\AedLocationController;
+use App\Http\Controllers\Api\MedicalIncidentController;
+use App\Http\Controllers\Api\WildfireRiskController;
+use App\Http\Controllers\Api\AmbeeController;
+
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -82,3 +93,24 @@ Route::get('/geocode', [GeocodingController::class, 'geocode']); // Add this lin
 
 
 
+// Route for all hospitals (as requested in the previous step)
+Route::get('/hospitals', [HospitalController::class, 'index']);
+
+// Route for AED locations (handles the dynamic bbox query)
+// Route for AED locations (handles the dynamic bbox query)
+// Make sure to update the namespace if the controller is not under Api
+// Route::get('/aed-locations', [AedLocationController::class, 'index']);
+
+// Route for medical incidents
+Route::get('/medical-incidents', [MedicalIncidentController::class, 'index']);
+
+
+Route::get('/wildfire-risk/point-data', [WildfireRiskController::class, 'getPointData']);
+
+// Ambee Fire Data Proxy
+Route::get('/ambee/fire-data', [AmbeeController::class, 'getFireDataByLatLng']);
+Route::get('/ambee/fire-risk', [AmbeeController::class, 'getFireRiskDataByLatLng']);
+
+
+
+Route::post('/ambee/classify-image', [AmbeeController::class, 'classifyImage']); // NEW ROUTE

@@ -1,0 +1,102 @@
+/*
+ * Custom Styles for Collapsible Sidebars
+ */
+
+/* --- Left Sidebar (Main Navigation) --- */
+/* Add transition for a smooth collapse/expand effect */
+.sidebar-area,
+.main-content {
+    transition: all 0.25s ease-in-out;
+}
+
+/* Styles for when the left sidebar is collapsed */
+body.left-sidebar-collapsed .sidebar-area {
+    width: 80px; /* Collapsed width */
+}
+
+body.left-sidebar-collapsed .sidebar-area .logo-text {
+    display: none; /* Hide the logo text */
+}
+
+body.left-sidebar-collapsed .sidebar-area .menu-inner .title,
+body.left-sidebar-collapsed .sidebar-area .menu-inner .menu-title-text,
+body.left-sidebar-collapsed .sidebar-area .menu-inner .count {
+    display: none; /* Hide menu item text and badges */
+}
+
+body.left-sidebar-collapsed .sidebar-area .menu-link.menu-toggle::after {
+    display: none; /* Hide the dropdown arrow */
+}
+
+body.left-sidebar-collapsed .sidebar-area .menu-item.active .menu-link {
+    background-color: transparent; /* Remove active background on collapsed item */
+}
+
+body.left-sidebar-collapsed .sidebar-area .menu-sub {
+    display: none; /* Hide submenus when collapsed */
+}
+
+body.left-sidebar-collapsed .sidebar-area .menu-icon {
+    margin-right: 0;
+}
+
+body.left-sidebar-collapsed .main-content {
+    margin-left: 80px; /* Adjust main content margin to match collapsed sidebar */
+}
+
+/* Left Sidebar Toggle Button in Header */
+.left-sidebar-toggle {
+    font-size: 1.25rem;
+    color: var(--bs-heading-color);
+}
+.left-sidebar-toggle:hover {
+    color: var(--bs-primary);
+}
+
+
+/* --- Right Sidebar (Map & Content Panels) --- */
+.wildfire-dashboard-container {
+    position: relative;
+    transition: grid-template-columns 0.25s ease-in-out;
+}
+
+/* Give IDs to the columns for easier targeting */
+#map-column, #right-sidebar-column {
+    transition: all 0.25s ease-in-out;
+}
+
+#right-sidebar-toggle {
+    position: absolute;
+    top: 1rem;
+    /* We will use JS to set the 'right' or 'left' property */
+    z-index: 1001; /* Above map overlays */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    transition: right 0.25s ease-in-out, transform 0.25s ease-in-out;
+}
+
+/* State when right sidebar is collapsed */
+.right-sidebar-collapsed #right-sidebar-column {
+    display: none;
+}
+
+.right-sidebar-collapsed #map-column {
+    /* These !important flags override inline Bootstrap styles */
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+}
+
+.right-sidebar-collapsed #right-sidebar-toggle {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    right: 1rem; /* Position on the far right of the viewport */
+}
+
+.right-sidebar-collapsed #right-sidebar-toggle i {
+   transform: rotate(180deg); /* Flip the arrow icon */
+}

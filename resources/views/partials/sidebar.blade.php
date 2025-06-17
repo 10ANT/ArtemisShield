@@ -91,6 +91,32 @@
                 </ul>
             </li>
 
+            <!-- Data Analyst Views -->
+            <li class="menu-item {{ Request::is('analyst*') ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <span class="material-symbols-outlined menu-icon">analytics</span>
+                    <span class="title">Data Analyst</span>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item">
+                        <a href="/analyst-dashboard" class="menu-link {{ Request::is('analyst-dashboard') ? 'active' : '' }}">
+                            Analytics Dashboard
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/analyst-wildfire-risk" class="menu-link {{ Request::is('analyst-wildfire-risk') ? 'active' : '' }}">
+                            Wildfire Risk Map
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/analyst-reports" class="menu-link {{ Request::is('analyst-reports') ? 'active' : '' }}">
+                            Generate Reports
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+
             <!-- System Section -->
             <li class="menu-title small text-uppercase px-3 py-2">
                 <span class="menu-title-text">SYSTEM</span>

@@ -19,12 +19,19 @@ return [
         'api_key' => env('NASA_FIRMS_API_KEY'),
     ],
 
+    'ambee' => [
+        'key' => env('AMBEE_API_KEY'),
+    ],
+
      'azure' => [
         'search' => [
             'endpoint' => env('AZURE_SEARCH_ENDPOINT'),
             'key' => env('AZURE_SEARCH_KEY'),
-            'index_name' => env('AZURE_SEARCH_INDEX_NAME'),
+            'index_name' => env('AZURE_SEARCH_INDEX_NAME')
+            
         ],
+        'function_url' => env('AZURE_FUNCTION_URL'),
+            'function_code' => env('AZURE_FUNCTION_CODE')
     ],
 
     'postmark' => [

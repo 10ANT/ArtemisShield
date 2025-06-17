@@ -11,5 +11,6 @@
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/css/jsvectormap.min.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/css/lightpick.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/scss/style.css') }}" />
+<!-- Link to your new custom stylesheet -->
+<link rel="stylesheet" type="text/css" href="{{ url('/assets/css/custom-dashboard.css') }}" />
 <link rel="icon" type="image/png" href="{{ url('/assets/images/favicon.png?v=2') }}">
-
