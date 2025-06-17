@@ -34,6 +34,8 @@ use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\StatusUpdateController;
 use App\Http\Controllers\ProxyController;
 
+use App\Http\Controllers\FirstResponderDashboardController;
+
 
 // Proxy route for NOAA images
 Route::get('/proxy/noaa/{path}', [ProxyController::class, 'getNoaaImage'])->where('path', '.*');
@@ -206,3 +208,6 @@ Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])
 // Routes for the Historical Fire Map
 Route::get('/historical-map', [HistoricalMapController::class, 'showMap'])->name('historical.map');
 Route::get('/api/historical-fires', [HistoricalMapController::class, 'getFireData'])->name('api.historical.fires');
+Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff'])->prefix('first-responder')->group(function () {
+    Route::get('/dashboard', [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
+});
