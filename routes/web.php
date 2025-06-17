@@ -8,6 +8,9 @@ use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
 
+use App\Http\Controllers\HistoricalMapController;
+
+
 
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
@@ -187,3 +190,9 @@ Route::post('/agent/reset', [AgentController::class, 'reset']);
 
 
 Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');
+
+
+
+// Routes for the Historical Fire Map
+Route::get('/historical-map', [HistoricalMapController::class, 'showMap'])->name('historical.map');
+Route::get('/api/historical-fires', [HistoricalMapController::class, 'getFireData'])->name('api.historical.fires');

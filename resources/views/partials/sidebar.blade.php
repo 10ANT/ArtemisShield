@@ -47,14 +47,21 @@
                     <span class="title">Data Analyst</span>
                 </a>
                 <ul class="menu-sub">
+                    <!--  
                     <li class="menu-item">
                         <a href="/analyst-dashboard" class="menu-link {{ Request::is('analyst-dashboard') ? 'active' : '' }}">
                             Analytics Dashboard
                         </a>
                     </li>
+                    -->
                     <li class="menu-item">
                         <a href="/analyst-wildfire-risk" class="menu-link {{ Request::is('analyst-wildfire-risk') ? 'active' : '' }}">
                             Wildfire Risk Map
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="/historical-map" class="menu-link {{ Request::is('historical-map') ? 'active' : '' }}">
+                           Historical Fires Map
                         </a>
                     </li>
                     <li class="menu-item">
