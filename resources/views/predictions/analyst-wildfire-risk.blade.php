@@ -50,11 +50,16 @@
             color: var(--bs-body-color) !important;
             box-shadow: 0 3px 14px rgba(0,0,0,0.4);
         }
-        /* NEW: Style for coordinate tooltips */
         .coord-tooltip {
             background-color: rgba(var(--bs-dark-rgb), 0.8) !important;
             border: 1px solid rgba(var(--bs-light-rgb), 0.5) !important;
             color: var(--bs-light) !important;
+        }
+        #vision-ai-result-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: var(--bs-border-radius);
+            border: 1px solid var(--bs-border-color);
         }
     </style>
 </head>
@@ -72,6 +77,7 @@
                 <div class="card-header p-2">
                     <ul class="nav nav-pills nav-fill flex-nowrap" id="sidebar-tabs" role="tablist">
                         <li class="nav-item" role="presentation"><button class="nav-link active" id="report-tab-btn" data-bs-toggle="pill" data-bs-target="#report-content" type="button" role="tab" aria-controls="report-content" aria-selected="true" title="Live Fire Report"><i class="fas fa-fire-alt me-1"></i> Live Fire</button></li>
+                        <li class="nav-item" role="presentation"><button class="nav-link" id="vision-ai-tab-btn" data-bs-toggle="pill" data-bs-target="#vision-ai-content" type="button" role="tab" aria-controls="vision-ai-content" aria-selected="false" title="Vision AI Analysis"><i class="fas fa-eye me-1"></i> Vision AI</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="forecast-tab-btn" data-bs-toggle="pill" data-bs-target="#forecast-content" type="button" role="tab" aria-controls="forecast-content" aria-selected="false" title="Risk Forecast"><i class="fas fa-chart-line me-1"></i> Risk Forecast</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="routing-tab-btn" data-bs-toggle="pill" data-bs-target="#routing-content" type="button" role="tab" aria-controls="routing-content" aria-selected="false" title="Evacuation Route"><i class="fas fa-route me-1"></i> Routing</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="settings-tab-btn" data-bs-toggle="pill" data-bs-target="#settings-content" type="button" role="tab" aria-controls="settings-content" aria-selected="false" title="Map Settings"><i class="fas fa-cogs me-1"></i> Settings</button></li>
@@ -85,17 +91,26 @@
                                 <button class="btn btn-primary w-100" id="enable-live-selection-btn"><i class="fas fa-crosshairs me-2"></i>Select Location</button>
                                 <button class="btn btn-outline-secondary" id="clear-fires-btn" title="Clear Live Fires"><i class="fas fa-times"></i></button>
                             </div>
-                             <!-- NEW: Dedicated location display -->
                             <div id="report-location-display" class="mb-2"></div>
                             <div id="report-placeholder" class="text-center text-muted mt-4"><i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use 'Select Location' to get a live fire report.</p></div>
                             <div id="report-container" class="accordion"></div>
+                        </div>
+                        <!-- VISION AI TAB CONTENT -->
+                        <div class="tab-pane fade p-3" id="vision-ai-content" role="tabpanel">
+                             <div class="d-grid mb-3">
+                                <button class="btn btn-info" id="enable-vision-ai-selection-btn"><i class="fas fa-camera-retro me-2"></i>Analyze Area with AI</button>
+                            </div>
+                            <div id="vision-ai-placeholder" class="text-center text-muted mt-4">
+                                <i class="fas fa-image fa-2x mb-2"></i>
+                                <p>Use 'Analyze Area' to get an AI-powered wildfire risk assessment from a satellite image.</p>
+                            </div>
+                            <div id="vision-ai-result-container" class="d-none"></div>
                         </div>
                         <!-- RISK FORECAST TAB -->
                         <div class="tab-pane fade p-3" id="forecast-content" role="tabpanel">
                             <div class="d-grid mb-3">
                                 <button class="btn btn-primary" id="enable-forecast-selection-btn"><i class="fas fa-crosshairs me-2"></i>Select Location</button>
                             </div>
-                            <!-- NEW: Dedicated location display -->
                             <div id="forecast-location-display" class="mb-2"></div>
                             <div id="forecast-placeholder" class="text-center text-muted mt-4"><i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use 'Select Location' to get a risk forecast.</p></div>
                             <div id="forecast-container" class="accordion"></div>
@@ -141,13 +156,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentFires = [];
     let selectionMode = null;
 
+    const fireCategoryMap = {
+        d: "Drought", ffmc: "Fine Fuel Moisture Code", dmc: "Duff Moisture Code", dc: "Drought Code", 
+        bui: "Buildup Index", fwi: "Fire Weather Index", dsr: "Daily Severity Rating", W: "Wind", 
+        T: "Temperature", H: "Humidity", P: "Precipitation"
+    };
+
     const initMap = () => {
         const streetMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
-        const darkMode = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' });
+        const satelliteMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri', crossOrigin: true });
         baseMaps = { 
             "Streets": streetMap, 
-            "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' }), 
-            "Dark Mode": darkMode 
+            "Satellite": satelliteMap, 
+            "Dark Mode": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' })
         };
         
         map = L.map('map', { center: [34.05, -118.25], zoom: 9, layers: [streetMap] });
@@ -156,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
         map.addLayer(drawnItems);
         map.on('click', handleMapClick);
 
-        const drawControl = new L.Control.Draw({
+        map.addControl(new L.Control.Draw({
             edit: { featureGroup: drawnItems },
             draw: {
                 polygon: false, marker: false, circlemarker: false,
@@ -164,8 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 circle: { shapeOptions: { color: '#0dcaf0' } },
                 polyline: { shapeOptions: { color: '#0dcaf0' } }
             }
-        });
-        map.addControl(drawControl);
+        }));
         map.on(L.Draw.Event.CREATED, handleDrawingCreated);
         setupUI();
     };
@@ -174,8 +194,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const basemapContainer = document.getElementById('basemap-selector-container');
         Object.keys(baseMaps).forEach(name => {
             const id = `basemap-radio-${name.replace(/\s+/g, '-')}`;
-            const isChecked = name === "Streets" ? 'checked' : '';
-            basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${isChecked}><label class="form-check-label" for="${id}">${name}</label></div>`;
+            basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${name === "Streets" ? 'checked' : ''}><label class="form-check-label" for="${id}">${name}</label></div>`;
         });
         basemapContainer.addEventListener('change', (e) => { 
             Object.values(baseMaps).forEach(layer => map.removeLayer(layer)); 
@@ -184,8 +203,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('enable-live-selection-btn').addEventListener('click', () => setSelectionMode('live'));
         document.getElementById('enable-forecast-selection-btn').addEventListener('click', () => setSelectionMode('forecast'));
+        document.getElementById('enable-vision-ai-selection-btn').addEventListener('click', () => setSelectionMode('vision'));
         document.getElementById('clear-fires-btn').addEventListener('click', clearLiveFireData);
-
         document.getElementById('set-start-btn').addEventListener('click', () => setSelectionMode('routing-start'));
         document.getElementById('set-end-btn').addEventListener('click', () => setSelectionMode('routing-end'));
         document.getElementById('calculate-route-btn').addEventListener('click', calculateAndCheckRoute);
@@ -206,11 +225,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (selectionMode.startsWith('routing')) {
             await handleRoutingPointPlacement(e.latlng);
+        } else if (selectionMode === 'vision') {
+            await analyzeImageWithAI(e.latlng);
         } else {
             clickMarker = L.marker(e.latlng, { opacity: 0.7 }).addTo(map);
             const address = await getAddressFromLatLng(e.latlng);
             const addressHtml = `<div class="alert alert-info py-2"><strong>Selected Location:</strong><br>${address}</div>`;
-
             if (selectionMode === 'live') {
                 document.getElementById('report-location-display').innerHTML = addressHtml;
                 document.getElementById('report-placeholder').innerHTML = '<div class="spinner-border text-primary" role="status"></div><p class="mt-2">Fetching live fires...</p>';
@@ -235,6 +255,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     const formatFieldName = (key) => {
+        const mappedName = fireCategoryMap[key];
+        if (mappedName) return `${key.toUpperCase()} (${mappedName})`;
         const result = key.replace(/_/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2');
         return result.charAt(0).toUpperCase() + result.slice(1);
     };
@@ -303,140 +325,149 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('report-placeholder').innerHTML = '<i class="fas fa-map-marked-alt fa-2x mb-2"></i><p>Use \'Select Location\' to get a live fire report.</p>';
     };
 
-    const handleDrawingCreated = (e) => {
-        const layer = e.layer;
-        const type = e.layerType;
+    // --- Vision AI Analysis Logic ---
+    const analyzeImageWithAI = async (latlng) => {
+        const placeholder = document.getElementById('vision-ai-placeholder');
+        const resultContainer = document.getElementById('vision-ai-result-container');
+        placeholder.innerHTML = '<div class="spinner-border text-info" role="status"></div><p class="mt-2">Analyzing satellite imagery...</p>';
+        resultContainer.classList.add('d-none');
 
-        if (type === 'rectangle') {
-            const bounds = layer.getBounds();
-            const topRight = bounds.getNorthEast();
-            const topLeft = bounds.getNorthWest();
-            const bottomRight = bounds.getSouthEast();
-            const width = topLeft.distanceTo(topRight);
-            const height = topRight.distanceTo(bottomRight);
-            const area = width * height;
-            const perimeter = 2 * (width + height);
-            
-            const popupContent = `<strong>Rectangle Details:</strong><br>` +
-                                 `Area: ${formatArea(area)}<br>` +
-                                 `Perimeter: ${formatDistance(perimeter)}<br>` +
-                                 `Width: ${formatDistance(width)}<br>` +
-                                 `Height: ${formatDistance(height)}<br>` +
-                                 `Top-Right: ${topRight.lat.toFixed(4)}, ${topRight.lng.toFixed(4)}`;
-            layer.bindPopup(popupContent);
-            drawnItems.addLayer(layer);
-        } else if (type === 'circle') {
-            const center = layer.getLatLng();
-            const radius = layer.getRadius();
-            const area = Math.PI * Math.pow(radius, 2);
+        const zoom = 15; 
+        const tile = latLngToTile(latlng, zoom);
+        const tileBounds = tileToBounds(tile.x, tile.y, zoom);
+        const imageUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tile.y}/${tile.x}`;
 
-            const popupContent = `<strong>Circle Details:</strong><br>` +
-                                 `Area: ${formatArea(area)}<br>` +
-                                 `Radius: ${formatDistance(radius)}<br>` +
-                                 `Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
-            layer.bindPopup(popupContent);
-            drawnItems.addLayer(layer);
-        } else if (type === 'polyline') {
-            const latlngs = layer.getLatLngs();
-            let distance = 0;
-            for (let i = 0; i < latlngs.length - 1; i++) {
-                distance += latlngs[i].distanceTo(latlngs[i + 1]);
+        try {
+            // Fetch the image and convert it to Base64
+            const imageB64 = await imageUrlToBase64(imageUrl);
+
+            const response = await fetch('/api/ambee/classify-image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ image_b64: imageB64 })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `Server returned status ${response.status}`);
             }
             
-            const lineGroup = L.featureGroup();
-            lineGroup.addLayer(layer);
+            const result = await response.json();
+            displayAIResults(result, imageB64, tileBounds); // Use base64 data for local display
 
-            latlngs.forEach(latlng => {
-                L.circleMarker(latlng, { radius: 1, opacity: 0 })
-                 .bindTooltip(`${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`, {
-                    permanent: true, direction: 'top', offset: [0, -10], className: 'coord-tooltip'
-                 })
-                 .addTo(lineGroup);
-            });
-            
+        } catch (error) {
+            placeholder.innerHTML = `<div class="alert alert-danger"><strong>AI Analysis Failed:</strong> ${error.message}</div>`;
+        }
+    };
+    
+    const imageUrlToBase64 = async (url) => {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
+
+    const displayAIResults = (result, imageB64, tileBounds) => {
+        const placeholder = document.getElementById('vision-ai-placeholder');
+        const resultContainer = document.getElementById('vision-ai-result-container');
+        placeholder.innerHTML = '';
+        
+        const isRisk = result.predicted_class === 1;
+        const confidence = result.confidence_score * 100;
+        const resultClass = isRisk ? 'danger' : 'success';
+        const resultText = isRisk ? 'High Wildfire Risk Detected' : 'No Immediate Wildfire Risk Detected';
+
+        resultContainer.innerHTML = `
+            <div class="alert alert-${resultClass}">
+                <h5 class="alert-heading">${resultText}</h5>
+                <p>The AI model is <strong>${confidence.toFixed(1)}%</strong> confident in this assessment.</p>
+            </div>
+            <p class="text-muted small">Analyzed Image:</p>
+            <img src="${imageB64}" id="vision-ai-result-image" alt="Analyzed satellite image">
+        `;
+        resultContainer.classList.remove('d-none');
+
+        L.rectangle(tileBounds, { color: '#0dcaf0', weight: 2, fillOpacity: 0.1 }).addTo(drawnItems)
+            .bindPopup(`<b>AI Analysis Area</b><br>Prediction: ${resultText}<br>Confidence: ${confidence.toFixed(1)}%`).openPopup();
+    };
+
+    const latLngToTile = (latlng, zoom) => {
+        const latRad = latlng.lat * Math.PI / 180;
+        const n = Math.pow(2, zoom);
+        const xtile = Math.floor(n * ((latlng.lng + 180) / 360));
+        const ytile = Math.floor(n * (1 - (Math.log(Math.tan(latRad) + 1/Math.cos(latRad)) / Math.PI)) / 2);
+        return { x: xtile, y: ytile };
+    };
+
+    const tileToBounds = (x, y, zoom) => {
+        const n = Math.pow(2, zoom);
+        const lon1 = x / n * 360 - 180;
+        const lat1Rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n)));
+        const lat1 = lat1Rad * 180 / Math.PI;
+        const lon2 = (x + 1) / n * 360 - 180;
+        const lat2Rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * (y + 1) / n)));
+        const lat2 = lat2Rad * 180 / Math.PI;
+        return L.latLngBounds(L.latLng(lat1, lon1), L.latLng(lat2, lon2));
+    };
+
+    const handleDrawingCreated = (e) => {
+        const layer = e.layer; const type = e.layerType; const formatDistance = (m) => m > 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(2)} m`; const formatArea = (sqM) => sqM > 1000000 ? `${(sqM / 1000000).toFixed(2)} km²` : `${sqM.toFixed(2)} m²`;
+        if (type === 'rectangle') {
+            const bounds = layer.getBounds(); const topRight = bounds.getNorthEast(); const topLeft = bounds.getNorthWest(); const bottomRight = bounds.getSouthEast(); const width = topLeft.distanceTo(topRight); const height = topRight.distanceTo(bottomRight);
+            layer.bindPopup(`<strong>Rectangle Details:</strong><br>Area: ${formatArea(width * height)}<br>Perimeter: ${formatDistance(2 * (width + height))}<br>Width: ${formatDistance(width)}<br>Height: ${formatDistance(height)}<br>Top-Right: ${topRight.lat.toFixed(4)}, ${topRight.lng.toFixed(4)}`);
+            drawnItems.addLayer(layer);
+        } else if (type === 'circle') {
+            const center = layer.getLatLng(); const radius = layer.getRadius();
+            layer.bindPopup(`<strong>Circle Details:</strong><br>Area: ${formatArea(Math.PI * Math.pow(radius, 2))}<br>Radius: ${formatDistance(radius)}<br>Center: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`);
+            drawnItems.addLayer(layer);
+        } else if (type === 'polyline') {
+            const latlngs = layer.getLatLngs(); let distance = 0; for (let i = 0; i < latlngs.length - 1; i++) { distance += latlngs[i].distanceTo(latlngs[i + 1]); }
+            const lineGroup = L.featureGroup().addLayer(layer);
+            latlngs.forEach(latlng => { L.circleMarker(latlng, { radius: 1, opacity: 0 }).bindTooltip(`${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)}`, { permanent: true, direction: 'top', offset: [0, -10], className: 'coord-tooltip' }).addTo(lineGroup); });
             lineGroup.bindPopup(`<strong>Total Line Distance:</strong><br>${formatDistance(distance)}`);
             drawnItems.addLayer(lineGroup);
         }
     };
-    const formatDistance = (m) => m > 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(2)} m`;
-    const formatArea = (sqM) => sqM > 1000000 ? `${(sqM / 1000000).toFixed(2)} km²` : `${sqM.toFixed(2)} m²`;
-
+    
     const handleRoutingPointPlacement = async (latlng) => {
-        const type = selectionMode.split('-')[1];
-        const pointTextSpan = document.getElementById(`${type}-point-text`);
-        pointTextSpan.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span>';
-        
-        const address = await getAddressFromLatLng(latlng);
-        const icon = L.divIcon({ className: `text-${type === 'start' ? 'success' : 'danger'}`, html: `<i class="fas fa-map-marker-alt fa-3x"></i>`, iconSize: [30, 42], iconAnchor: [15, 42] });
-        const pointConfig = { latlng, marker: L.marker(latlng, { icon }).addTo(map) };
-
-        if (type === 'start') {
-            if (startPoint) map.removeLayer(startPoint.marker);
-            startPoint = pointConfig;
-        } else {
-            if (endPoint) map.removeLayer(endPoint.marker);
-            endPoint = pointConfig;
-        }
-        pointTextSpan.textContent = address;
-        document.getElementById('calculate-route-btn').disabled = !(startPoint && endPoint);
+        const type = selectionMode.split('-')[1]; const pointTextSpan = document.getElementById(`${type}-point-text`); pointTextSpan.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        const address = await getAddressFromLatLng(latlng); const icon = L.divIcon({ className: `text-${type === 'start' ? 'success' : 'danger'}`, html: `<i class="fas fa-map-marker-alt fa-3x"></i>`, iconSize: [30, 42], iconAnchor: [15, 42] }); const pointConfig = { latlng, marker: L.marker(latlng, { icon }).addTo(map) };
+        if (type === 'start') { if (startPoint) map.removeLayer(startPoint.marker); startPoint = pointConfig; } else { if (endPoint) map.removeLayer(endPoint.marker); endPoint = pointConfig; }
+        pointTextSpan.textContent = address; document.getElementById('calculate-route-btn').disabled = !(startPoint && endPoint);
     };
 
     const calculateAndCheckRoute = () => {
-        if (!startPoint || !endPoint) return;
-        clearAllRoutes(true);
-        const info = document.getElementById('route-info-container');
-        info.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Calculating...';
-        
-        L.Routing.control({ waypoints: [startPoint.latlng, endPoint.latlng], createMarker: () => null })
-            .on('routesfound', (e) => {
-                const route = e.routes[0];
-                routeLayers.addLayer(L.Routing.line(route, { styles: [{color: 'red', opacity: 0.8, weight: 6}] }));
-                const closest = findClosestFireToRoute(route.coordinates);
-                if (closest.distance < 2000) {
-                    info.innerHTML = `<div class="alert alert-danger"><strong>DANGER:</strong> Route is unsafe. Finding alternative...</div>`;
-                    calculateAlternativeRoute(closest.fire);
-                } else {
-                    info.innerHTML = `<div class="alert alert-success"><strong>Route Safe.</strong></div>`;
-                }
-            }).addTo(map);
-        document.getElementById('clear-route-btn').style.display = 'block';
+        if (!startPoint || !endPoint) return; clearAllRoutes(true); const info = document.getElementById('route-info-container'); info.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Calculating...';
+        L.Routing.control({ waypoints: [startPoint.latlng, endPoint.latlng], createMarker: () => null }).on('routesfound', (e) => {
+            const route = e.routes[0]; routeLayers.addLayer(L.Routing.line(route, { styles: [{color: 'red', opacity: 0.8, weight: 6}] })); const closest = findClosestFireToRoute(route.coordinates);
+            if (closest.distance < 2000) { info.innerHTML = `<div class="alert alert-danger"><strong>DANGER:</strong> Route is unsafe. Finding alternative...</div>`; calculateAlternativeRoute(closest.fire); } else { info.innerHTML = `<div class="alert alert-success"><strong>Route Safe.</strong></div>`; }
+        }).addTo(map); document.getElementById('clear-route-btn').style.display = 'block';
     };
-    
+
     const calculateAlternativeRoute = (fire) => {
         const detour = map.options.crs.destination(L.latLng(fire.lat, fire.lng), map.options.crs.bearing(startPoint.latlng, L.latLng(fire.lat, fire.lng)) + 90, 3000);
-        L.Routing.control({ waypoints: [startPoint.latlng, detour, endPoint.latlng], createMarker: () => null })
-            .on('routesfound', (e) => {
-                routeLayers.addLayer(L.Routing.line(e.routes[0], { styles: [{color: 'blue', opacity: 0.8, weight: 6}] }));
-                document.getElementById('route-info-container').innerHTML += `<div class="alert alert-success"><strong>Alternative Route Found (Blue).</strong></div>`;
-            }).on('routingerror', () => {
-                document.getElementById('route-info-container').innerHTML += `<div class="alert alert-warning">Could not calculate an alternative.</div>`;
-            }).addTo(map);
+        L.Routing.control({ waypoints: [startPoint.latlng, detour, endPoint.latlng], createMarker: () => null }).on('routesfound', (e) => {
+            routeLayers.addLayer(L.Routing.line(e.routes[0], { styles: [{color: 'blue', opacity: 0.8, weight: 6}] })); document.getElementById('route-info-container').innerHTML += `<div class="alert alert-success"><strong>Alternative Route Found (Blue).</strong></div>`;
+        }).on('routingerror', () => { document.getElementById('route-info-container').innerHTML += `<div class="alert alert-warning">Could not calculate an alternative.</div>`; }).addTo(map);
     };
 
     const findClosestFireToRoute = (coords) => {
-        let closest = { distance: Infinity, fire: null };
-        if (currentFires.length === 0) return closest;
-        coords.forEach(c => {
-            currentFires.forEach(f => {
-                const d = L.latLng(c.lat, c.lng).distanceTo(L.latLng(f.lat, f.lng));
-                if (d < closest.distance) { closest = { distance: d, fire: f }; }
-            });
-        });
+        let closest = { distance: Infinity, fire: null }; if (currentFires.length === 0) return closest;
+        coords.forEach(c => { currentFires.forEach(f => { const d = L.latLng(c.lat, c.lng).distanceTo(L.latLng(f.lat, f.lng)); if (d < closest.distance) { closest = { distance: d, fire: f }; } }); });
         return closest;
     };
     
     const clearAllRoutes = (keepPoints = false) => {
         routeLayers.clearLayers();
-        if (!keepPoints) {
-            if (startPoint) map.removeLayer(startPoint.marker);
-            if (endPoint) map.removeLayer(endPoint.marker);
-            startPoint = endPoint = null;
-            document.getElementById('start-point-text').textContent = 'Not set';
-            document.getElementById('end-point-text').textContent = 'Not set';
-            document.getElementById('calculate-route-btn').disabled = true;
-        }
-        document.getElementById('route-info-container').innerHTML = '';
-        document.getElementById('clear-route-btn').style.display = 'none';
+        if (!keepPoints) { if (startPoint) map.removeLayer(startPoint.marker); if (endPoint) map.removeLayer(endPoint.marker); startPoint = endPoint = null; document.getElementById('start-point-text').textContent = 'Not set'; document.getElementById('end-point-text').textContent = 'Not set'; document.getElementById('calculate-route-btn').disabled = true; }
+        document.getElementById('route-info-container').innerHTML = ''; document.getElementById('clear-route-btn').style.display = 'none';
     };
 
     initMap();

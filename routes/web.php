@@ -47,7 +47,12 @@ Route::middleware(['auth', 'role:Wildfire Management Officer'])->group(function 
     Route::get('/responder-dashboard',  [ParamedicsController::class, 'dashboard'])->name('rescue.dashboard');
     Route::get('/analyst-dashboard', [PredictionController::class, 'dashboard'])->name('prediction.dashboard');
     Route::get('analyst-wildfire-risk', [PredictionController::class, 'wildfireRisk'])->name('prediction.wildfire-risk');
-    
+    // In routes/web.php
+
+// TEMPORARY DEBUGGING ROUTE
+Route::get('/debug-config', function () {
+    dd(config('services.azure'));
+});
 });
 
     
