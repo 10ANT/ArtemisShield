@@ -25,13 +25,32 @@
     .wildfire-dashboard-container { height: 100%; }
     #map { width: 100%; height: 100%; min-height: 500px; background-color: var(--bs-tertiary-bg); }
     .map-wrapper { position: relative; height: 100%; overflow: hidden; }
-    /* .map-overlay styles are kept for potential future use, but the elements are commented out in HTML */
-    .map-overlay { position: absolute; z-index: 1000; margin: 1rem; width: 260px; max-height: calc(50vh - 2rem); overflow-y: auto; }
-    .map-overlay .card-header { cursor: grab; }
+
+    /* START: Draggable Map Overlay Panel Styles */
+    .map-overlay {
+        position: absolute;
+        z-index: 1000;
+        width: 280px;
+        max-height: calc(80vh - 4rem);
+        background-color: var(--bs-dark-bg-subtle);
+        border: 1px solid var(--bs-border-color-translucent);
+        border-radius: var(--bs-card-border-radius);
+        display: flex;
+        flex-direction: column;
+    }
+    .map-overlay .card-header {
+        cursor: grab;
+        background-color: var(--bs-tertiary-bg);
+    }
     .map-overlay .card-header:active { cursor: grabbing; }
-    /* The modal panels below are now disabled as their content is moved to the sidebar */
-    /* .layers-panel { top: 0%; right: 55%; left: auto; bottom: auto; } */
-    /* .basemap-panel { top: 0; right: 10%; left: auto; bottom: auto; } */
+    .map-overlay .card-header .btn { color: var(--bs-body-color); }
+    .map-overlay .card-body { overflow-y: auto; }
+    .config-panel { top: 1rem; right: 5rem; } /* Positioned away from sidebar toggle */
+    .legend-panel { top: 21rem; right: 5rem; } /* UPDATED: Positioned below the config panel */
+    .map-overlay .form-check-label { font-size: 0.9rem; }
+    .map-overlay hr { margin-top: 1rem; margin-bottom: 1rem; }
+    /* END: Draggable Map Overlay Panel Styles */
+
     .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
     .sidebar-wrapper .tab-content { flex-grow: 1; overflow-y: auto; }
     .chat-container { height: 100%; display: flex; flex-direction: column; }
@@ -67,11 +86,23 @@
     .fire-cluster-small { width: 30px; height: 30px; line-height: 26px; }
     .fire-cluster-medium { width: 35px; height: 35px; line-height: 31px; }
     .fire-cluster-large { width: 40px; height: 40px; line-height: 36px; }
-    .legend-control { padding: 8px 12px; font: 14px/16px Arial, Helvetica, sans-serif; background: rgba(43, 48, 53, 0.85); color: #f8f9fa; box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 5px; line-height: 20px; border: 1px solid rgba(255,255,255,0.2); }
-    .legend-control h4 { margin: 8px 0 5px; color: #ffffff; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
+    
+    .legend-control { /* This class is on the card-body of the legend panel */
+        padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        color: var(--bs-body-color);
+        line-height: 20px;
+    }
+    .legend-control h4 {
+        margin: 8px 0 5px;
+        color: var(--bs-emphasis-color);
+        font-size: 15px;
+        border-bottom: 1px solid var(--bs-border-color-translucent);
+        padding-bottom: 4px;
+    }
     .legend-control h4:first-child { margin-top: 0; }
-    .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; }
     .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
+    .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border-radius: 3px; }
 
     /* START: FULLSCREEN BUTTON CSS */
     .leaflet-control-fullscreen a { background-color: #2b3035 !important; width: 34px; height: 34px; line-height: 34px; text-align: center; font-size: 1.2em; color: #f8f9fa; display: block; cursor: pointer; border-radius: 4px; }
@@ -122,7 +153,7 @@
     #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
     .wildfire-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
     .wildfire-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
-    @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } }
+    @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } .config-panel, .legend-panel { display: none; } /* Hide map overlays on small screens */ }
     @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
 
 
@@ -296,19 +327,62 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 
-                <!-- 
-                    COMMENTED OUT: Map overlay panels are now integrated into the sidebar configuration tab.
-                    This code is no longer needed here.
-                
-                    <div class="map-overlay layers-panel card shadow-sm">
-                        <div class="card-header p-0" id="layersHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#layersCollapse" aria-expanded="true" aria-controls="layersCollapse"><i class="fas fa-layer-group fa-fw me-2"></i>Map Layers <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
-                        <div id="layersCollapse" class="collapse show" aria-labelledby="layersHeading"><div class="card-body p-3"><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div><div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div></div></div>
+                <!-- START: MAP CONFIGURATION PANEL -->
+                <div class="map-overlay config-panel card shadow-sm">
+                    <div class="card-header p-0" id="configHeading">
+                        <h6 class="mb-0">
+                            <button class="btn btn-link w-100 text-start text-decoration-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#configCollapse" aria-expanded="true" aria-controls="configCollapse">
+                                <i class="fas fa-cogs fa-fw me-2"></i> Map Configuration <i class="fas fa-chevron-down float-end collapse-icon"></i>
+                            </button>
+                        </h6>
                     </div>
-                    <div class="map-overlay basemap-panel card shadow-sm">
-                        <div class="card-header p-0" id="basemapHeading"><h6 class="mb-0"><button class="btn btn-link w-100 text-start text-decoration-none text-dark p-3" type="button" data-bs-toggle="collapse" data-bs-target="#basemapCollapse" aria-expanded="true" aria-controls="basemapCollapse"><i class="fas fa-map fa-fw me-2"></i>Base Maps <i class="fas fa-chevron-down float-end collapse-icon"></i></button></h6></div>
-                        <div id="basemapCollapse" class="collapse show" aria-labelledby="basemapHeading"><div class="card-body p-3" id="basemap-selector-container"></div></div>
-                    </div> 
-                -->
+                    <div id="configCollapse" class="collapse show" aria-labelledby="configHeading">
+                        <div class="card-body p-3">
+                            <h5 class="mb-3">Map Layers</h5>
+                            <div class="mb-4">
+                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div>
+                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div>
+                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div>
+                            </div>
+                            <hr>
+                            <h5 class="mb-3 mt-4">Base Maps</h5>
+                            <div id="basemap-selector-container">
+                                <!-- This container is populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END: MAP CONFIGURATION PANEL -->
+
+                <!-- START: MAP LEGEND PANEL -->
+                <div class="map-overlay legend-panel card shadow-sm">
+                    <div class="card-header p-0" id="legendHeading">
+                        <h6 class="mb-0">
+                            <button class="btn btn-link w-100 text-start text-decoration-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#legendCollapse" aria-expanded="true" aria-controls="legendCollapse">
+                                <i class="fas fa-list fa-fw me-2"></i> Legend <i class="fas fa-chevron-down float-end collapse-icon"></i>
+                            </button>
+                        </h6>
+                    </div>
+                    <div id="legendCollapse" class="collapse show" aria-labelledby="legendHeading">
+                        <div class="card-body legend-control">
+                            <h4>Hotspot Confidence</h4>
+                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-high"></i> High (≥ 80%)</div>
+                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-medium"></i> Medium (50-79%)</div>
+                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-low"></i> Low (< 50%)</div>
+                            
+                            <h4 class="mt-3">Hydrant Density</h4>
+                            <div class="legend-item"><i style="background:rgba(2, 117, 216, 0.85)"></i> 1–25</div>
+                            <div class="legend-item"><i style="background:rgba(13, 202, 240, 0.85)"></i> 26–100</div>
+                            <div class="legend-item"><i style="background:rgba(13, 110, 253, 0.9)"></i> 101+</div>
+                            
+                            <h4 class="mt-3">Station Density</h4>
+                            <div class="legend-item"><i style="background:rgba(40, 167, 69, 0.9)"></i> 1–5</div>
+                            <div class="legend-item"><i style="background:rgba(253, 126, 20, 0.9)"></i> 6–15</div>
+                            <div class="legend-item"><i style="background:rgba(220, 53, 69, 0.9)"></i> 16+</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- END: MAP LEGEND PANEL -->
             </div>
         </div>
         
@@ -321,8 +395,6 @@
                         <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill" data-bs-target="#live-report-content" type="button" role="tab" aria-controls="live-report-content" aria-selected="false"><i class="fas fa-microphone-alt me-1"></i> Live Report</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false"><i class="fas fa-route me-1"></i> Route</button></li>
-                        <!-- NEW CONFIGURATION TAB BUTTON -->
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="config-tab-btn" data-bs-toggle="pill" data-bs-target="#config-content" type="button" role="tab" aria-controls="config-content" aria-selected="false"><i class="fas fa-cogs me-1"></i> Config</button></li>
                     </ul>
                 </div>
                 <div  class="card-body d-flex flex-column p-0">
@@ -375,20 +447,6 @@
                                     </ul>
                                 </div>
                                 <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
-                            </div>
-                        </div>
-                        <!-- NEW CONFIGURATION TAB CONTENT -->
-                        <div " class="tab-pane fade p-3" id="config-content" role="tabpanel" aria-labelledby="config-tab-btn">
-                            <h5 class="mb-3"><i class="fas fa-layer-group me-2"></i> Map Layers</h5>
-                            <div class="mb-4">
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div>
-                            </div>
-                            <hr>
-                            <h5 class="mb-3 mt-4"><i class="fas fa-map me-2"></i> Base Maps</h5>
-                            <div  id="basemap-selector-container">
-                                <!-- This container is populated by JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -460,7 +518,7 @@
             
             map = L.map('map', { center: [41.8781, -87.6298], zoom: 6, layers: [streets] });            
             
-            // Populates the basemap selector in the new "Configuration" sidebar tab
+            // Populates the basemap selector in the new "Configuration" modal panel
             const basemapContainer = document.getElementById('basemap-selector-container');
             let first = true;
             for (const name in baseMaps) { const id = `basemap-radio-${name.replace(/\s+/g, '-')}`; const isChecked = first ? 'checked' : ''; basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${isChecked}><label class="form-check-label" for="${id}">${name}</label></div>`; first = false; }
@@ -478,7 +536,7 @@
             const loadDataForDrawnRect = async (bounds) => { const bbox = bounds.toBBoxString(); searchResultsLayer.clearLayers(); const p = L.popup().setLatLng(bounds.getCenter()).setContent('Searching...').openOn(map); try { const [hr, sr] = await Promise.all([fetch(`/api/fire_hydrants?bbox=${bbox}`), fetch(`/api/fire_stations?bbox=${bbox}`)]); const h = await hr.json(); const s = await sr.json(); searchResultsLayer.addData(h); searchResultsLayer.addData(s); map.closePopup(p); const c = (h.features?.length || 0) + (s.features?.length || 0); L.popup().setLatLng(bounds.getCenter()).setContent(`Found ${c} assets.`).openOn(map); map.fitBounds(searchResultsLayer.getBounds().pad(0.1)); } catch (e) { console.error("Error during area search:", e); map.closePopup(p); L.popup().setLatLng(bounds.getCenter()).setContent('Error searching.').openOn(map); } };
             const loadModisFires = async () => { if (!document.getElementById('modis-fires-toggle').checked) { modisFiresLayer.clearLayers(); return; } try { const response = await fetch('/api/fire-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); modisFiresLayer.clearLayers(); const fireMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); modisFiresLayer.addLayer(fireMarkers); } catch (e) { console.error("Could not fetch MODIS fire incidents:", e); } };
             
-            // Listeners for the toggles, which are now in the sidebar. They work because they are based on ID.
+            // Listeners for the toggles, which are now in the draggable config panel. They work because they are based on ID.
             document.getElementById('fire-hydrants-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireHydrantsLayer.clearLayers(); });
             document.getElementById('fire-stations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireStationsLayer.clearLayers(); });
             document.getElementById('modis-fires-toggle').addEventListener('change', loadModisFires);
@@ -489,13 +547,10 @@
             map.addControl(drawControl);
             map.on(L.Draw.Event.CREATED, (e) => loadDataForDrawnRect(e.layer.getBounds()));
             
-            // Draggabilly is no longer needed as the panels have been removed.
-            // new Draggabilly(document.querySelector('.layers-panel'), { handle: '#layersHeading', containment: '.map-wrapper' });
-            // new Draggabilly(document.querySelector('.basemap-panel'), { handle: '#basemapHeading', containment: '.map-wrapper' });
+            // Initialize draggability for map overlay panels
+            new Draggabilly(document.querySelector('.config-panel'), { handle: '.card-header', containment: '.map-wrapper' });
+            new Draggabilly(document.querySelector('.legend-panel'), { handle: '.card-header', containment: '.map-wrapper' });
             
-            const legend = L.control({ position: 'bottomright' });
-            legend.onAdd = function(map) { const div = L.DomUtil.create('div', 'info legend-control'); let labels = []; labels.push('<h4>Hotspot Confidence</h4>'); labels.push('<div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-high"></i> High (≥ 80%)</div>'); labels.push('<div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-medium"></i> Medium (50-79%)</div>'); labels.push('<div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-low"></i> Low (< 50%)</div>'); const hydrantGrades = [1, 26, 101]; const hydrantColors = [ 'rgba(2, 117, 216, 0.85)', 'rgba(13, 202, 240, 0.85)', 'rgba(13, 110, 253, 0.9)' ]; labels.push('<br><h4>Hydrant Density</h4>'); for (let i = 0; i < hydrantGrades.length; i++) { const from = hydrantGrades[i]; const to = hydrantGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${hydrantColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } const stationGrades = [1, 6, 16]; const stationColors = [ 'rgba(40, 167, 69, 0.9)', 'rgba(253, 126, 20, 0.9)', 'rgba(220, 53, 69, 0.9)' ]; labels.push('<br><h4 class="mt-2">Station Density</h4>'); for (let i = 0; i < stationGrades.length; i++) { const from = stationGrades[i]; const to = stationGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${stationColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } div.innerHTML = labels.join(''); return div; };
-            legend.addTo(map);
             loadDataForBounds(map.getBounds());
             loadModisFires();
             initFullScreenControl(); 

@@ -19,6 +19,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ParamedicsController;
 use App\Http\Controllers\PredictionController;
 
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\FireIncidentController;
 
 
@@ -223,3 +224,5 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     // Route to find all users and their status within a specific alert zone.
     Route::get('/alerts/{alert}/affected-users', [CommandController::class, 'getAffectedUsersInAlert'])->name('command.affected-users');
 });
+
+Route::patch('/users/{userId}/clear/{alertId}', [UserController::class, 'clearStatus'])->name('users.clear-status');

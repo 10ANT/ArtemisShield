@@ -18,30 +18,35 @@ class UserController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
 
-     public function clearStatus(User $user)
+    public function clearStatus($userId, $alertId) // **MODIFIED**: Accept $alertId
     {
-        Log::info("Command user " . Auth::id() . " is clearing status for user ID: " . $user->id);
+        $user = User::find($userId);
 
-        // Create a new status update to override any previous ones.
-        // This preserves the history of their previous "needs_help" requests.
+        if (!$user) {
+            Log::warning("Attempt to clear status for non-existent user ID: " . $userId);
+            return response()->json(['success' => false, 'message' => 'User not found.'], 404);
+        }
+
+        // **MODIFIED**: Log includes the alert context
+        Log::info("Command user " . Auth::id() . " is clearing status for user ID: " . $user->id . " within alert context ID: " . $alertId);
+
+        // This action overrides their status globally by creating the latest record.
+        // The frontend will re-poll and see this new "im_safe" status as the latest one.
         $statusUpdate = StatusUpdate::create([
             'user_id' => $user->id,
             'classification' => 'im_safe',
-            'message' => 'Status manually cleared by Command.',
-            // You might want to copy lat/lng from their last known update if available
+            'message' => 'Status manually cleared by Command for Alert #' . $alertId, // Add context to message
             'latitude' => $user->latitude,
             'longitude' => $user->longitude,
         ]);
 
-        // You could dispatch an event here if other parts of the system need to know
-        // event(new UserStatusCleared($user, $statusUpdate));
-
         return response()->json([
             'success' => true,
             'message' => "User {$user->name} has been marked as cleared.",
-            'new_status' => $statusUpdate, // Send back the new status for UI updates
+            'new_status' => $statusUpdate,
         ]);
     }
+
     public function updateLocation(Request $request)
     {
         $request->validate([
