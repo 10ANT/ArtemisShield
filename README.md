@@ -9,6 +9,14 @@
 
 
 
+
+--- 
+
+ 
+## Introduction 
+**ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
+
+
 ---
 
 
@@ -34,13 +42,6 @@
 
 
 
---- 
-
- 
-## Introduction 
-**ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
-
-
 
 **[Live Demonstration](https://www.your-live-demo-url.com)**
 
@@ -59,12 +60,25 @@ Wildfire management is often a race against time with fragmented information. Of
 
 ArtemisShield is a unified, intelligent command and control platform that transforms wildfire management from reactive to proactive. It centralizes real-time data from satellites, weather, and field reports, augmenting human decision-making with powerful Azure AI. This includes an **AI Co-Pilot** for natural language queries, **Azure Custom Vision** for early hotspot detection, and **Azure Machine Learning** for predicting fire behavior. **Azure Speech-to-Text** also simplifies field reporting. ArtemisShield provides clear, actionable intelligence, helping commanders save lives, protect property, and manage wildfires more effectively.
 
+<br>
+
+
+## System Architecture 
+
+![Alt text for the image](https://pixeldrain.com/api/file/A4uHLQpa)
+
+
+
+---
  <br>
 
 ## Key Features 
 Our Solution provides a unified, intelligent dashboard that centralizes real-time data and augments human decision-making with powerful AI. Here are its *key features*:
 
 *   🗺️ **Interactive Geo-Dashboard:** A multi-layered Leaflet map showing official perimeters, live satellite hotspots (MODIS/VIIRS), weather overlays, and community-sourced alerts. Also allows for measuring and annoting of the maps for a more controlled and personal analyzation done by the user.
+
+
+![Alt text for the image](https://i.ibb.co/tMR7pQLn/dashboard.jpg)
 
 *   🤖 **AI Co-Pilot (Azure AI Agent):** A conversational agent that interacts with the map. Officers can ask questions in natural language like *"Show me the risk to infrastructure near the Canyon Fire"* or *"Plan an evacuation route from Pine Ridge to the nearest shelter."* 
 
@@ -81,21 +95,9 @@ Our Solution provides a unified, intelligent dashboard that centralizes real-tim
 <br>
 
 
- 
-## **High-Level System Architecture** 
-*(Embed the generated architecture diagram here)* 
 
-<br> 
 
----
 
-## Lower-Level System Architecture 
-
-![Alt text for the image](https://i.ibb.co/SwJzhFLG/system-architecture-diagram.jpg)
-
-<br>
-
----
  
 
 ## Technology Stack 
