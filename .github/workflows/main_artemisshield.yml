@@ -31,6 +31,15 @@ jobs:
 
       - name: Run composer install if composer.json exists
         if: steps.check_files.outputs.files_exists == 'true'
+        # --- FIX IS HERE ---
+        # Add the Pusher secrets as environment variables for this step
+        env:
+          PUSHER_APP_ID: ${{ secrets.PUSHER_APP_ID }}
+          PUSHER_APP_KEY: ${{ secrets.PUSHER_APP_KEY }}
+          PUSHER_APP_SECRET: ${{ secrets.PUSHER_APP_SECRET }}
+          PUSHER_APP_CLUSTER: ${{ secrets.PUSHER_APP_CLUSTER }}
+          # You can add any other required .env variables here
+          # Example: DB_CONNECTION: sqlite
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
       - name: Zip artifact for deployment
@@ -62,9 +71,9 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.__clientidsecretname__ }}
-          tenant-id: ${{ secrets.__tenantidsecretname__ }}
-          subscription-id: ${{ secrets.__subscriptionidsecretname__ }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }} # Use your actual secret name
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }} # Use your actual secret name
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }} # Use your actual secret name
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
@@ -73,4 +82,3 @@ jobs:
           app-name: 'artemisshield'
           slot-name: 'Production'
           package: .
-          
