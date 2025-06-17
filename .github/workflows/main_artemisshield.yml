@@ -31,6 +31,15 @@ jobs:
 
       - name: Run composer install if composer.json exists
         if: steps.check_files.outputs.files_exists == 'true'
+        # --- FIX IS HERE ---
+        # Add the Pusher secrets as environment variables for this step
+        env:
+          PUSHER_APP_ID: ${{ secrets.PUSHER_APP_ID }}
+          PUSHER_APP_KEY: ${{ secrets.PUSHER_APP_KEY }}
+          PUSHER_APP_SECRET: ${{ secrets.PUSHER_APP_SECRET }}
+          PUSHER_APP_CLUSTER: ${{ secrets.PUSHER_APP_CLUSTER }}
+          # You can add any other required .env variables here
+          # Example: DB_CONNECTION: sqlite
         run: composer validate --no-check-publish && composer install --prefer-dist --no-progress
 
       - name: Zip artifact for deployment
