@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule; // Import the Rule class
+use App\Events\StatusUpdateFulfilled;
 
 class StatusUpdateController extends Controller
 {
@@ -60,5 +61,19 @@ class StatusUpdateController extends Controller
                                ->get();
 
         return response()->json($updates);
+    }
+
+
+     public function fulfill(StatusUpdate $statusUpdate)
+    {
+        // Set the timestamp to the current time.
+        $statusUpdate->update(['fulfilled_at' => now()]);
+
+        Log::info('Status update ID ' . $statusUpdate->id . ' has been marked as fulfilled.');
+        
+        // Dispatch the event to all other clients.
+        StatusUpdateFulfilled::dispatch($statusUpdate->id);
+
+        return response()->json(['message' => 'Request marked as fulfilled.']);
     }
 }

@@ -35,7 +35,11 @@ use App\Http\Controllers\Api\AmbeeController;
 use App\Http\Controllers\Api\StatusUpdateController;
 use App\Http\Controllers\WildfirePredictionController;
 
+
 Route::get('/status-updates/poll', [StatusUpdateController::class, 'poll']);
+
+
+Route::patch('/status-updates/{statusUpdate}/fulfill', [StatusUpdateController::class, 'fulfill']);
 
 /*
 |--------------------------------------------------------------------------

@@ -105,15 +105,13 @@
                     <li class="menu-item {{ Request::is('responder*') ? 'active open' : '' }}">
                         <a href="javascript:void(0);" class="menu-link menu-toggle">
                             <span class="material-symbols-outlined menu-icon">medical_services</span>
-                            <span class="title">First Responder Views</span>
+                            <span class="title">First Responder View</span>
                         </a>
                         <ul class="menu-sub">
                             <li class="menu-item">
-                                <a href="/responder-dashboard" class="menu-link">Response Dashboard</a>
+                                <a href="first-responder/dashboard" class="menu-link">Help Requests</a>
                             </li>
-                            <li class="menu-item">
-                                <a href="/responder-incidents" class="menu-link">Active Incidents</a>
-                            </li>
+                         
                         </ul>
                     </li>
                 @endif
