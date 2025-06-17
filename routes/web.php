@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\FireHydrantController;
 use App\Http\Controllers\FirefighterController;
 use App\Models\FireHydrant;
 
+
 use App\Http\Controllers\HistoricalMapController;
 
 use App\Http\Controllers\Api\CommandController;
@@ -226,3 +227,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 });
 
 Route::patch('/users/{userId}/clear/{alertId}', [UserController::class, 'clearStatus'])->name('users.clear-status');
+
+
+Route::get('/report/{report}/export', [ReportController::class, 'exportPdf'])
+    ->middleware('auth') // Make sure only logged-in users can access it
+    ->name('report.export');
