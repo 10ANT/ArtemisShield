@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\ChatController;
 
 
 use App\Http\Controllers\GeocodingController; 
+use App\Http\Controllers\Api\UserController;
 
 
 use App\Http\Controllers\Api\HospitalController;
@@ -29,6 +30,7 @@ use app\Http\Controllers\Api\AedLocationController;
 use App\Http\Controllers\Api\MedicalIncidentController;
 use App\Http\Controllers\Api\WildfireRiskController;
 use App\Http\Controllers\Api\AmbeeController;
+use App\Http\Controllers\Api\CommandController;
 
 
 
@@ -128,3 +130,12 @@ Route::post('/predict-intensity', [WildfirePredictionController::class, 'predict
 
 // NEW route for classification-based spread prediction
 Route::post('/predict-spread', [App\Http\Controllers\WildfirePredictionController::class, 'predictSpread'])->name('api.predict.spread');
+
+
+Route::middleware('auth:sanctum')->post('/user/location', [UserController::class, 'updateLocation'])->name('api.user.location.update');
+
+    Route::get('/command/relevant-alerts', [CommandController::class, 'getRelevantAlerts'])->name('command.relevant-alerts');
+    Route::get('/alerts/{alert}/affected-users', [CommandController::class, 'getAffectedUsersInAlert'])->name('command.affected-users');
+
+    // **NEW ROUTE** for clearing a user's status
+    Route::patch('/users/{user}/clear', [UserController::class, 'clearStatus'])->name('users.clear-status');

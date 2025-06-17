@@ -10,7 +10,7 @@ use App\Models\FireHydrant;
 
 use App\Http\Controllers\HistoricalMapController;
 
-
+use App\Http\Controllers\Api\CommandController;
 
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
@@ -210,4 +210,16 @@ Route::get('/historical-map', [HistoricalMapController::class, 'showMap'])->name
 Route::get('/api/historical-fires', [HistoricalMapController::class, 'getFireData'])->name('api.historical.fires');
 Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff'])->prefix('first-responder')->group(function () {
     Route::get('/dashboard', [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
+});
+
+
+// Add these routes for the command dashboard functionality
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Other dashboard routes like Route::get('/dashboard', ...);
+
+    // Route to find which alerts the current command user is inside of.
+    Route::get('/command/relevant-alerts', [CommandController::class, 'getRelevantAlerts'])->name('command.relevant-alerts');
+    
+    // Route to find all users and their status within a specific alert zone.
+    Route::get('/alerts/{alert}/affected-users', [CommandController::class, 'getAffectedUsersInAlert'])->name('command.affected-users');
 });

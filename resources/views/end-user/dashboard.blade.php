@@ -40,34 +40,31 @@
         /* This rule targets the accordion body and its list items specifically */
         /* within #safetyAccordion, and uses !important to override external styles. */
         #safetyAccordion .accordion-body,
-#safetyAccordion .accordion-body *,
-#safetyAccordion .accordion-body ul,
-#safetyAccordion .accordion-body ul li,
-#safetyAccordion .accordion-body p {
-    color: var(--bs-body-color) !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+        #safetyAccordion .accordion-body *,
+        #safetyAccordion .accordion-body ul,
+        #safetyAccordion .accordion-body ul li,
+        #safetyAccordion .accordion-body p {
+            color: var(--bs-body-color) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
 
 
-.sidebar-column {
-    position: relative;
-    z-index: 1000;
-}
+        .sidebar-column {
+            position: relative;
+            z-index: 1000;
+        }
 
-.sidebar-column .card {
-    position: relative;
-    z-index: 1001;
-}
+        .sidebar-column .card {
+            position: relative;
+            z-index: 1001;
+        }
         /* --- END OF FIX --- */
     
         #map {
-    z-index: 1;
-    position: relative;
-}
-
-
-
+            z-index: 1;
+            position: relative;
+        }
     </style>
 </head>
 <body class="boxed-size">
@@ -258,10 +255,32 @@
                 container.innerHTML = '<p class="text-muted">You are not currently inside any active alert zones. Stay safe!</p>';
             }
         }
+        
+        // **NEW FUNCTION** to update user location in the database
+        function updateUserLocation(latitude, longitude) {
+            axios.post("{{ route('api.user.location.update') }}", {
+                latitude: latitude,
+                longitude: longitude
+            })
+            .then(response => {
+                console.log("User location updated successfully in database.");
+            })
+            .catch(error => {
+                // It's a background task, so we just log the error without alerting the user
+                console.error("Failed to update user location in database:", error.response?.data || error.message);
+            });
+        }
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                userLatLng = L.latLng(lat, lng);
+                
+                // **CALLING THE NEW FUNCTION**
+                updateUserLocation(lat, lng);
+
                 document.getElementById('status-latitude').value = userLatLng.lat;
                 document.getElementById('status-longitude').value = userLatLng.lng;
                 L.marker(userLatLng).addTo(map).bindPopup("Your Location").openPopup();

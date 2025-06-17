@@ -109,6 +109,9 @@
                         </a>
                         <ul class="menu-sub">
                             <li class="menu-item">
+                                <a href="/responder-dashboard" class="menu-link">View Alerts</a>
+                            </li>
+                            <li class="menu-item">
                                 <a href="first-responder/dashboard" class="menu-link">Help Requests</a>
                             </li>
                          
