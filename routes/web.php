@@ -29,6 +29,8 @@ use App\Http\Controllers\Api\AlertController;
 use App\Http\Controllers\Api\StatusUpdateController;
 use App\Http\Controllers\ProxyController;
 
+use App\Http\Controllers\FirstResponderDashboardController;
+
 
 // Proxy route for NOAA images
 Route::get('/proxy/noaa/{path}', [ProxyController::class, 'getNoaaImage'])->where('path', '.*');
@@ -176,3 +178,9 @@ Route::post('/agent/reset', [AgentController::class, 'reset']);
 
 
 Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])->name('transcription.transcribe');
+
+
+
+Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff'])->prefix('first-responder')->group(function () {
+    Route::get('/dashboard', [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
+});

@@ -16,6 +16,7 @@ class StatusUpdate extends Model
         'contact_number',
         'latitude',
         'longitude',
+        'fulfilled_at',
     ];
 
     public function user()
