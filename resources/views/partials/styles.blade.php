@@ -1,3 +1,4 @@
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/css/sidebar-menu.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/css/simplebar.css') }}" />
 <link rel="stylesheet" type="text/css" href="{{ url('/assets/css/apexcharts.css') }}" />

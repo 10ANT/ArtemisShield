@@ -1,7 +1,10 @@
 <header
     class="header-area bg-white mb-4 rounded-bottom-15"
     id="header-area"
+    
 >
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
     <div class="row align-items-center">
         <div class="col-lg-4 col-sm-6">
             <div class="left-header-content">

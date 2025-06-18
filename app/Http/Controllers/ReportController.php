@@ -20,7 +20,7 @@ class ReportController extends Controller
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
 
     private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
-
+    
     /**
      * Main processing function for the audio report.
      * Injects the AzureSearchService for RAG capabilities.
