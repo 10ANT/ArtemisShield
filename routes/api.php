@@ -26,7 +26,6 @@ use App\Http\Controllers\Api\UserController;
 
 
 
-use App\Http\Controllers\GeocodingController; 
 
 
 use App\Http\Controllers\Api\HospitalController;
