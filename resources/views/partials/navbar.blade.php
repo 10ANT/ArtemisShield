@@ -1,3 +1,5 @@
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
 <nav class="navbar navbar-expand-lg bg-white bg-opacity-25 fixed-top" id="navbar">
     <div class="container">
         <a class="navbar-brand me-xl-5 me-3" href="#">

@@ -1,4 +1,6 @@
 <x-guest-layout>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
     <x-authentication-card>
         <x-slot name="logo">
             <x-authentication-card-logo />
