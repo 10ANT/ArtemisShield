@@ -28,7 +28,7 @@ class ImportFireStations extends Command
      */
     public function handle()
     {
-        $csvFile = storage_path('app/Console/Commands/firestations.csv'); // Put CSV here, or adjust path
+        $csvFile = 'app/Console/Commands/firestations.csv'; // Put CSV here, or adjust path
         if (!file_exists($csvFile)) {
             $this->error("CSV file not found at: {$csvFile}");
             return 1;
