@@ -94,7 +94,7 @@
                                 <a href="/firefighter-dashboard" class="menu-link">Tactical Dashboard</a>
                             </li>
                             <li class="menu-item">
-                                <a href="/firefighter-reports" class="menu-link">Submit Reports</a>
+                                <a href="/firefighter-reports" class="menu-link">Incoming Feature 🚧</a>
                             </li>
                         </ul>
                     </li>
@@ -109,10 +109,10 @@
                         </a>
                         <ul class="menu-sub">
                             <li class="menu-item">
-                                <a href="/responder-dashboard" class="menu-link">View Alerts</a>
+                                <a href="/responder-dashboard" class="menu-link">View Help Request</a>
                             </li>
                             <li class="menu-item">
-                                <a href="first-responder/dashboard" class="menu-link">Help Requests</a>
+                                <a href="first-responder/dashboard" class="menu-link">Incoming Feature 🚧</a>
                             </li>
                          
                         </ul>
