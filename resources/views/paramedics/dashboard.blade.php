@@ -10,120 +10,48 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
 <!-- Scripts that need to load in the <head> -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 
 @include('partials.styles')
 <style>
-    /* Your existing CSS */
     .main-content { flex-grow: 1; }
     .ems-dashboard-container { height: 100%; }
     #map { width: 100%; height: 100%; min-height: 500px; background-color: var(--bs-tertiary-bg); }
     .map-wrapper { position: relative; height: 100%; overflow: hidden; }
-    .map-overlay { position: absolute; z-index: 1000; margin: 1rem; width: 260px; max-height: calc(50vh - 2rem); overflow-y: auto; }
-    .map-overlay .card-header { cursor: grab; }
-    .map-overlay .card-header:active { cursor: grabbing; }
     .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
     .sidebar-wrapper .tab-content { flex-grow: 1; overflow-y: auto; }
-    .chat-container { height: 100%; display: flex; flex-direction: column; }
-    .chat-messages { flex-grow: 1; overflow-y: auto; }
-    .incident-marker i { text-shadow: 0 0 4px rgba(0, 0, 0, 0.7); }
-    .custom-popup .leaflet-popup-content-wrapper { background-color: #2a2a2a; color: #e0e0e0; border-radius: 8px; padding: 0; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); max-width: 450px; min-width: 300px; height: auto; }
-    .custom-popup .leaflet-popup-content { margin: 0; padding: 0; width: 100% !important; height: 100%; display: flex; flex-direction: column; }
-    .custom-popup .leaflet-popup-tip { background-color: #2a2a2a; }
-    .custom-popup .popup-header { background-color: #1a1a1a; padding: 10px 15px; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-    .custom-popup .popup-header h4 { color: #fff; font-size: 1.1rem; margin: 0; }
-    .custom-popup .popup-header .close-btn { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
-    .custom-popup .popup-body { display: flex; flex-wrap: wrap; padding: 10px 15px; gap: 10px; flex-grow: 1; }
-    .custom-popup .popup-section { background-color: #333333; border-radius: 6px; padding: 10px; flex: 1; min-width: 140px; display: flex; flex-direction: column; }
-    .custom-popup .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
-    .custom-popup .detail-label { color: #b0b0b0; font-size: 0.8rem; flex-shrink: 0; margin-right: 5px; }
-    .custom-popup .detail-value { color: #f0f0f0; font-weight: bold; font-size: 0.85rem; text-align: right; word-wrap: break-word; flex-grow: 1; }
-    .collapse-icon { transition: transform 0.3s ease-in-out; }
-    .collapse-icon.fa-chevron-up { transform: rotate(180deg); }
-    .medical-incident-icon { text-align: center; text-shadow: 0px 0px 3px #000; cursor: pointer; }
-    .medical-incident-icon-high { color: #dc3545; }
-    .medical-incident-icon-medium { color: #fd7e14; }
-    .medical-incident-icon-low { color: #ffc107; }
-    .medical-incident-icon-selected { animation: pulse-glow 1.5s infinite; }
-    @keyframes pulse-glow { 0% { transform: scale(1); text-shadow: 0 0 5px #ffc107; } 50% { transform: scale(1.2); text-shadow: 0 0 20px #ff5722; } 100% { transform: scale(1); text-shadow: 0 0 5px #ffc107; } }
-    .cluster-icon { color: #fff; text-align: center; border-radius: 50%; font-weight: bold; box-shadow: 0 0 5px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.7); }
-    .aed-cluster-small { background-color: rgba(2, 117, 216, 0.85); width: 30px; height: 30px; line-height: 26px; }
-    .aed-cluster-medium { background-color: rgba(13, 202, 240, 0.85); width: 35px; height: 35px; line-height: 31px; }
-    .aed-cluster-large { background-color: rgba(13, 110, 253, 0.9); width: 40px; height: 40px; line-height: 36px; }
-    .hospital-cluster-small { background-color: rgba(40, 167, 69, 0.9); width: 30px; height: 30px; line-height: 26px; }
-    .hospital-cluster-medium { background-color: rgba(253, 126, 20, 0.9); width: 35px; height: 35px; line-height: 31px; }
-    .hospital-cluster-large { background-color: rgba(220, 53, 69, 0.9); width: 40px; height: 40px; line-height: 36px; }
-    .incident-cluster-small, .incident-cluster-medium, .incident-cluster-large { background-color: rgba(220, 53, 69, 0.9); }
-    .incident-cluster-small { width: 30px; height: 30px; line-height: 26px; }
-    .incident-cluster-medium { width: 35px; height: 35px; line-height: 31px; }
-    .incident-cluster-large { width: 40px; height: 40px; line-height: 36px; }
-    .legend-control { padding: 8px 12px; font: 14px/16px Arial, Helvetica, sans-serif; background: rgba(43, 48, 53, 0.85); color: #f8f9fa; box-shadow: 0 0 15px rgba(0,0,0,0.3); border-radius: 5px; line-height: 20px; border: 1px solid rgba(255,255,255,0.2); }
-    .legend-control h4 { margin: 8px 0 5px; color: #ffffff; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 4px; }
-    .legend-control h4:first-child { margin-top: 0; }
-    .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; }
-    .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
-
-    /* START: FULLSCREEN BUTTON CSS */
-    .leaflet-control-fullscreen a { background-color: #2b3035 !important; width: 34px; height: 34px; line-height: 34px; text-align: center; font-size: 1.2em; color: #f8f9fa; display: block; cursor: pointer; border-radius: 4px; }
-    .leaflet-control-fullscreen a:hover { background-color: #343a40 !important; color: #fff; }
-    .leaflet-control-fullscreen { box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
-    .leaflet-bar .leaflet-control-fullscreen { border: none; }
     
-    body.map-fullscreen-active .sidebar-nav-wrapper,
-    body.map-fullscreen-active .main-content > .header-area,
-    body.map-fullscreen-active .main-content > .footer,
-    body.map-fullscreen-active #right-sidebar-column { 
-        display: none !important; 
-    }
-    body.map-fullscreen-active .main-content { margin-left: 0 !important; padding: 0 !important; height: 100vh; }
-    body.map-fullscreen-active .ems-dashboard-container,
-    body.map-fullscreen-active #map-column { 
-        height: 100% !important; 
-        width: 100% !important;
-        max-width: 100% !important;
-        flex: 0 0 100% !important;
-    }
-    /* END: FULLSCREEN BUTTON CSS */
-
-    #live-report-content { display: flex; flex-direction: column; height: 100%; }
-    .recording-controls { text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--bs-border-color); }
-    .record-btn { width: 90px; height: 90px; border-radius: 50%; background-color: var(--bs-secondary-bg); border: 4px solid var(--bs-primary); color: var(--bs-primary); font-size: 2rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-    .record-btn:hover { background-color: var(--bs-primary-bg-subtle); }
-    .record-btn:disabled { background-color: var(--bs-secondary-bg); border-color: var(--bs-secondary); color: var(--bs-secondary); cursor: not-allowed; }
-    .record-btn.is-recording { background-color: var(--bs-danger); border-color: var(--bs-danger-bg-subtle); color: #fff; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
-    .recording-status { margin-top: 0.5rem; font-weight: 500; color: var(--bs-secondary-color); }
-    .ai-analysis-container { flex-grow: 1; overflow-y: auto; padding-top: 1rem; }
-    .ai-analysis-card { background-color: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color-translucent); }
-    .ai-analysis-card .card-header { background-color: rgba(var(--bs-emphasis-color-rgb), 0.05); font-weight: 600; }
-    .entity-tag { display: inline-block; padding: 0.35em 0.65em; font-size: .8em; font-weight: 700; line-height: 1; text-align: center; white-space: nowrap; vertical-align: baseline; border-radius: var(--bs-border-radius); margin: 2px; }
-    .entity-tag-symptom { background-color: var(--bs-danger); color: #fff; }
-    .entity-tag-vitals { background-color: var(--bs-info); color: #000; }
-    .entity-tag-injury { background-color: var(--bs-warning); color: #000; }
-    .entity-tag-other { background-color: var(--bs-secondary); color: #fff; }
-    .suggestion-item { display: flex; align-items: flex-start; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid var(--bs-border-color-translucent); }
-    .suggestion-item:last-child { border-bottom: none; }
-    .suggestion-icon { font-size: 1.25rem; color: var(--bs-success); margin-top: 0.25rem; }
-    .suggestion-item-tts { display: flex; justify-content: space-between; align-items: center; }
-    #map-column, #right-sidebar-column { transition: flex 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out; }
-    #right-sidebar-toggle { position: absolute; top: 1rem; right: 1rem; z-index: 1001; display: none; }
-    #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
-    .ems-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
-    .ems-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
-    
-    /* Victim Check-in Styles */
     #victim-check-in-content { display: flex; flex-direction: column; height: 100%; }
-    .victim-list-container { flex-grow: 1; overflow-y: auto; }
-    .victim-item .status-badge { font-size: 0.8rem; }
+    #alert-accordion-container { overflow-y: auto; flex-grow: 1; }
+    .alert-accordion .accordion-header { display: flex; align-items: center; }
+    .alert-accordion .accordion-button { font-size: 0.9rem; font-weight: 600; flex-grow: 1; }
+    .alert-accordion .accordion-body { padding: 0.5rem; background-color: var(--bs-tertiary-bg); }
+    .user-status-list { max-height: 300px; overflow-y: auto; }
+
+    .user-status-dot { height: 12px; width: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.7); }
+    .user-status-dot-ok { background-color: var(--bs-success); }
+    .user-status-dot-help { background-color: var(--bs-danger); }
+    .user-status-dot-threat { background-color: var(--bs-warning); }
+    .user-status-dot-awaiting { background-color: var(--bs-secondary); }
+
+    #route-info-box { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(43, 48, 53, 0.9); color: #fff; padding: 8px 15px; border-radius: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); display: none; }
+    #route-info-box .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }
     
-    @media (max-width: 991.98px) { .ems-dashboard-container { height: auto; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } }
-    @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
+    #map-layers-overlay { position: absolute; top: 10px; left: 10px; z-index: 1000; width: 220px; background-color: var(--bs-dark-bg-subtle); border: 1px solid var(--bs-border-color); border-radius: .5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+    .draggable-handle { cursor: move; padding: .5rem 1rem; border-bottom: 1px solid var(--bs-border-color); }
+
+    .leaflet-control-sidebar-toggle a { background-image: none !important; font-family: "Font Awesome 6 Free"; font-weight: 900; content: "\f0c9"; display: inline-block; text-align: center; vertical-align: middle; font-size: 1.2em; }
+    
+    #map.cursor-crosshair { cursor: crosshair; }
+
+    .user-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: .5rem; margin-top: .75rem; }
+    .user-actions .btn { display: flex; align-items: center; justify-content: center; gap: .5rem; font-size: 0.8rem; padding: .5rem; }
+
+    @media (max-width: 991.98px) { #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; } }
 </style>
 </head>
 <body class="boxed-size">
@@ -131,230 +59,45 @@
     @include('partials.sidebar')
 <div class="main-content d-flex flex-column">
     
-    <!-- START: NEW HEADER -->
-    <header class="header-area bg-white mb-4 rounded-bottom-15" id="header-area">
-        <div class="row align-items-center">
-            <div class="col-lg-4 col-sm-6">
-                <div class="left-header-content">
-                    <ul class="d-flex align-items-center ps-0 mb-0 list-unstyled justify-content-center justify-content-sm-start">
-                        <li>
-                            <button class="header-burger-menu bg-transparent p-0 border-0" id="header-burger-menu">
-                                <span class="material-symbols-outlined">menu</span>
-                            </button>
-                        </li>
-                        <li>
-                            <form class="src-form position-relative">
-                                <input type="text" class="form-control" placeholder="Search here....."/>
-                                <button type="submit" class="src-btn position-absolute top-50 end-0 translate-middle-y bg-transparent p-0 border-0">
-                                    <span class="material-symbols-outlined">search</span>
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-lg-8 col-sm-6">
-                <div class="right-header-content mt-2 mt-sm-0">
-                    <ul class="d-flex align-items-center justify-content-center justify-content-sm-end ps-0 mb-0 list-unstyled">
-                        <li class="header-right-item">
-                            <div class="light-dark">
-                                <button class="switch-toggle settings-btn dark-btn p-0 bg-transparent" id="switch-toggle">
-                                    <span class="dark"><i class="material-symbols-outlined">light_mode</i></span>
-                                    <span class="light"><i class="material-symbols-outlined">dark_mode</i></span>
-                                </button>
-                            </div>
-                        </li>
-                        <li class="header-right-item">
-                            <button class="fullscreen-btn bg-transparent p-0 border-0" id="fullscreen-button">
-                                <i class="material-symbols-outlined text-body">fullscreen</i>
-                            </button>
-                        </li>
-                        <li class="header-right-item">
-                            <div class="dropdown notifications noti">
-                                <button class="btn btn-secondary border-0 p-0 position-relative badge" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="material-symbols-outlined">notifications</span>
-                                </button>
-                                <div class="dropdown-menu dropdown-lg p-0 border-0 p-0 dropdown-menu-end">
-                                    <div class="d-flex justify-content-between align-items-center title">
-                                        <span class="fw-semibold fs-15 text-secondary">Notifications <span class="fw-normal text-body fs-14">(03)</span></span>
-                                        <button class="p-0 m-0 bg-transparent border-0 fs-14 text-primary">Clear All</button>
-                                    </div>
-                                    <div class="max-h-217" data-simplebar>
-                                        <div class="notification-menu unseen">
-                                            <a href="/notification" class="dropdown-item">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="flex-shrink-0"><i class="material-symbols-outlined text-info">person</i></div>
-                                                    <div class="flex-grow-1 ms-3">
-                                                        <p>A new user added in PulsePoint Command</p>
-                                                        <span class="fs-13">hrs ago</span>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <a href="/notification" class="dropdown-item text-center text-primary d-block view-all fw-medium rounded-bottom-3">
-                                        <span>See All Notifications</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </li>
-                        <li class="header-right-item">
-                            <div class="dropdown admin-profile">
-                                <div class="d-xxl-flex align-items-center bg-transparent border-0 text-start p-0 cursor dropdown-toggle" data-bs-toggle="dropdown">
-                                    <div class="flex-shrink-0">
-                                        <img class="rounded-circle wh-40 administrator" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                    </div>
-                                    <div class="flex-grow-1 ms-2">
-                                        <div class="d-flex align-items-center justify-content-between">
-                                            <div class="d-none d-xxl-block">
-                                                <div class="d-flex align-content-center">
-                                                    <h3><div>
-                                                        <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                                                        <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                                                    </div></h3>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="dropdown-menu border-0 bg-white dropdown-menu-end">
-                                    <div class="d-flex align-items-center info">
-                                        <div class="flex-shrink-0">
-                                            <img class="rounded-circle wh-40 administrator" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
-                                        </div>
-                                        <div class="flex-grow-1 ms-2">
-                                            <h3 class="fw-medium"></h3>
-                                            <span class="fs-12" class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</span>
-                                        </div>
-                                    </div>
-                                    <ul class="admin-link ps-0 mb-0 list-unstyled">
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/my-profile"><i class="material-symbols-outlined">account_circle</i><span class="ms-2">My Profile</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/chat"><i class="material-symbols-outlined">chat</i><span class="ms-2">Messages</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/to-do-list"><i class="material-symbols-outlined">format_list_bulleted</i><span class="ms-2">My Task</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/my-profile"><i class="material-symbols-outlined">credit_card</i><span class="ms-2">Billing</span></a></li>
-                                    </ul>
-                                    <ul class="admin-link ps-0 mb-0 list-unstyled">
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/settings"><i class="material-symbols-outlined">settings</i><span class="ms-2">Settings</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/tickets"><i class="material-symbols-outlined">support</i><span class="ms-2">Support</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/lock-screen"><i class="material-symbols-outlined">lock</i><span class="ms-2">Lock Screen</span></a></li>
-                                        <li><a class="dropdown-item d-flex align-items-center text-body" href="/login"><i class="material-symbols-outlined">logout</i><span class="ms-2">Logout</span></a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </header>
-    <!-- END: NEW HEADER -->
+    @include('partials.header')
 
     <div class="ems-dashboard-container row g-0 flex-grow-1">
-        <div class="col-lg-8 col-md-12" id="map-column">
+        <div class="col-lg" id="map-column">
             <div class="map-wrapper">
                 <div id="map"></div>
-                <button id="right-sidebar-toggle" class="btn btn-dark" type="button" title="Hide Sidebar">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
+                <div id="route-info-box" class="d-flex align-items-center gap-3">
+                    <div id="route-info-text"></div>
+                    <button type="button" class="btn-close btn-sm" id="clear-route-btn" aria-label="Close"></button>
+                </div>
+                <div id="map-layers-overlay" class="card">
+                    <div class="card-header draggable-handle d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="fas fa-layer-group me-2"></i>Map Views</h6>
+                        <button class="btn btn-sm btn-close" data-bs-toggle="collapse" data-bs-target="#map-layers-body"></button>
+                    </div>
+                    <div id="map-layers-body" class="card-body collapse show">
+                        <div id="basemap-selector-container" class="btn-group-vertical w-100" role="group"></div>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
+        <div class="col-lg-4" id="right-sidebar-column">
             <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
                 <div class="card-header p-2">
                     <ul class="nav nav-pills nav-fill flex-nowrap" id="sidebar-tabs" role="tablist">
-                        <li class="nav-item" role="presentation"><button class="nav-link active" id="checkin-tab-btn" data-bs-toggle="pill" data-bs-target="#victim-check-in-content" type="button" role="tab" aria-controls="victim-check-in-content" aria-selected="true" title="Victim Check-in"><i class="fas fa-user-check me-1"></i> Check-in</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="false" title="AI Triage Assist"><i class="fas fa-robot me-1"></i> AI Assist</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill" data-bs-target="#live-report-content" type="button" role="tab" aria-controls="live-report-content" aria-selected="false" title="Field Triage Report"><i class="fas fa-microphone-alt me-1"></i> Report</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false" title="Patient Transport"><i class="fas fa-route me-1"></i> Transport</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="config-tab-btn" data-bs-toggle="pill" data-bs-target="#config-content" type="button" role="tab" aria-controls="config-content" aria-selected="false" title="Map Settings"><i class="fas fa-cogs me-1"></i> Settings</button></li>
+                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#victim-check-in-content"><i class="fas fa-user-check me-1"></i> Check-in</button></li>
                     </ul>
                 </div>
                 <div class="card-body d-flex flex-column p-0">
                     <div class="tab-content h-100">
-                        <!-- UPDATED VICTIM CHECK-IN TAB CONTENT -->
-                        <div class="tab-pane fade show active p-3" id="victim-check-in-content" role="tabpanel" aria-labelledby="checkin-tab-btn">
-                            <div id="victim-check-in-system" class="d-flex flex-column h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-3">
-                                    <h5 class="mb-0"><i class="fas fa-users me-2"></i> Personnel Status</h5>
-                                    <button class="btn btn-sm btn-secondary" id="refresh-victim-list-btn"><i class="fas fa-sync-alt"></i></button>
-                                </div>
-                                <div class="btn-group w-100 mb-3" role="group" aria-label="Filter personnel status">
-                                    <button type="button" class="btn btn-outline-secondary victim-filter-btn active" data-status-filter="all">All</button>
-                                    <button type="button" class="btn btn-outline-danger victim-filter-btn" data-status-filter="Needs Assistance">Assistance</button>
-                                    <button type="button" class="btn btn-outline-warning victim-filter-btn" data-status-filter="Unresponsive">Unresponsive</button>
-                                    <button type="button" class="btn btn-outline-info victim-filter-btn" data-status-filter="Awaiting Response">Awaiting</button>
-                                    <button type="button" class="btn btn-outline-success victim-filter-btn" data-status-filter="OK">OK</button>
-                                </div>
-                                <div class="victim-list-container" id="victim-list-container">
-                                    <!-- Victim list will be dynamically inserted here by JavaScript -->
-                                    <div class="text-center p-5 text-muted">
-                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                                        Loading personnel data...
-                                    </div>
-                                </div>
+                        <div class="tab-pane fade show active" id="victim-check-in-content" role="tabpanel">
+                            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fas fa-broadcast-tower me-2"></i> Active Alert Zones</h5>
+                                <button class="btn btn-sm btn-secondary" id="refresh-alerts-btn" title="Refresh Alert List"><i class="fas fa-sync-alt"></i></button>
                             </div>
-                        </div>
-
-                        <div class="tab-pane fade p-3" id="chat-content" role="tabpanel">
-                            <div class="chat-container">
-                                <div class="chat-messages mb-3" id="chat-messages"><div class="mb-3 text-start"><small class="text-body-secondary">AI Triage Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">Hello! I can help with treatment protocols, drug dosages, or identifying symptoms from the knowledge base. How can I assist?</div></div></div>
-                                <div class="chat-input-group d-flex gap-2"><input type="text" class="form-control" placeholder="Ask a question..." id="chat-input"><button class="btn btn-primary" id="send-chat-btn"><i class="fas fa-paper-plane"></i></button></div>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade" id="live-report-content" role="tabpanel">
-                                <div class="recording-controls p-3 d-flex flex-column align-items-center"><button class="record-btn mb-2" id="record-button"><i class="fas fa-microphone"></i></button><p class="recording-status" id="recording-status">Tap to Start Voice Triage</p></div>
-                            <div id="ai-analysis-results" class="ai-analysis-container px-3">
-                                <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-notes-medical fa-3x mb-3"></i><p>Awaiting field triage report...</p></div>
-                                <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
-                            </div>
-                            <div class="px-3 pb-3 mt-4">
-                                <hr>
-                                <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
-                                <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
-                            </div>
-                        </div>
-
-                        <div class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
-                            <h5 class="mb-3"><i class="fas fa-ambulance me-2"></i>Patient Transport Routing</h5>
-                            <div class="card bg-body-tertiary mb-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">Instructions</h6>
-                                    <p class="card-text small mb-1"><strong>1. Select Incident:</strong> Click an incident icon <i class="fas fa-briefcase-medical text-danger"></i> on the map.</p>
-                                    <p class="card-text small mb-0"><strong>2. Calculate:</strong> Click the button below to find the route to the nearest hospital.</p>
-                                </div>
-                            </div>
-                            <div class="mb-3 p-2 rounded" id="selected-incident-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No incident selected.</p></div>
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
-                                <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
-                            </div>
-                            <hr>
-                            <div id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
-                                <div id="route-summary" class="d-none">
-                                    <h6 class="text-white-50 mb-2">Transport Route Summary</h6>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Transporting To: <strong id="route-hospital-name" class="text-end"></strong></li>
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Distance: <span id="route-distance" class="badge text-bg-info fs-6"></span></li>
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Estimated Time: <span id="route-duration" class="badge text-bg-info fs-6"></span></li>
-                                    </ul>
-                                </div>
-                                <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="tab-pane fade p-3" id="config-content" role="tabpanel" aria-labelledby="config-tab-btn">
-                            <h5 class="mb-3"><i class="fas fa-layer-group me-2"></i> Map Layers</h5>
-                            <div class="mb-4">
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="medical-incidents-toggle" checked><label class="form-check-label" for="medical-incidents-toggle">Medical Incidents</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="aed-locations-toggle" checked><label class="form-check-label" for="aed-locations-toggle">AED Locations</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="hospitals-toggle" checked><label class="form-check-label" for="hospitals-toggle">Hospitals / Clinics</label></div>
-                            </div>
-                            <hr>
-                            <h5 class="mb-3 mt-4"><i class="fas fa-map me-2"></i> Base Maps</h5>
-                            <div id="basemap-selector-container">
-                                <!-- This container is populated by JavaScript -->
+                            <div class="p-3 border-bottom"><input type="text" id="alert-search-input" class="form-control" placeholder="Search alerts..."></div>
+                            <div id="alert-accordion-container" class="alert-accordion">
+                                <div class="text-center p-5 text-muted"><div class="spinner-border"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Fetching alerts...</p></div>
                             </div>
                         </div>
                     </div>
@@ -368,295 +111,214 @@
 
 @include('partials.theme_settings')
 @include('partials.scripts')
-
 <script src="https://unpkg.com/draggabilly@3/dist/draggabilly.pkgd.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- MAP & FEATURE SCRIPT LOGIC ---
-        let map;
-        let aedLayer, hospitalsLayer, searchResultsLayer, medicalIncidentsLayer;
-        let selectedIncidentFeature = null, selectedIncidentMarker = null, routeLayer = null;
-
-        // --- START: FULLSCREEN CONTROL LOGIC ---
-        const initFullScreenControl = () => {
-            if (!map) {
-                console.error("Map object not available for FullScreenControl initialization.");
-                return;
-            }
-            const FullScreenControl = L.Control.extend({
-                options: { position: 'bottomright' },
-                onAdd: function(map) {
-                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fullscreen');
-                    container.innerHTML = `<a href="#" title="Toggle Fullscreen View" role="button" aria-label="Toggle Fullscreen View"><i class="fas fa-expand"></i></a>`;
-                    L.DomEvent.disableClickPropagation(container);
-                    L.DomEvent.on(container, 'click', this._toggleFullScreen, this);
-                    this._map = map;
-                    return container;
-                },
-                _toggleFullScreen: function(e) {
-                    L.DomEvent.stop(e);
-                    const body = document.body;
-                    const icon = this._container.querySelector('i');
-                    body.classList.toggle('map-fullscreen-active');
-                    const isFullscreen = body.classList.contains('map-fullscreen-active');
-                    if (isFullscreen) {
-                        icon.className = 'fas fa-compress';
-                        this._container.querySelector('a').title = 'Exit Fullscreen View';
-                    } else {
-                        icon.className = 'fas fa-expand';
-                        this._container.querySelector('a').title = 'Toggle Fullscreen View';
-                    }
-                    setTimeout(() => {
-                        if (this._map) this._map.invalidateSize({ pan: true });
-                    }, 300);
-                }
-            });
-            new FullScreenControl().addTo(map);
-        };
-        // --- END: FULLSCREEN CONTROL LOGIC ---
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
-        const initMap = () => {
-            console.log('Map initialization started.');
-            const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
-            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles © <a href="https://www.esri.com/">Esri</a>' });
-            const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: 'Map data: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: © <a href="https://opentopomap.org">OpenTopoMap</a>' });
-            const darkMode = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>' });
-            const baseMaps = { "Streets": streets, "Dark Mode": darkMode, "Satellite": satellite, "Topographic": topo };            
+        let map, currentRouteLayer, commandUserLocation;
+        let affectedUserLayers = {}, userMarkers = {};
+        let isPlacingRouteDest = false, routeStartPoint = null;
+
+        const initMap = () => { /* This function remains unchanged */
+            const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' });
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' });
+            const darkMode = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' });
             
-            map = L.map('map', { center: [41.8781, -87.6298], zoom: 6, layers: [streets] });            
+            const baseLayers = { 'Street': streets, 'Dark': darkMode, 'Satellite': satellite };
+            map = L.map('map', { center: [41.8781, -87.6298], zoom: 6, layers: [streets] });
             
             const basemapContainer = document.getElementById('basemap-selector-container');
-            let first = true;
-            for (const name in baseMaps) { const id = `basemap-radio-${name.replace(/\s+/g, '-')}`; const isChecked = first ? 'checked' : ''; basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${isChecked}><label class="form-check-label" for="${id}">${name}</label></div>`; first = false; }
-            basemapContainer.addEventListener('change', (event) => { const selectedBasemapName = event.target.value; if (baseMaps[selectedBasemapName]) { for (const name in baseMaps) { if (map.hasLayer(baseMaps[name])) { map.removeLayer(baseMaps[name]); } } map.addLayer(baseMaps[selectedBasemapName]); } });
-            
-            const createDetailRow = (label, value, valueClass = '') => { if (value === null || value === undefined || value === '') { return ''; } if (label.toLowerCase().includes('website') && value.startsWith('http')) { value = `<a href="${value}" target="_blank">View Site</a>`; } else if (label.toLowerCase().includes('email') && value.includes('@')) { value = `<a href="mailto:${value}">${value}</a>`; } return ` <div class="detail-row"> <span class="detail-label">${label}:</span> <span class="detail-value ${valueClass}">${value}</span> </div> `; };
-            const formatAEDPopupContent = (props) => { let generalDetails = ` ${createDetailRow("Location", props.location_description)} ${createDetailRow("Access", props.access || 'Public')} ${createDetailRow("Indoor", props.indoor ? 'Yes' : 'No')} `; let maintenanceDetails = ` ${createDetailRow("Last Checked", props.last_checked)} ${createDetailRow("Expires", props.pad_expiry)} `; return ` <div class="custom-popup"> <div class="popup-header"> <h4><i class="fas fa-heart-pulse" style="color:#0dcaf0;"></i> AED Details</h4> <button class="close-btn" onclick="map.closePopup()">×</button> </div> <div class="popup-body"> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-info-circle"></i> General</div> ${generalDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-calendar-check"></i> Maintenance</div> ${maintenanceDetails} </div></div> </div> `; };
-            const formatHospitalPopupContent = (props) => { let primaryDetails = ` ${createDetailRow("Name", props.name || 'Unknown')} ${createDetailRow("Operator", props.operator)} `; let contactDetails = ` ${createDetailRow("Phone", props.phone)} ${createDetailRow("Website", props.website)} `; let capacityDetails = ` ${createDetailRow("Bed Count", props.bed_count)} ${createDetailRow("Trauma Level", props.trauma_level || 'N/A')} `; let addressDetails = ` ${createDetailRow("Address", props.address)} `; return ` <div class="custom-popup"> <div class="popup-header"> <h4><i class="fas fa-hospital" style="color:#28a745;"></i> Hospital Details</h4> <button class="close-btn" onclick="map.closePopup()">×</button> </div> <div class="popup-body two-columns"> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-id-card-alt"></i> Identification</div> ${primaryDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-phone-alt"></i> Contact</div> ${contactDetails} </div> <div class="popup-section"> <div class="popup-section-title"><i class="fas fa-procedures"></i> Capacity</div> ${capacityDetails} </div><div class="popup-section"> <div class="popup-section-title"><i class="fas fa-map-marked-alt"></i> Location</div> ${addressDetails} </div></div> </div> `; };
-            const formatMedicalIncidentPopupContent = (props) => { let severityClass = 'text-warning'; if (props.severity === 'High') severityClass = 'text-danger fw-bold'; else if (props.severity === 'Medium') severityClass = 'text-info'; const details = ` ${createDetailRow("Reported", `${props.acq_date} @ ${props.acq_time} UTC`)} ${createDetailRow("Severity", props.severity, severityClass)} ${createDetailRow("Category", props.category)} ${createDetailRow("Victims", props.victims)} ${createDetailRow("Status", props.status)} ${createDetailRow("Coordinates", `${parseFloat(props.latitude).toFixed(4)}, ${parseFloat(props.longitude).toFixed(4)}`)} `; return ` <div class="custom-popup"> <div class="popup-header"> <h4><i class="fas fa-briefcase-medical" style="color:#dc3545;"></i> Medical Incident</h4> <button class="close-btn" onclick="map.closePopup()">×</button> </div> <div class="popup-body"> <div class="popup-section" style="flex: 1 1 100%;"> <div class="popup-section-title"><i class="fas fa-info-circle"></i> Incident Details</div> ${details} </div> </div> </div>`; };
+            Object.keys(baseLayers).forEach((layerName, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = `btn text-start ${index === 0 ? 'btn-primary' : 'btn-outline-primary'}`;
+                button.textContent = layerName;
+                button.addEventListener('click', () => {
+                    Object.values(baseLayers).forEach(layer => map.hasLayer(layer) && map.removeLayer(layer));
+                    map.addLayer(baseLayers[layerName]);
+                    basemapContainer.querySelectorAll('button').forEach(btn => btn.classList.replace('btn-primary', 'btn-outline-primary'));
+                    button.classList.replace('btn-outline-primary', 'btn-primary');
+                });
+                basemapContainer.appendChild(button);
+            });
 
-            aedLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const count = cluster.getChildCount(); let c = ' aed-cluster-small'; if (count > 25) c = ' aed-cluster-medium'; if (count > 100) c = ' aed-cluster-large'; return L.divIcon({ html: `<div><span>${count}</span></div>`, className: 'cluster-icon' + c, iconSize: L.point(40, 40) }); }, spiderfyOnMaxZoom: true, maxClusterRadius: 60, showCoverageOnHover: true, zoomToBoundsOnClick: true }).addTo(map);
-            hospitalsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const count = cluster.getChildCount(); let c = ' hospital-cluster-small'; if (count > 5) c = ' hospital-cluster-medium'; if (count > 15) c = ' hospital-cluster-large'; return L.divIcon({ html: `<div><span>${count}</span></div>`, className: 'cluster-icon' + c, iconSize: L.point(40, 40) }); }, spiderfyOnMaxZoom: true, maxClusterRadius: 60, showCoverageOnHover: true, zoomToBoundsOnClick: true }).addTo(map);
-            searchResultsLayer = L.geoJson(null, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: feature.properties.hasOwnProperty('access') ? "#0dcaf0" : "#28a745", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9 }), onEachFeature: (f, l) => l.bindPopup(f.properties.hasOwnProperty('access') ? formatAEDPopupContent(f.properties) : formatHospitalPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
-            medicalIncidentsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const c = cluster.getChildCount(); let s = ' incident-cluster-small'; if (c > 100) s = ' incident-cluster-medium'; if (c > 500) s = ' incident-cluster-large'; return L.divIcon({ html: `<div><span>${c}</span></div>`, className: 'cluster-icon' + s, iconSize: L.point(40, 40) }); }, maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true }).addTo(map);
-            
-            // MODIFIED: This function is now only for AEDs, which are still loaded dynamically.
-            const loadDataForBounds = async (bounds) => { 
-                const bbox = bounds.toBBoxString(); 
-                if (document.getElementById('aed-locations-toggle').checked) { 
-                    try { 
-                        const r = await fetch(`/api/aed-locations?bbox=${bbox}&limit=5000`); 
-                        const d = await r.json(); 
-                        aedLayer.clearLayers(); 
-                        const aedGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatAEDPopupContent(f.properties), { className: 'custom-popup' }) }); 
-                        aedLayer.addLayer(aedGeoJson); 
-                    } catch (e) { 
-                        console.error("Could not fetch AEDs:", e); 
-                    } 
-                }
-                // REMOVED: The hospital fetching logic has been moved out of this function.
-            };
+            new Draggabilly('#map-layers-overlay', { handle: '.draggable-handle' });
 
-            // NEW: Function to load ALL hospitals at once.
-            const loadAllHospitals = async () => {
-                if (!document.getElementById('hospitals-toggle').checked) {
-                    hospitalsLayer.clearLayers();
-                    return;
+            const SidebarToggle = L.Control.extend({
+                options: { position: 'topright' },
+                onAdd: function (map) {
+                    const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                    container.innerHTML = `<a href="#" title="Toggle Sidebar" role="button"><i class="fas fa-columns"></i></a>`;
+                    container.onclick = (e) => {
+                        e.stopPropagation(); e.preventDefault();
+                        const sidebar = document.getElementById('right-sidebar-column');
+                        const mapCol = document.getElementById('map-column');
+                        sidebar.classList.toggle('d-none');
+                        mapCol.className = sidebar.classList.contains('d-none') ? 'col-lg-12' : 'col-lg';
+                        setTimeout(() => map.invalidateSize(), 310);
+                    };
+                    return container;
                 }
+            });
+            map.addControl(new SidebarToggle());
+        };
+
+        const initVictimCheckIn = () => { /* This function remains mostly unchanged */
+            const accordionContainer = document.getElementById('alert-accordion-container');
+            const refreshBtn = document.getElementById('refresh-alerts-btn');
+            const searchInput = document.getElementById('alert-search-input');
+            const clearRouteBtn = document.getElementById('clear-route-btn');
+
+            const fetchAndRenderAlerts = async () => {
+                accordionContainer.innerHTML = `<div class="text-center p-5 text-muted"><div class="spinner-border"></div></div>`;
+                Object.values(affectedUserLayers).forEach(layer => map.removeLayer(layer)); affectedUserLayers = {}; userMarkers = {};
                 try {
-                    // MODIFIED: The API call no longer has bbox or limit, so it gets all data.
-                    const response = await fetch(`/api/hospitals`);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const hospitalsData = await response.json();
-
-                    hospitalsLayer.clearLayers();
-                    const stationsGeoJson = L.geoJson(hospitalsData, {
-                        pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-                            radius: 9,
-                            fillColor: "#28a745",
-                            color: "#198754",
-                            weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        }),
-                        onEachFeature: (f, l) => l.bindPopup(formatHospitalPopupContent(f.properties), {
-                            className: 'custom-popup'
-                        })
-                    });
-                    hospitalsLayer.addLayer(stationsGeoJson);
-                    console.log(`${hospitalsData.features.length} hospitals loaded.`);
-                } catch (e) {
-                    console.error("Could not fetch all hospitals:", e);
-                }
+                    const response = await axios.get("{{ route('command.relevant-alerts') }}");
+                    commandUserLocation = response.data.command_user_location;
+                    if (!response.data.alerts || response.data.alerts.length === 0) { accordionContainer.innerHTML = `<div class="text-center p-5 text-muted"><i class="fas fa-check-circle fa-2x"></i><p>No active alerts.</p></div>`; return; }
+                    renderAlertsAccordion(response.data.alerts);
+                } catch (error) { console.error("Alert fetch failed:", error); accordionContainer.innerHTML = `<div class="alert alert-danger m-3">Failed to load data.</div>`; }
             };
             
-            const loadMedicalIncidents = async () => { if (!document.getElementById('medical-incidents-toggle').checked) { medicalIncidentsLayer.clearLayers(); return; } try { const response = await fetch('/api/medical-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); medicalIncidentsLayer.clearLayers(); const incidentMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const severity = feature.properties.severity; let iconClass = 'medical-incident-icon-low'; if (severity === 'High') iconClass = 'medical-incident-icon-high'; else if (severity === 'Medium') iconClass = 'medical-incident-icon-medium'; const incidentIcon = L.divIcon({ html: '<i class="fas fa-briefcase-medical fa-2x"></i>', className: `medical-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: incidentIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatMedicalIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedIncidentMarker) L.DomUtil.removeClass(selectedIncidentMarker.getElement(), 'medical-incident-icon-selected'); selectedIncidentFeature = feature; selectedIncidentMarker = layer; L.DomUtil.addClass(layer.getElement(), 'medical-incident-icon-selected'); const infoDiv = document.getElementById('selected-incident-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Incident:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); medicalIncidentsLayer.addLayer(incidentMarkers); } catch (e) { console.error("Could not fetch medical incidents:", e); } };
-            
-            document.getElementById('aed-locations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else aedLayer.clearLayers(); });
-            
-            // MODIFIED: The hospitals toggle now calls our new function.
-            document.getElementById('hospitals-toggle').addEventListener('change', loadAllHospitals);
-            
-            document.getElementById('medical-incidents-toggle').addEventListener('change', loadMedicalIncidents);
-            
-            // MODIFIED: We only call this for the AED layer now.
-            map.on('moveend', () => loadDataForBounds(map.getBounds()));
-            
-            const legend = L.control({ position: 'bottomright' });
-            legend.onAdd = function(map) { const div = L.DomUtil.create('div', 'info legend-control'); let labels = []; labels.push('<h4>Incident Severity</h4>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-high"></i> High</div>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-medium"></i> Medium</div>'); labels.push('<div class="legend-item"><i class="fas fa-briefcase-medical medical-incident-icon-low"></i> Low</div>'); const aedGrades = [1, 26, 101]; const aedColors = [ 'rgba(2, 117, 216, 0.85)', 'rgba(13, 202, 240, 0.85)', 'rgba(13, 110, 253, 0.9)' ]; labels.push('<br><h4>AED Density</h4>'); for (let i = 0; i < aedGrades.length; i++) { const from = aedGrades[i]; const to = aedGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${aedColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } const hospitalGrades = [1, 6, 16]; const hospitalColors = [ 'rgba(40, 167, 69, 0.9)', 'rgba(253, 126, 20, 0.9)', 'rgba(220, 53, 69, 0.9)' ]; labels.push('<br><h4 class="mt-2">Hospital Density</h4>'); for (let i = 0; i < hospitalGrades.length; i++) { const from = hospitalGrades[i]; const to = hospitalGrades[i + 1]; labels.push( `<div class="legend-item"><i style="background:${hospitalColors[i]}"></i> ` + from + (to ? '–' + (to - 1) : '+') + '</div>' ); } div.innerHTML = labels.join(''); return div; };
-            legend.addTo(map);
-
-            // --- INITIAL DATA LOAD ---
-            loadDataForBounds(map.getBounds()); // For AEDs
-            loadAllHospitals(); // NEW: Call this to load all hospitals on startup
-            loadMedicalIncidents();
-
-            initFullScreenControl(); 
-            console.log('Map initialization finished.');
-        };
-
-        const initSidebarToggles = () => {
-            const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
-            const dashboardContainer = document.querySelector('.ems-dashboard-container');
-            if(rightSidebarToggle && dashboardContainer) {
-                rightSidebarToggle.addEventListener('click', () => {
-                    dashboardContainer.classList.toggle('right-sidebar-collapsed');
-                    document.body.classList.remove('map-fullscreen-active');
-                    const isCollapsed = dashboardContainer.classList.contains('right-sidebar-collapsed');
-                    const icon = rightSidebarToggle.querySelector('i');
-                    if(isCollapsed) {
-                        icon.className = 'fas fa-chevron-left';
-                        rightSidebarToggle.title = 'Show Sidebar';
-                    } else {
-                        icon.className = 'fas fa-chevron-right';
-                        rightSidebarToggle.title = 'Hide Sidebar';
-                    }
-                    setTimeout(() => { if(map) map.invalidateSize(); }, 300);
+            const renderAlertsAccordion = (alerts) => {
+                let html = '<div class="accordion" id="alerts-master-accordion">';
+                alerts.forEach(alert => {
+                    html += `<div class="accordion-item" data-alert-message="${alert.message.toLowerCase()}"><h2 class="accordion-header"><button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-alert-${alert.id}"><i class="fas fa-exclamation-triangle text-warning me-2"></i>${alert.message}</button><button class="btn btn-sm btn-outline-info ms-auto me-2 my-auto flex-shrink-0 zoom-to-alert-btn" title="View Zone" data-lat="${alert.latitude}" data-lng="${alert.longitude}" data-radius="${alert.radius}"><i class="fas fa-search-location"></i></button></h2><div id="collapse-alert-${alert.id}" class="accordion-collapse collapse" data-alert-id="${alert.id}" data-loaded="false"><div class="accordion-body"><div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div></div></div></div></div>`;
                 });
-            }
-        };
+                accordionContainer.innerHTML = html + '</div>';
+                accordionContainer.addEventListener('click', handleActionButtons);
+                accordionContainer.addEventListener('input', handlePerAlertSearch); // **NEW** listener for user search
+                document.getElementById('alerts-master-accordion').addEventListener('show.bs.collapse', handleAccordionOpen);
+                document.getElementById('alerts-master-accordion').addEventListener('hide.bs.collapse', handleAccordionClose);
+            };
 
-        const initChat = () => { const chatInput = document.getElementById('chat-input'); const sendBtn = document.getElementById('send-chat-btn'); const messageContainer = document.getElementById('chat-messages'); const renderMessage = (text, sender) => { let html; const sanitizedText = text.replace(/</g, "<").replace(/>/g, ">"); if (sender === 'user') { html = `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${sanitizedText}</div></div>`; } else if (sender === 'ai-typing') { html = `<div class="mb-3 text-start" id="ai-typing-indicator"><small class="text-body-secondary">AI Triage Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Typing...</div></div>`; } else { html = `<div class="mb-3 text-start"><small class="text-body-secondary">AI Triage Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${sanitizedText}</div></div>`; } messageContainer.innerHTML += html; messageContainer.scrollTop = messageContainer.scrollHeight; }; const sendMessage = async () => { const messageText = chatInput.value.trim(); if (!messageText) return; renderMessage(messageText, 'user'); chatInput.value = ''; chatInput.disabled = true; sendBtn.disabled = true; renderMessage('', 'ai-typing'); try { const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }, body: JSON.stringify({ message: messageText }) }); const typingIndicator = document.getElementById('ai-typing-indicator'); if (typingIndicator) typingIndicator.remove(); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'The server returned an error.'); } const data = await response.json(); renderMessage(data.reply, 'ai'); } catch (error) { console.error('Chat Error:', error); const typingIndicator = document.getElementById('ai-typing-indicator'); if (typingIndicator) typingIndicator.remove(); renderMessage(`Sorry, I ran into a problem: ${error.message}`, 'ai'); } finally { chatInput.disabled = false; sendBtn.disabled = false; chatInput.focus(); } }; sendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); }); };
-        
-        const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { console.error("Microphone Access Error:", err); showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); } catch (err) { console.error('Error processing report:', err); showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Voice Triage'; recordButton.disabled = false; } }; const displayResults = (data) => { let entityHtml = ''; if (data.entities?.length) { data.entities.forEach(entity => { let c = 'entity-tag-other'; const cat = entity.category.toLowerCase(); if (cat.includes('symptom')) c = 'entity-tag-symptom'; else if (cat.includes('vitals')) c = 'entity-tag-vitals'; else if (cat.includes('injury')) c = 'entity-tag-injury'; entityHtml += `<span class="entity-tag ${c}">${entity.text}</span> `; }); } let suggestionHtml = ''; const suggestionsList = data.suggestions?.suggestions || data.suggestions; if (Array.isArray(suggestionsList)) { suggestionsList.forEach(s => { const suggestionText = s.suggestion || '...'; suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${s.icon || 'fas fa-lightbulb'} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`; }); } const resultsHtml = `<div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div><div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div><div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div><div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div></div><div class="accordion" id="transcriptAccordion"><div class="accordion-item bg-transparent border-secondary"><h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2><div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div></div></div>`; if (resultsContainer) resultsContainer.innerHTML = resultsHtml; }; const showError = (message) => { if (errorContainer) { errorContainer.textContent = message; errorContainer.classList.remove('d-none'); } if (placeholder) placeholder.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; }; setupAudio(); };
-        
-        const initRouting = () => { const calculateBtn = document.getElementById('calculate-route-btn'); const clearBtn = document.getElementById('clear-route-btn'); const toggleLoadingState = (isLoading) => { const spinner = calculateBtn.querySelector('.spinner-border'); const icon = calculateBtn.querySelector('.icon'); calculateBtn.disabled = isLoading; if(isLoading) { spinner.classList.remove('d-none'); icon.classList.add('d-none'); } else { calculateBtn.disabled = (selectedIncidentFeature === null); spinner.classList.add('d-none'); icon.classList.remove('d-none'); } }; const clearRoute = () => { if (routeLayer) map.removeLayer(routeLayer); if (selectedIncidentMarker) L.DomUtil.removeClass(selectedIncidentMarker.getElement(), 'medical-incident-icon-selected'); routeLayer = null; selectedIncidentFeature = null; selectedIncidentMarker = null; document.getElementById('selected-incident-info').innerHTML = `<p class="text-center text-muted mb-0">No incident selected.</p>`; calculateBtn.disabled = true; clearBtn.style.display = 'none'; document.getElementById('route-summary').classList.add('d-none'); document.getElementById('route-placeholder').classList.remove('d-none'); document.getElementById('route-placeholder').textContent = 'Route information will appear here.'; map.closePopup(); }; calculateBtn.addEventListener('click', async () => { if (!selectedIncidentFeature) return; toggleLoadingState(true); const incidentCoords = L.latLng(selectedIncidentFeature.geometry.coordinates[1], selectedIncidentFeature.geometry.coordinates[0]); const bbox = map.getBounds().toBBoxString(); try { const response = await fetch(`/api/hospitals?bbox=${bbox}&limit=2000`); if (!response.ok) throw new Error('Could not fetch hospitals.'); const hospitalsData = await response.json(); if (!hospitalsData.features || hospitalsData.features.length === 0) { throw new Error('No hospitals found in the current map view. Please pan or zoom out.'); } let closestHospital = null; let minDistance = Infinity; const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}; hospitalsData.features.forEach(hospitalFeature => { const hospitalCoords = L.latLng(hospitalFeature.geometry.coordinates[1], hospitalFeature.geometry.coordinates[0]); const distance = getDistance(incidentCoords.lat, incidentCoords.lng, hospitalCoords.lat, hospitalCoords.lng); if (distance < minDistance) { minDistance = distance; closestHospital = hospitalFeature; } }); if (!closestHospital) throw new Error('Could not determine closest hospital.'); const hospitalCoords = closestHospital.geometry.coordinates; const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${incidentCoords.lng},${incidentCoords.lat};${hospitalCoords[0]},${hospitalCoords[1]}?overview=full&geometries=geojson`; const osrmResponse = await fetch(osrmUrl); if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`); const routeData = await osrmResponse.json(); if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.'); const route = routeData.routes[0]; if (routeLayer) map.removeLayer(routeLayer); routeLayer = L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(map); map.fitBounds(routeLayer.getBounds().pad(0.2)); document.getElementById('route-hospital-name').textContent = closestHospital.properties.name || 'Unnamed Hospital'; document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`; document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`; document.getElementById('route-summary').classList.remove('d-none'); document.getElementById('route-placeholder').classList.add('d-none'); clearBtn.style.display = 'block'; } catch (error) { console.error('Routing error:', error); alert(`Could not calculate route: ${error.message}`); document.getElementById('route-placeholder').textContent = `Error: ${error.message}`; } finally { toggleLoadingState(false); } }); clearBtn.addEventListener('click', clearRoute); };
-        
-        // --- VICTIM CHECK-IN SYSTEM LOGIC (UPDATED) ---
-        const initVictimCheckIn = () => {
-            // Hardcoded data. In a real app, you would fetch these two lists from your API.
-            // 1. A list of all users who were sent an alert.
-            const allUsersInAlertZone = [
-                { id: 1, name: 'Jane Smith', location: '123 Maple Ave, Apt 2B' },
-                { id: 2, name: 'Robert Johnson', location: '456 Oak St, Floor 3' },
-                { id: 3, name: 'Emily White', location: '789 Pine Ln' },
-                { id: 4, name: 'Michael Brown', location: '456 Oak St, Floor 3' },
-                { id: 5, name: 'Jessica Davis', location: '101 Birch Rd' },
-                { id: 6, name: 'David Wilson', location: '212 Cedar Blvd' },
-                { id: 7, name: 'Maria Garcia', location: '303 Spruce Way' },
-                { id: 8, name: 'Chris Lee', location: '505 Willow Creek' }
-            ];
-
-            // 2. A list of users who have actually checked in.
-            const checkInData = [
-                { id: 1, status: 'OK', checkinTime: '2024-05-21T10:30:00Z', notes: 'Checked in via mobile app.' },
-                { id: 2, status: 'Needs Assistance', checkinTime: '2024-05-21T10:32:00Z', notes: 'Reports shortness of breath.' },
-                { id: 3, status: 'OK', checkinTime: '2024-05-21T10:33:00Z', notes: '' },
-                { id: 4, status: 'Unresponsive', checkinTime: '2024-05-21T10:35:00Z', notes: 'Reported by Robert Johnson. Same location.' },
-                { id: 5, status: 'Needs Assistance', checkinTime: '2024-05-21T10:38:00Z', notes: 'Minor laceration on arm.' },
-                { id: 6, status: 'OK', checkinTime: '2024-05-21T10:40:00Z', notes: 'Safe with family.' },
-            ];
-
-            const victimListContainer = document.getElementById('victim-list-container');
-            const filterButtons = document.querySelectorAll('.victim-filter-btn');
+            const handleActionButtons = async (event) => { /* Same logic as before */
+                const button = event.target.closest('button');
+                if (!button) return;
+                event.stopPropagation();
+                const { lat, lng, radius, userId } = button.dataset;
+                const classList = button.classList;
+                if (classList.contains('zoom-to-alert-btn')) { const center = L.latLng(lat, lng); const northEast = L.latLng(center.lat + (radius / 111320), center.lng + (radius / (111320 * Math.cos(center.lat * Math.PI / 180)))); const southWest = L.latLng(center.lat - (radius / 111320), center.lng - (radius / (111320 * Math.cos(center.lat * Math.PI / 180)))); map.fitBounds(L.latLngBounds(southWest, northEast)); }
+                if (classList.contains('locate-user-btn')) { map.flyTo([lat, lng], 16); if (userMarkers[userId]) userMarkers[userId].openPopup(); }
+                if (classList.contains('route-user-btn')) { if (commandUserLocation) calculateAndShowRoute(commandUserLocation, {latitude: lat, longitude: lng}); else alert('Your location is unknown.'); }
+                if (classList.contains('route-to-point-btn')) { isPlacingRouteDest = true; routeStartPoint = {latitude: lat, longitude: lng}; document.getElementById('map').classList.add('cursor-crosshair'); alert('Click on the map to set the destination.'); }
+                if (classList.contains('clear-user-btn')) { if (confirm('Are you sure you want to clear this user for this alert?')) clearUserStatus(userId, button.dataset.alertId, button); }
+            };
             
-            // This function merges the two lists to create a complete status list.
-            const getMasterStatusList = () => {
-                return allUsersInAlertZone.map(user => {
-                    const checkedInUser = checkInData.find(c => c.id === user.id);
-                    if (checkedInUser) {
-                        // If user has checked in, merge their info with their response
-                        return { ...user, ...checkedInUser };
-                    } else {
-                        // If user has NOT checked in, create an entry with "Awaiting Response" status
-                        return { ...user, status: 'Awaiting Response', checkinTime: null, notes: '' };
-                    }
+            const handleAccordionOpen = async (event) => { /* Same logic as before */
+                const body = event.target.querySelector('.accordion-body');
+                const {alertId, loaded} = event.target.dataset;
+                if (!alertId || loaded === 'true') return;
+                try {
+                    const response = await axios.get(`/alerts/${alertId}/affected-users`);
+                    event.target.dataset.loaded = 'true'; renderUserTabsAndList(alertId, response.data); plotUsersOnMap(alertId, response.data);
+                } catch(error) { console.error(`User fetch failed for alert ${alertId}:`, error); body.innerHTML = `<div class="alert alert-danger m-2 small">Error.</div>`; }
+            };
+
+            const handleAccordionClose = (event) => { /* Same logic as before */
+                const {alertId} = event.target.dataset; if (affectedUserLayers[alertId]) { map.removeLayer(affectedUserLayers[alertId]); delete affectedUserLayers[alertId]; } userMarkers = {}; 
+            };
+            
+            // **MODIFIED** to add user search bar HTML
+            const renderUserTabsAndList = (alertId, users) => {
+                const body = document.querySelector(`#collapse-alert-${alertId} .accordion-body`);
+                const assistance = users.filter(u => u.status === 'needs_help' || u.status === 'threat_report');
+                const cleared = users.filter(u => u.status === 'im_safe');
+                const html = `<div class="mb-2"><input type="text" class="form-control form-control-sm per-alert-user-search" placeholder="Search user or ID..." data-alert-id="${alertId}"></div>
+                    <ul class="nav nav-tabs nav-fill" role="tablist"><li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#pane-all-${alertId}">All (${users.length})</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-help-${alertId}">Assistance (${assistance.length})</button></li><li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#pane-cleared-${alertId}">Cleared (${cleared.length})</button></li></ul>
+                    <div class="tab-content pt-2"><div class="tab-pane fade show active" id="pane-all-${alertId}">${generateUserListHtml(users, alertId)}</div><div class="tab-pane fade" id="pane-help-${alertId}">${generateUserListHtml(assistance, alertId)}</div><div class="tab-pane fade" id="pane-cleared-${alertId}">${generateUserListHtml(cleared, alertId)}</div></div>`;
+                body.innerHTML = html;
+            };
+
+            // **MODIFIED** to add user ID display and alertId to button
+            const generateUserListHtml = (users, alertId) => {
+                const statusMap = { im_safe: "text-bg-success", needs_help: "text-bg-danger", threat_report: "text-bg-warning", awaiting_response: "text-bg-secondary" };
+                if (users.length === 0) return `<div class="text-center text-muted p-3 small">No users.</div>`;
+                return '<div class="list-group list-group-flush user-status-list">' + users.map(user => {
+                    const hasCoords = user.latitude && user.longitude;
+                    const searchData = `${user.name.toLowerCase()} (id: ${user.id})`;
+                    return `<div class="list-group-item bg-transparent user-status-item py-2" data-user-id="${user.id}" data-search-term="${searchData}">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <h6 class="mb-1 small fw-bold">${user.name} <span class="text-muted fw-normal">(ID: ${user.id})</span></h6>
+                            <span class="badge ${statusMap[user.status] || 'text-bg-secondary'} rounded-pill">${(user.status || 'N/A').replace('_',' ')}</span>
+                        </div>
+                        <p class="mb-1 small text-muted fst-italic">${user.message || 'No message provided.'}</p>
+                        <small class="text-white-50">Updated: ${user.last_update ? new Date(user.last_update).toLocaleTimeString() : 'N/A'}</small>
+                        <div class="user-actions">
+                            ${hasCoords ? `<button class="btn btn-outline-primary locate-user-btn" data-lat="${user.latitude}" data-lng="${user.longitude}" data-user-id="${user.id}"><i class="fas fa-map-marker-alt"></i>Locate</button>
+                                <button class="btn btn-outline-info route-user-btn" data-lat="${user.latitude}" data-lng="${user.longitude}"><i class="fas fa-route"></i>Route</button>
+                                <button class="btn btn-outline-warning route-to-point-btn" data-lat="${user.latitude}" data-lng="${user.longitude}"><i class="fas fa-map-pin"></i>To...</button>` : ''}
+                            ${user.status !== 'im_safe' ? `<button class="btn btn-outline-success clear-user-btn" data-user-id="${user.id}" data-alert-id="${alertId}"><i class="fas fa-check"></i>Clear</button>` : ''}
+                        </div>
+                    </div>`;
+                }).join('') + '</div>';
+            };
+
+            // **NEW** function to handle per-alert user search
+            const handlePerAlertSearch = (event) => {
+                if (!event.target.classList.contains('per-alert-user-search')) return;
+                const searchTerm = event.target.value.toLowerCase();
+                const alertId = event.target.dataset.alertId;
+                const userItems = document.querySelectorAll(`#collapse-alert-${alertId} .user-status-item`);
+                userItems.forEach(item => {
+                    item.style.display = (item.dataset.searchTerm || '').includes(searchTerm) ? '' : 'none';
                 });
             };
 
-            const masterStatusList = getMasterStatusList();
-
-            const renderVictimList = (filter = 'all') => {
-                if (!victimListContainer) return;
-
-                const filteredVictims = filter === 'all' 
-                    ? masterStatusList 
-                    : masterStatusList.filter(v => v.status === filter);
-
-                if (filteredVictims.length === 0) {
-                    victimListContainer.innerHTML = `<div class="text-center p-5 text-muted">No individuals match the filter "${filter}".</div>`;
-                    return;
-                }
-
-                let html = '<div class="list-group list-group-flush">';
-                filteredVictims.forEach(victim => {
-                    let badgeClass = 'bg-secondary';
-                    let iconClass = 'fa-question-circle';
-                    switch(victim.status) {
-                        case 'OK': badgeClass = 'text-bg-success'; iconClass = 'fa-check-circle'; break;
-                        case 'Needs Assistance': badgeClass = 'text-bg-danger'; iconClass = 'fa-exclamation-triangle'; break;
-                        case 'Unresponsive': badgeClass = 'text-bg-warning'; iconClass = 'fa-skull-crossbones'; break;
-                        case 'Awaiting Response': badgeClass = 'text-bg-secondary'; iconClass = 'fa-question-circle'; break;
+            // **MODIFIED** to pass alertId
+            const clearUserStatus = async (userId, alertId, button) => {
+                button.disabled = true; button.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+                try {
+                    const response = await axios.patch(`/users/${userId}/clear/${alertId}`);
+                    if (response.data.success) {
+                        const alertContainer = button.closest('.accordion-collapse');
+                        const alertBody = alertContainer.querySelector('.accordion-body');
+                        alertBody.innerHTML = `<div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div></div>`;
+                        const userResponse = await axios.get(`/alerts/${alertId}/affected-users`);
+                        renderUserTabsAndList(alertId, userResponse.data);
+                        plotUsersOnMap(alertId, userResponse.data);
                     }
-                    
-                    const timeDisplay = victim.checkinTime ? new Date(victim.checkinTime).toLocaleString() : 'N/A';
-
-                    html += `
-                        <a href="#" class="list-group-item list-group-item-action bg-transparent border-bottom">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h6 class="mb-1"><i class="fas ${iconClass} me-2"></i> ${victim.name}</h6>
-                                <span class="badge ${badgeClass} rounded-pill status-badge">${victim.status}</span>
-                            </div>
-                            <p class="mb-1 small">${victim.location}</p>
-                            ${victim.notes ? `<p class="mb-1 small fst-italic text-info">Note: ${victim.notes}</p>` : ''}
-                            <small class="text-muted">Last Update: ${timeDisplay}</small>
-                        </a>
-                    `;
-                });
-                html += '</div>';
-                victimListContainer.innerHTML = html;
+                } catch (error) { console.error("Failed to clear user:", error); button.disabled = false; button.innerHTML = '<i class="fas fa-check"></i>Clear'; alert('Could not clear user.'); }
             };
 
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    this.classList.add('active');
-                    const filter = this.dataset.statusFilter;
-                    renderVictimList(filter);
-                });
+            const plotUsersOnMap = (alertId, users) => { /* unchanged */
+                if(affectedUserLayers[alertId]) map.removeLayer(affectedUserLayers[alertId]);
+                const group = L.layerGroup();
+                const dots = { im_safe: 'ok', needs_help: 'help', threat_report: 'threat', awaiting_response: 'awaiting' };
+                users.forEach(u => { if(u.latitude && u.longitude) { const marker = L.marker([u.latitude, u.longitude], { icon: L.divIcon({ className: `user-status-dot user-status-dot-${dots[u.status] || 'awaiting'}`})}).bindPopup(`<b>${u.name} (ID: ${u.id})</b>`); userMarkers[u.id] = marker; group.addLayer(marker); }});
+                affectedUserLayers[alertId] = group; map.addLayer(group);
+            };
+
+            const calculateAndShowRoute = async (start, end) => { /* unchanged */
+                const box = document.getElementById('route-info-box'), text = document.getElementById('route-info-text');
+                text.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Calculating...`; box.style.display = 'flex';
+                const url = `https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson`;
+                try {
+                    const response = await fetch(url); const data = await response.json(); if (!data.routes || !data.routes.length) throw new Error('No route found.');
+                    if (currentRouteLayer) map.removeLayer(currentRouteLayer);
+                    currentRouteLayer = L.geoJson(data.routes[0].geometry, {style: {color:'#0dcaf0', weight:6, opacity:0.8}}).addTo(map);
+                    map.fitBounds(currentRouteLayer.getBounds().pad(0.2));
+                    text.innerHTML = `<strong>Route:</strong> ${(data.routes[0].distance / 1000).toFixed(1)} km, ~${Math.round(data.routes[0].duration / 60)} mins`;
+                } catch(e) { console.error("Route error:", e); text.innerHTML = "Error calculating route."; }
+            };
+
+            map.on('click', function(e) { /* unchanged */
+                if (!isPlacingRouteDest) return;
+                calculateAndShowRoute(routeStartPoint, { latitude: e.latlng.lat, longitude: e.latlng.lng });
+                document.getElementById('map').classList.remove('cursor-crosshair');
+                isPlacingRouteDest = false; routeStartPoint = null;
             });
-
-            document.getElementById('refresh-victim-list-btn').addEventListener('click', () => {
-                const activeFilter = document.querySelector('.victim-filter-btn.active').dataset.statusFilter || 'all';
-                // In a real app, this would re-fetch the data and then re-render.
-                // For this example, we just re-run the render function.
-                renderVictimList(activeFilter);
-            });
-
-            // Initial render
-            renderVictimList();
+            
+            clearRouteBtn.addEventListener('click', () => { if (currentRouteLayer) map.removeLayer(currentRouteLayer); document.getElementById('route-info-box').style.display = 'none'; currentRouteLayer = null; });
+            searchInput.addEventListener('input', () => { const term = searchInput.value.toLowerCase(); accordionContainer.querySelectorAll('.accordion-item').forEach(item => { item.style.display = (item.dataset.alertMessage || '').includes(term) ? '' : 'none'; }); });
+            refreshBtn.addEventListener('click', fetchAndRenderAlerts);
+            fetchAndRenderAlerts();
         };
 
-        const initTextToSpeech = () => { if (!('speechSynthesis' in window)) { console.warn('Speech Synthesis not supported.'); return; } document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
-
-        // --- INITIALIZE ALL SYSTEMS ---
-        setTimeout(initMap, 250);
-        initChat();
-        initLiveReport();
-        initTextToSpeech();
-        initRouting();
-        initSidebarToggles();
-        initVictimCheckIn(); // Initialize the new system
+        initMap();
+        initVictimCheckIn();
     });
 </script>
 </body>

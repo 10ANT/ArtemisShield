@@ -20,6 +20,9 @@ return new class extends Migration
             $table->rememberToken();
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
+            $table->decimal('latitude', 10, 7)->nullable()->after('profile_photo_path'); // Or after any other column
+            $table->decimal('longitude', 11, 7)->nullable()->after('latitude');
+        
             $table->timestamps();
         });
 

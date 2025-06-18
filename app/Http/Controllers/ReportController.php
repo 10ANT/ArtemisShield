@@ -10,7 +10,8 @@ use Throwable;
 use App\Services\AzureSearchService;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Notification; 
+use App\Models\Notification;
+use Barryvdh\DomPDF\Facade\Pdf; // <-- IMPORT THE PDF FACADE
 
 class ReportController extends Controller
 {
@@ -18,7 +19,7 @@ class ReportController extends Controller
     // Example for Linux: '/usr/bin/ffmpeg'
     // Example for Windows: 'C:\\ffmpeg\\bin\\ffmpeg.exe' (use double backslashes)
 
-    private const FFMPEG_PATH = 'D:\ffmpeg-2025-05-21-git-4099d53759-essentials_build\ffmpeg-2025-05-21-git-4099d53759-essentials_build\bin\ffmpeg.exe';
+    private const FFMPEG_PATH = 'D:\\ffmpeg-master-latest-win64-gpl-shared\\ffmpeg-master-latest-win64-gpl-shared\\bin\\ffmpeg.exe';
     
     /**
      * Main processing function for the audio report.
@@ -47,8 +48,9 @@ class ReportController extends Controller
             // --- END: Database Saving Logic ---
 
             
-
+            // MODIFIED RESPONSE: Include the new report ID
             return response()->json([
+                'report_id' => $report->id, // <-- ADDED THIS LINE
                 'transcript' => $transcript,
                 'summary' => $analysis['summary'],
                 'entities' => $analysis['entities'],
@@ -59,6 +61,30 @@ class ReportController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * NEW METHOD: Handles the PDF export request.
+     *
+     * @param Report $report The report instance injected by Route Model Binding.
+     * @return \Illuminate\Http\Response
+     */
+    public function exportPdf(Report $report)
+    {
+        // Optional: Add authorization check if needed, e.g., if only the user who created it can download.
+        // if (Auth::id() !== $report->user_id) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        // Load the PDF view with the report data
+        $pdf = PDF::loadView('firefighter.report', ['report' => $report]);
+
+        // Define a user-friendly filename
+        $filename = 'Incident-Report-' . $report->id . '-' . $report->created_at->format('Ymd-His') . '.pdf';
+
+        // Stream the PDF to the browser for download
+        return $pdf->download($filename);
+    }
+
 
     private function transcribeAudio($audioFile)
     {

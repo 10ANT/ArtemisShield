@@ -11,6 +11,9 @@ use App\Models\FireHydrant;
 use App\Http\Controllers\HistoricalMapController;
 
 
+use App\Http\Controllers\HistoricalMapController;
+
+use App\Http\Controllers\Api\CommandController;
 
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\WildfireOfficer\DashboardController;
@@ -19,6 +22,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ParamedicsController;
 use App\Http\Controllers\PredictionController;
 
+use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\FireIncidentController;
 
 
@@ -211,3 +215,22 @@ Route::get('/api/historical-fires', [HistoricalMapController::class, 'getFireDat
 Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff'])->prefix('first-responder')->group(function () {
     Route::get('/dashboard', [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
 });
+
+
+// Add these routes for the command dashboard functionality
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    // Other dashboard routes like Route::get('/dashboard', ...);
+
+    // Route to find which alerts the current command user is inside of.
+    Route::get('/command/relevant-alerts', [CommandController::class, 'getRelevantAlerts'])->name('command.relevant-alerts');
+    
+    // Route to find all users and their status within a specific alert zone.
+    Route::get('/alerts/{alert}/affected-users', [CommandController::class, 'getAffectedUsersInAlert'])->name('command.affected-users');
+});
+
+Route::patch('/users/{userId}/clear/{alertId}', [UserController::class, 'clearStatus'])->name('users.clear-status');
+
+
+Route::get('/report/{report}/export', [ReportController::class, 'exportPdf'])
+    ->middleware('auth') // Make sure only logged-in users can access it
+    ->name('report.export');
