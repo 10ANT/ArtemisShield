@@ -110,7 +110,7 @@
     .leaflet-control-fullscreen { box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
     .leaflet-bar .leaflet-control-fullscreen { border: none; }
     
-    body.map-fullscreen-active .sidebar-nav-wrapper,
+    body.map-fullscreen-active .sidebar-area,
     body.map-fullscreen-active .main-content > .header-area,
     body.map-fullscreen-active .main-content > .footer,
     body.map-fullscreen-active #right-sidebar-column { 
@@ -151,10 +151,55 @@
     #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
     .wildfire-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
     .wildfire-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
-    @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } .config-panel, .legend-panel { display: none; } /* Hide map overlays on small screens */ }
+    @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; flex-direction: column; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; border-left: 0; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } .config-panel, .legend-panel { display: none; } }
     @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
 
+    /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
+    @media (max-width: 991.98px) {
+        .sidebar-area {
+            position: static !important;
+            width: 100% !important;
+            transform: none !important;
+            left: auto !important;
+            top: auto !important;
+            z-index: auto !important;
+            transition: max-height 0.35s ease-in-out;
+            background-color: var(--bs-body-bg); /* Ensure it has a solid background */
+        }
+        
+        body.sidebar-close .sidebar-area {
+            max-height: 0;
+            overflow: hidden; /* Hide content and prevent scrollbars */
+            border-bottom-width: 0;
+        }
 
+        body:not(.sidebar-close) .sidebar-area {
+            max-height: 75vh; /* Allow sidebar to take up to 75% of the viewport height */
+            overflow-y: auto; /* Add scrollbar if content is taller than max-height */
+            border-bottom: 1px solid var(--bs-border-color); /* Visual separator */
+        }
+
+        .main-content {
+            margin-left: 0 !important;
+            width: 100% !important;
+            transition: none !important;
+        }
+
+        .body-overlay {
+            display: none !important;
+        }
+
+        #sidebar-area .sidebar-burger-menu {
+            display: none !important;
+        }
+
+        .main-content > .header-area {
+            position: sticky;
+            top: 0;
+            z-index: 1025; 
+        }
+    }
+    /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
 </style>
 </head>
 <body class="boxed-size">
@@ -578,29 +623,24 @@
                 reports.forEach((report) => {
                     const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
                     
-                    // --- START: ROBUST DATA PARSING ---
                     let actionsData = report.ai_suggested_actions;
-                    // Check if it's a string; if so, parse it.
                     if (typeof actionsData === 'string' && actionsData) {
                         try {
                             actionsData = JSON.parse(actionsData);
                         } catch (e) {
                             console.error("Could not parse ai_suggested_actions JSON for report ID " + report.id, e, actionsData);
-                            actionsData = {}; // Default to an empty object on parsing failure
+                            actionsData = {}; 
                         }
                     } else if (actionsData === null || typeof actionsData !== 'object') {
-                        actionsData = {}; // Ensure it's an object if it's null or not an object
+                        actionsData = {}; 
                     }
 
-                    // Now, safely get the suggestions list. Handles both {suggestions: []} and [] formats.
                     const suggestionsList = actionsData.suggestions || (Array.isArray(actionsData) ? actionsData : []);
-                    // --- END: ROBUST DATA PARSING ---
 
                     let suggestionsHtml = '';
                     if (Array.isArray(suggestionsList) && suggestionsList.length > 0) {
                         suggestionsHtml = '<ul class="list-group list-group-flush">';
                         suggestionsList.forEach(s => {
-                            // Ensure suggestion object exists and has the 'suggestion' property
                             if (s && s.suggestion) {
                                 suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${s.icon || 'fas fa-lightbulb'} me-2 text-success"></i> ${s.suggestion}</li>`;
                             }
@@ -706,6 +746,37 @@
         const initRouting = () => { const calculateBtn = document.getElementById('calculate-route-btn'); const clearBtn = document.getElementById('clear-route-btn'); const toggleLoadingState = (isLoading) => { const spinner = calculateBtn.querySelector('.spinner-border'); const icon = calculateBtn.querySelector('.icon'); calculateBtn.disabled = isLoading; if(isLoading) { spinner.classList.remove('d-none'); icon.classList.add('d-none'); } else { calculateBtn.disabled = (selectedFireFeature === null); spinner.classList.add('d-none'); icon.classList.remove('d-none'); } }; const clearRoute = () => { if (routeLayer) map.removeLayer(routeLayer); if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); routeLayer = null; selectedFireFeature = null; selectedFireMarker = null; document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`; calculateBtn.disabled = true; clearBtn.style.display = 'none'; document.getElementById('route-summary').classList.add('d-none'); document.getElementById('route-placeholder').classList.remove('d-none'); document.getElementById('route-placeholder').textContent = 'Route information will appear here.'; map.closePopup(); }; calculateBtn.addEventListener('click', async () => { if (!selectedFireFeature) return; toggleLoadingState(true); const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]); const bbox = map.getBounds().toBBoxString(); try { const response = await fetch(`/api/fire_stations?bbox=${bbox}&limit=2000`); if (!response.ok) throw new Error('Could not fetch fire stations.'); const stationsData = await response.json(); if (!stationsData.features || stationsData.features.length === 0) { throw new Error('No fire stations found in the current map view. Please pan or zoom out.'); } let closestStation = null; let minDistance = Infinity; const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}; stationsData.features.forEach(stationFeature => { const stationCoords = L.latLng(stationFeature.geometry.coordinates[1], stationFeature.geometry.coordinates[0]); const distance = getDistance(fireCoords.lat, fireCoords.lng, stationCoords.lat, stationCoords.lng); if (distance < minDistance) { minDistance = distance; closestStation = stationFeature; } }); if (!closestStation) throw new Error('Could not determine closest station.'); const stationCoords = closestStation.geometry.coordinates; const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`; const osrmResponse = await fetch(osrmUrl); if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`); const routeData = await osrmResponse.json(); if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.'); const route = routeData.routes[0]; if (routeLayer) map.removeLayer(routeLayer); routeLayer = L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(map); map.fitBounds(routeLayer.getBounds().pad(0.2)); document.getElementById('route-station-name').textContent = closestStation.properties.name || 'Unnamed Station'; document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`; document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`; document.getElementById('route-summary').classList.remove('d-none'); document.getElementById('route-placeholder').classList.add('d-none'); clearBtn.style.display = 'block'; } catch (error) { console.error('Routing error:', error); alert(`Could not calculate route: ${error.message}`); document.getElementById('route-placeholder').textContent = `Error: ${error.message}`; } finally { toggleLoadingState(false); } }); clearBtn.addEventListener('click', clearRoute); };
         const initSidebarFix = () => { const sidebarTabs = document.querySelectorAll('#sidebar-tabs button[data-bs-toggle="pill"]'); sidebarTabs.forEach(tab => { tab.addEventListener('shown.bs.tab', () => { if (window.App && typeof window.App.updateSidebarScroll === 'function') { try { window.App.updateSidebarScroll(); } catch (e) { console.warn("Could not update sidebar scroll.", e); } } }); }); };
 
+        /**
+         * FIX: Initializes the mobile sidebar toggle functionality.
+         * This overrides the theme's default slide-in behavior for a top-down reveal on mobile.
+         */
+        const initMobileSidebarToggle = () => {
+            const burgerMenu = document.getElementById('header-burger-menu');
+            const body = document.body;
+
+            if (burgerMenu && body) {
+                // On initial load, if on mobile, ensure the sidebar is in a closed state.
+                if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
+                    body.classList.add('sidebar-close');
+                }
+
+                burgerMenu.addEventListener('click', function(event) {
+                    // This custom logic should ONLY apply on mobile viewports.
+                    if (window.innerWidth < 992) {
+                        // Stop the original theme's JavaScript from executing its conflicting slide-in logic.
+                        event.preventDefault();
+                        event.stopPropagation();
+                        
+                        // Manually toggle the class on the body. Our custom CSS handles the animation.
+                        body.classList.toggle('sidebar-close');
+                    }
+                    // On desktop viewports (>= 992px), this listener does nothing, allowing the
+                    // theme's default JavaScript to manage the sidebar as intended.
+                }, true); // Using the "capture" phase ensures this listener runs before the theme's default.
+            }
+        };
+
+
         // --- INITIALIZE ALL SYSTEMS ---
         setTimeout(initMap, 250);
         initChat();
@@ -717,6 +788,7 @@
         initRouting();
         initSidebarFix();
         initSidebarToggles();
+        initMobileSidebarToggle(); // Initialize the mobile sidebar fix.
     });
 </script>
 </body>

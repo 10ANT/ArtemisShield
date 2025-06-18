@@ -62,10 +62,65 @@
         .marker-cluster-large { background-color: rgba(241, 128, 23, 0.9); }
         .marker-cluster-xlarge { background-color: rgba(204, 75, 75, 0.9); }
 
-        /* **NEW: Styles for the details modal** */
         .modal-body .row { margin-bottom: 0.5rem; }
         .modal-body .row .col-md-4 { font-weight: bold; color: var(--bs-secondary-color); }
         .modal-body .row .col-md-8 { word-break: break-all; }
+
+        /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
+        @media (max-width: 991.98px) {
+            .sidebar-area {
+                position: static !important;
+                width: 100% !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
+                z-index: auto !important;
+                transition: max-height 0.35s ease-in-out;
+                background-color: var(--bs-body-bg);
+            }
+            
+            body.sidebar-close .sidebar-area {
+                max-height: 0;
+                overflow: hidden;
+                border-bottom-width: 0;
+            }
+
+            body:not(.sidebar-close) .sidebar-area {
+                max-height: 75vh;
+                overflow-y: auto;
+                border-bottom: 1px solid var(--bs-border-color);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                transition: none !important;
+            }
+
+            .body-overlay {
+                display: none !important;
+            }
+
+            #sidebar-area .sidebar-burger-menu {
+                display: none !important;
+            }
+
+            .main-content > header {
+                position: sticky;
+                top: 0;
+                z-index: 1025; 
+            }
+
+            /* Adjustments for this page's content layout on mobile */
+            .dashboard-container {
+                flex-direction: column;
+            }
+            .dashboard-container .col-lg-4.border-start {
+                border-left: 0 !important;
+                border-top: 1px solid var(--bs-border-color) !important;
+            }
+        }
+        /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
     </style>
 </head>
 <body class="boxed-size">
@@ -100,7 +155,6 @@
     @include('partials.footer')
 </div>
 
-<!-- **NEW: Bootstrap Modal for Full Fire Details** -->
 <div class="modal fade" id="fire-details-modal" tabindex="-1" aria-labelledby="fireDetailsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -127,8 +181,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let fireMarkers = null;
     let filterAreaLayer = L.featureGroup();
     let drawControl;
-    let fullFireData = []; // **NEW: Store full data for all fires**
-    let fireDetailsModal; // **NEW: Modal instance**
+    let fullFireData = [];
+    let fireDetailsModal;
 
     const loader = document.getElementById('map-loader');
     const apiBaseUrl = "{{ route('api.historical.fires') }}";
@@ -147,7 +201,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addLegend();
         setupUI();
         
-        // **NEW: Initialize the Bootstrap modal**
         fireDetailsModal = new bootstrap.Modal(document.getElementById('fire-details-modal'));
 
         fetchHistoricalFires();
@@ -174,7 +227,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('reset-filters-btn').addEventListener('click', resetFilters);
     };
 
-    // **NEW: Function to show the details modal**
     window.showFireDetails = function(fireId) {
         const fireData = fullFireData.find(f => f.id === fireId);
         if (!fireData) {
@@ -233,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`${apiBaseUrl}?${queryParams}`);
             if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
             const fires = await response.json();
-            fullFireData = fires; // **NEW: Store the full data**
+            fullFireData = fires;
             plotFires(fires);
         } catch (error) {
             console.error('Failed to fetch historical fire data:', error);
@@ -262,7 +314,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const time = String(fire.acq_time).padStart(4, '0');
             const formattedTime = time.substring(0, 2) + ':' + time.substring(2, 4);
 
-            // **UPDATED POPUP CONTENT with "View Details" button**
             const popupContent = `
                 <div style="font-size: 14px;">
                     <strong>Date:</strong> ${fire.acq_date}<br>
@@ -284,7 +335,36 @@ document.addEventListener('DOMContentLoaded', function() {
         map.addLayer(fireMarkers);
     };
 
+    /**
+     * FIX: Initializes the mobile sidebar toggle functionality.
+     * This overrides the theme's default slide-in behavior for a top-down reveal on mobile.
+     */
+    const initMobileSidebarToggle = () => {
+        const burgerMenu = document.querySelector('.header-burger-menu'); // More generic selector
+        const body = document.body;
+
+        if (burgerMenu && body) {
+            // On initial load, if on mobile, ensure the sidebar is in a closed state.
+            if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
+                body.classList.add('sidebar-close');
+            }
+
+            burgerMenu.addEventListener('click', function(event) {
+                // This custom logic should ONLY apply on mobile viewports.
+                if (window.innerWidth < 992) {
+                    // Stop the original theme's JavaScript from executing its conflicting slide-in logic.
+                    event.preventDefault();
+                    event.stopPropagation();
+                    
+                    // Manually toggle the class on the body. Our custom CSS handles the animation.
+                    body.classList.toggle('sidebar-close');
+                }
+            }, true); // Using the "capture" phase ensures this listener runs before the theme's default.
+        }
+    };
+
     initMap();
+    initMobileSidebarToggle(); // Initialize the mobile sidebar fix.
 });
 </script>
 </body>
