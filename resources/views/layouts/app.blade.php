@@ -16,6 +16,14 @@
 
         <!-- Styles -->
         @livewireStyles
+
+
+        
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+
+    <!-- PWA Theme Color -->
+    <meta name="theme-color" content="#4A90E2">
     </head>
     <body class="font-sans antialiased">
         <x-banner />

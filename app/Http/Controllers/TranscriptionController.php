@@ -10,8 +10,8 @@ use Throwable;
 
 class TranscriptionController extends Controller
 {
-    // Ensure this path matches the one in your ReportController
-    private const FFMPEG_PATH = 'D:\ffmpeg-master-latest-win64-gpl-shared\bin\ffmpeg.exe';
+    // CHANGED: The hardcoded constant has been removed.
+    // The path will now be loaded from the config file.
 
     /**
      * Handles the audio file upload, transcribes it, and returns the text.
@@ -36,7 +36,7 @@ class TranscriptionController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
             // Return a clean JSON error
-            return response()->json(['error' => $e->getMessage()], 500);
+            return response()->json(['error' => 'An error occurred during transcription: ' . $e->getMessage()], 500);
         }
     }
 
@@ -58,9 +58,15 @@ class TranscriptionController extends Controller
             throw new \Exception('The shell_exec function is disabled. FFmpeg cannot be run.');
         }
 
+        // CHANGED: Get the FFmpeg path from the new config file.
+        $ffmpegPath = config('ffmpeg.path');
+        if (!$ffmpegPath) {
+            throw new \Exception('FFMPEG_PATH is not defined in your environment file (.env).');
+        }
+
         $ffmpegCommand = sprintf(
             '%s -i "%s" -acodec pcm_s16le -ar 16000 -ac 1 "%s" 2>&1',
-            self::FFMPEG_PATH,
+            $ffmpegPath, // CHANGED: Use the dynamic path from the config.
             $originalPath,
             $convertedPath
         );
