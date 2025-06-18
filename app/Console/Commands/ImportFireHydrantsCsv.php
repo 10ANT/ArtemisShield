@@ -29,7 +29,7 @@ class ImportFireHydrantsCsv extends Command
      */
     public function handle()
     {
-        $filePath = 'data/fire_hydrants.csv'; // Path relative to storage/app/
+        $filePath = 'app/Console/Commands/fire_hydrants.csv'; // Path relative to storage/app/
 
         if (!Storage::exists($filePath)) {
             $this->error("CSV file not found: storage/app/{$filePath}");

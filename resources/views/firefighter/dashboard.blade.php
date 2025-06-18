@@ -45,8 +45,8 @@
     .map-overlay .card-header:active { cursor: grabbing; }
     .map-overlay .card-header .btn { color: var(--bs-body-color); }
     .map-overlay .card-body { overflow-y: auto; }
-    .config-panel { top: 1rem; right: 5rem; } /* Positioned away from sidebar toggle */
-    .legend-panel { top: 21rem; right: 5rem; } /* UPDATED: Positioned below the config panel */
+    .config-panel { top: 1rem; right: 5rem; }
+    .legend-panel { top: 21rem; right: 5rem; }
     .map-overlay .form-check-label { font-size: 0.9rem; }
     .map-overlay hr { margin-top: 1rem; margin-bottom: 1rem; }
     /* END: Draggable Map Overlay Panel Styles */
@@ -87,7 +87,7 @@
     .fire-cluster-medium { width: 35px; height: 35px; line-height: 31px; }
     .fire-cluster-large { width: 40px; height: 40px; line-height: 36px; }
     
-    .legend-control { /* This class is on the card-body of the legend panel */
+    .legend-control {
         padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
         font: 14px/16px Arial, Helvetica, sans-serif;
         color: var(--bs-body-color);
@@ -110,9 +110,8 @@
     .leaflet-control-fullscreen { box-shadow: 0 1px 5px rgba(0,0,0,0.65); }
     .leaflet-bar .leaflet-control-fullscreen { border: none; }
     
-    /* This class is toggled on the <body> tag by the JS control */
     body.map-fullscreen-active .sidebar-nav-wrapper,
-    body.map-fullscreen-active .main-content > .header-area, /* <-- UPDATED SELECTOR */
+    body.map-fullscreen-active .main-content > .header-area,
     body.map-fullscreen-active .main-content > .footer,
     body.map-fullscreen-active #right-sidebar-column { 
         display: none !important; 
@@ -127,7 +126,6 @@
     }
     /* END: FULLSCREEN BUTTON CSS */
 
-    /* Your other styles... */
     #live-report-content { display: flex; flex-direction: column; height: 100%; }
     .recording-controls { text-align: center; padding: 1rem 0; border-bottom: 1px solid var(--bs-border-color); }
     .record-btn { width: 90px; height: 90px; border-radius: 50%; background-color: var(--bs-secondary-bg); border: 4px solid var(--bs-primary); color: var(--bs-primary); font-size: 2rem; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
@@ -164,7 +162,6 @@
     @include('partials.sidebar')
 <div class="main-content d-flex flex-column">
     
-    <!-- START: NEW HEADER -->
     <header class="header-area bg-white mb-4 rounded-bottom-15" id="header-area">
         <div class="row align-items-center">
             <div class="col-lg-4 col-sm-6">
@@ -317,7 +314,6 @@
             </div>
         </div>
     </header>
-    <!-- END: NEW HEADER -->
 
     <div class="wildfire-dashboard-container row g-0 flex-grow-1">
         <div class="col-lg-8 col-md-12" id="map-column">
@@ -327,7 +323,6 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 
-                <!-- START: MAP CONFIGURATION PANEL -->
                 <div class="map-overlay config-panel card shadow-sm">
                     <div class="card-header p-0" id="configHeading">
                         <h6 class="mb-0">
@@ -352,9 +347,7 @@
                         </div>
                     </div>
                 </div>
-                <!-- END: MAP CONFIGURATION PANEL -->
 
-                <!-- START: MAP LEGEND PANEL -->
                 <div class="map-overlay legend-panel card shadow-sm">
                     <div class="card-header p-0" id="legendHeading">
                         <h6 class="mb-0">
@@ -382,12 +375,10 @@
                         </div>
                     </div>
                 </div>
-                <!-- END: MAP LEGEND PANEL -->
             </div>
         </div>
         
         <div  class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
-            <!-- All your right sidebar content here... -->
             <div  class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
                 <div  class="card-header p-2">
                     <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
@@ -464,12 +455,10 @@
 <script src="https://unpkg.com/draggabilly@3/dist/draggabilly.pkgd.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- MAP & FEATURE SCRIPT LOGIC ---
         let map;
         let fireHydrantsLayer, fireStationsLayer, searchResultsLayer, modisFiresLayer;
         let selectedFireFeature = null, selectedFireMarker = null, routeLayer = null;
 
-        // --- START: FULLSCREEN CONTROL LOGIC (NO CHANGES NEEDED HERE) ---
         const initFullScreenControl = () => {
             if (!map) {
                 console.error("Map object not available for FullScreenControl initialization.");
@@ -505,9 +494,7 @@
             });
             new FullScreenControl().addTo(map);
         };
-        // --- END: FULLSCREEN CONTROL LOGIC ---
         
-        // --- The rest of your script remains the same ---
         const initMap = () => {
             console.log('Map initialization started.');
             const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
@@ -518,7 +505,6 @@
             
             map = L.map('map', { center: [41.8781, -87.6298], zoom: 6, layers: [streets] });            
             
-            // Populates the basemap selector in the new "Configuration" modal panel
             const basemapContainer = document.getElementById('basemap-selector-container');
             let first = true;
             for (const name in baseMaps) { const id = `basemap-radio-${name.replace(/\s+/g, '-')}`; const isChecked = first ? 'checked' : ''; basemapContainer.innerHTML += `<div class="form-check"><input class="form-check-input" type="radio" name="basemap-selector" id="${id}" value="${name}" ${isChecked}><label class="form-check-label" for="${id}">${name}</label></div>`; first = false; }
@@ -532,11 +518,10 @@
             fireStationsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const count = cluster.getChildCount(); let c = ' station-cluster-small'; if (count > 5) c = ' station-cluster-medium'; if (count > 15) c = ' station-cluster-large'; return L.divIcon({ html: `<div><span>${count}</span></div>`, className: 'cluster-icon' + c, iconSize: L.point(40, 40) }); }, spiderfyOnMaxZoom: true, maxClusterRadius: 60, showCoverageOnHover: true, zoomToBoundsOnClick: true }).addTo(map);
             searchResultsLayer = L.geoJson(null, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: feature.properties.hasOwnProperty('fire_hydrant_type') ? "#0dcaf0" : "#fd7e14", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9 }), onEachFeature: (f, l) => l.bindPopup(f.properties.hasOwnProperty('fire_hydrant_type') ? formatHydrantPopupContent(f.properties) : formatStationPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
             modisFiresLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const c = cluster.getChildCount(); let s = ' fire-cluster-small'; if (c > 100) s = ' fire-cluster-medium'; if (c > 500) s = ' fire-cluster-large'; return L.divIcon({ html: `<div><span>${c}</span></div>`, className: 'cluster-icon' + s, iconSize: L.point(40, 40) }); }, maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true }).addTo(map);
-            const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); console.log(`Loading data for bounds: ${bbox}`); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
+            const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
             const loadDataForDrawnRect = async (bounds) => { const bbox = bounds.toBBoxString(); searchResultsLayer.clearLayers(); const p = L.popup().setLatLng(bounds.getCenter()).setContent('Searching...').openOn(map); try { const [hr, sr] = await Promise.all([fetch(`/api/fire_hydrants?bbox=${bbox}`), fetch(`/api/fire_stations?bbox=${bbox}`)]); const h = await hr.json(); const s = await sr.json(); searchResultsLayer.addData(h); searchResultsLayer.addData(s); map.closePopup(p); const c = (h.features?.length || 0) + (s.features?.length || 0); L.popup().setLatLng(bounds.getCenter()).setContent(`Found ${c} assets.`).openOn(map); map.fitBounds(searchResultsLayer.getBounds().pad(0.1)); } catch (e) { console.error("Error during area search:", e); map.closePopup(p); L.popup().setLatLng(bounds.getCenter()).setContent('Error searching.').openOn(map); } };
             const loadModisFires = async () => { if (!document.getElementById('modis-fires-toggle').checked) { modisFiresLayer.clearLayers(); return; } try { const response = await fetch('/api/fire-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); modisFiresLayer.clearLayers(); const fireMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); modisFiresLayer.addLayer(fireMarkers); } catch (e) { console.error("Could not fetch MODIS fire incidents:", e); } };
             
-            // Listeners for the toggles, which are now in the draggable config panel. They work because they are based on ID.
             document.getElementById('fire-hydrants-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireHydrantsLayer.clearLayers(); });
             document.getElementById('fire-stations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireStationsLayer.clearLayers(); });
             document.getElementById('modis-fires-toggle').addEventListener('change', loadModisFires);
@@ -547,7 +532,6 @@
             map.addControl(drawControl);
             map.on(L.Draw.Event.CREATED, (e) => loadDataForDrawnRect(e.layer.getBounds()));
             
-            // Initialize draggability for map overlay panels
             new Draggabilly(document.querySelector('.config-panel'), { handle: '.card-header', containment: '.map-wrapper' });
             new Draggabilly(document.querySelector('.legend-panel'), { handle: '.card-header', containment: '.map-wrapper' });
             
@@ -584,7 +568,6 @@
         const initGeneralUI = () => { document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('click', function() { const i = this.querySelector('.collapse-icon'); if (i) { i.classList.toggle('fa-chevron-down'); i.classList.toggle('fa-chevron-up'); } })); };
         const loadAndRenderReportHistory = async () => { try { const response = await fetch('/reports/history', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } }); if (!response.ok) throw new Error(`Server responded with status: ${response.status}`); const reports = await response.json(); renderPreviousTranscriptsAccordion(reports); renderNotificationsFromReports(reports); } catch (error) { console.error('Failed to load report history:', error); const errorHtml = `<div class="alert alert-warning text-center">Could not load report history.</div>`; const transcriptContainer = document.getElementById('previous-transcripts-container'); if (transcriptContainer) transcriptContainer.innerHTML = errorHtml; } };
         
-        // --- MODIFIED FUNCTION ---
         const renderPreviousTranscriptsAccordion = (reports) => {
             const container = document.getElementById('previous-transcripts-container');
             const loadingIndicator = document.getElementById('previous-transcripts-loading');
@@ -594,20 +577,39 @@
                 let html = '<div class="accordion" id="previousReportsAccordion">';
                 reports.forEach((report) => {
                     const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                    const suggestionsList = report.ai_suggested_actions?.suggestions || report.ai_suggested_actions || [];
                     
+                    // --- START: ROBUST DATA PARSING ---
+                    let actionsData = report.ai_suggested_actions;
+                    // Check if it's a string; if so, parse it.
+                    if (typeof actionsData === 'string' && actionsData) {
+                        try {
+                            actionsData = JSON.parse(actionsData);
+                        } catch (e) {
+                            console.error("Could not parse ai_suggested_actions JSON for report ID " + report.id, e, actionsData);
+                            actionsData = {}; // Default to an empty object on parsing failure
+                        }
+                    } else if (actionsData === null || typeof actionsData !== 'object') {
+                        actionsData = {}; // Ensure it's an object if it's null or not an object
+                    }
+
+                    // Now, safely get the suggestions list. Handles both {suggestions: []} and [] formats.
+                    const suggestionsList = actionsData.suggestions || (Array.isArray(actionsData) ? actionsData : []);
+                    // --- END: ROBUST DATA PARSING ---
+
                     let suggestionsHtml = '';
                     if (Array.isArray(suggestionsList) && suggestionsList.length > 0) {
                         suggestionsHtml = '<ul class="list-group list-group-flush">';
                         suggestionsList.forEach(s => {
-                            suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${s.icon || 'fas fa-lightbulb'} me-2 text-success"></i> ${s.suggestion || '...'}</li>`;
+                            // Ensure suggestion object exists and has the 'suggestion' property
+                            if (s && s.suggestion) {
+                                suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${s.icon || 'fas fa-lightbulb'} me-2 text-success"></i> ${s.suggestion}</li>`;
+                            }
                         });
                         suggestionsHtml += '</ul>';
                     } else {
                         suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
                     }
 
-                    // --- START: NEW EXPORT BUTTON FOR PAST REPORTS ---
                     const exportUrl = `/report/${report.id}/export`;
                     const exportButtonHtml = `
                         <div class="mt-4 text-end">
@@ -616,7 +618,6 @@
                             </a>
                         </div>
                     `;
-                    // --- END: NEW EXPORT BUTTON FOR PAST REPORTS ---
 
                     html += `
                         <div class="accordion-item bg-dark border-secondary mb-2">
