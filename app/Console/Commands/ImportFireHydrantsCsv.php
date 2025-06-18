@@ -31,14 +31,11 @@ class ImportFireHydrantsCsv extends Command
     {
         $filePath = 'app/Console/Commands/fire_hydrants.csv'; // Path relative to storage/app/
 
-        if (!Storage::exists($filePath)) {
-            $this->error("CSV file not found: storage/app/{$filePath}");
-            return Command::FAILURE;
-        }
+        
 
         try {
             // Read the CSV file
-            $csv = Reader::createFromPath(Storage::path($filePath), 'r');
+            $csv = Reader::createFromPath($filePath, 'r');
             $csv->setHeaderOffset(0); // Set the first row as headers
 
             $records = iterator_to_array($csv->getRecords());
