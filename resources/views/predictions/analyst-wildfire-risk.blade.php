@@ -61,6 +61,63 @@
             border-radius: var(--bs-border-radius);
             border: 1px solid var(--bs-border-color);
         }
+
+        /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
+        @media (max-width: 991.98px) {
+            .sidebar-area {
+                position: static !important;
+                width: 100% !important;
+                transform: none !important;
+                left: auto !important;
+                top: auto !important;
+                z-index: auto !important;
+                transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border-width 0.35s ease-in-out;
+                background-color: var(--bs-body-bg);
+            }
+            
+            body.sidebar-close .sidebar-area {
+                max-height: 0;
+                overflow: hidden;
+                padding-top: 0;
+                padding-bottom: 0;
+                border-width: 0;
+            }
+
+            body:not(.sidebar-close) .sidebar-area {
+                max-height: 75vh;
+                overflow-y: auto;
+                border-bottom: 1px solid var(--bs-border-color);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                transition: none !important;
+            }
+
+            .body-overlay {
+                display: none !important;
+            }
+
+            #sidebar-area .sidebar-burger-menu {
+                display: none !important;
+            }
+
+            .main-content > .header-area {
+                position: sticky;
+                top: 0;
+                z-index: 1025; 
+            }
+
+            .risk-dashboard-container {
+                flex-direction: column;
+            }
+            .risk-dashboard-container .col-lg-4.border-start {
+                border-left: 0 !important;
+                border-top: 1px solid var(--bs-border-color) !important;
+            }
+        }
+        /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
     </style>
 </head>
 <body class="boxed-size">
@@ -338,9 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const imageUrl = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${zoom}/${tile.y}/${tile.x}`;
 
         try {
-            // Fetch the image and convert it to Base64
             const imageB64 = await imageUrlToBase64(imageUrl);
-
             const response = await fetch('/api/ambee/classify-image', {
                 method: 'POST',
                 headers: {
@@ -356,7 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const result = await response.json();
-            displayAIResults(result, imageB64, tileBounds); // Use base64 data for local display
+            displayAIResults(result, imageB64, tileBounds);
 
         } catch (error) {
             placeholder.innerHTML = `<div class="alert alert-danger"><strong>AI Analysis Failed:</strong> ${error.message}</div>`;
@@ -470,7 +525,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('route-info-container').innerHTML = ''; document.getElementById('clear-route-btn').style.display = 'none';
     };
 
+    const initMobileSidebarToggle = () => {
+        const burgerMenu = document.querySelector('.header-burger-menu');
+        const body = document.body;
+
+        if (burgerMenu && body) {
+            if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
+                body.classList.add('sidebar-close');
+            }
+
+            burgerMenu.addEventListener('click', function(event) {
+                if (window.innerWidth < 992) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    body.classList.toggle('sidebar-close');
+                }
+            }, true);
+        }
+    };
+
     initMap();
+    initMobileSidebarToggle();
 });
 </script>
 </body>

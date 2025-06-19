@@ -50,12 +50,20 @@
         }
 
         .marker-cluster-custom {
-            color: #fff; border-radius: 50%; text-align: center; font-weight: bold;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5); border: 2px solid rgba(255, 255, 255, 0.7);
+            color: #fff;
+            border-radius: 50%;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.7);
         }
         .marker-cluster-custom div {
-            width: 30px; height: 30px; margin-left: 5px; margin-top: 5px;
-            border-radius: 50%; line-height: 30px;
+            width: 30px;
+            height: 30px;
+            margin-left: 5px;
+            margin-top: 5px;
+            border-radius: 50%;
+            line-height: 30px;
         }
         .marker-cluster-small { background-color: rgba(241, 211, 87, 0.8); }
         .marker-cluster-medium { background-color: rgba(253, 156, 115, 0.8); }
@@ -75,14 +83,16 @@
                 left: auto !important;
                 top: auto !important;
                 z-index: auto !important;
-                transition: max-height 0.35s ease-in-out;
+                transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border-width 0.35s ease-in-out;
                 background-color: var(--bs-body-bg);
             }
             
             body.sidebar-close .sidebar-area {
                 max-height: 0;
                 overflow: hidden;
-                border-bottom-width: 0;
+                padding-top: 0;
+                padding-bottom: 0;
+                border-width: 0;
             }
 
             body:not(.sidebar-close) .sidebar-area {
@@ -105,13 +115,12 @@
                 display: none !important;
             }
 
-            .main-content > header {
+            .main-content > .header-area {
                 position: sticky;
                 top: 0;
                 z-index: 1025; 
             }
 
-            /* Adjustments for this page's content layout on mobile */
             .dashboard-container {
                 flex-direction: column;
             }
@@ -247,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fields.forEach(field => {
             let value = fireData[field.key] !== null ? fireData[field.key] : 'N/A';
-            if(field.key === 'acq_time') value = value.padStart(4, '0').replace(/(\d{2})(\d{2})/, '$1:$2');
+            if(field.key === 'acq_time' && value !== 'N/A') value = String(value).padStart(4, '0').replace(/(\d{2})(\d{2})/, '$1:$2');
             if(field.key === 'confidence') value = `${value}%`;
             
             modalContent += `
@@ -335,36 +344,27 @@ document.addEventListener('DOMContentLoaded', function() {
         map.addLayer(fireMarkers);
     };
 
-    /**
-     * FIX: Initializes the mobile sidebar toggle functionality.
-     * This overrides the theme's default slide-in behavior for a top-down reveal on mobile.
-     */
     const initMobileSidebarToggle = () => {
-        const burgerMenu = document.querySelector('.header-burger-menu'); // More generic selector
+        const burgerMenu = document.querySelector('.header-burger-menu');
         const body = document.body;
 
         if (burgerMenu && body) {
-            // On initial load, if on mobile, ensure the sidebar is in a closed state.
             if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
                 body.classList.add('sidebar-close');
             }
 
             burgerMenu.addEventListener('click', function(event) {
-                // This custom logic should ONLY apply on mobile viewports.
                 if (window.innerWidth < 992) {
-                    // Stop the original theme's JavaScript from executing its conflicting slide-in logic.
                     event.preventDefault();
                     event.stopPropagation();
-                    
-                    // Manually toggle the class on the body. Our custom CSS handles the animation.
                     body.classList.toggle('sidebar-close');
                 }
-            }, true); // Using the "capture" phase ensures this listener runs before the theme's default.
+            }, true);
         }
     };
 
     initMap();
-    initMobileSidebarToggle(); // Initialize the mobile sidebar fix.
+    initMobileSidebarToggle();
 });
 </script>
 </body>
