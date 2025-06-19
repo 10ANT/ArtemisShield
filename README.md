@@ -17,6 +17,9 @@
 **ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
 
 
+![Alt text for the image](https://i.ibb.co/pjS8NM5M/mobile.jpg)
+
+
 ---
 
 
