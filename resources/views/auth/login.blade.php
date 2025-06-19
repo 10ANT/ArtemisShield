@@ -3,7 +3,7 @@
 
     <x-authentication-card>
         <x-slot name="logo">
-            <x-authentication-card-logo />
+            <img src="/assets/images/logo.png" alt="Artemis Logo" width="70" height="70" class="me-2">
         </x-slot>
 
         <x-validation-errors class="mb-4" />
@@ -34,17 +34,25 @@
                 </label>
             </div>
 
-            <div class="flex items-center justify-end mt-4">
+            <div class="flex items-center justify-between mt-4">
                 @if (Route::has('password.request'))
                     <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
                 @endif
 
-                <x-button class="ms-4">
+                <x-button>
                     {{ __('Log in') }}
                 </x-button>
             </div>
         </form>
+
+        {{-- ADDITION: Register Button --}}
+        <div class="flex items-center justify-center mt-6">
+            <span class="text-sm text-gray-600 me-2">{{ __("Don't have an account?") }}</span>
+            <a href="{{ route('register') }}" class="underline text-sm text-indigo-600 hover:text-indigo-900 font-medium">
+                {{ __('Register') }}
+            </a>
+        </div>
     </x-authentication-card>
 </x-guest-layout>

@@ -211,10 +211,11 @@ Route::post('/transcribe/audio', [TranscriptionController::class, 'transcribe'])
 // Routes for the Historical Fire Map
 Route::get('/historical-map', [HistoricalMapController::class, 'showMap'])->name('historical.map');
 Route::get('/api/historical-fires', [HistoricalMapController::class, 'getFireData'])->name('api.historical.fires');
-Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff'])->prefix('first-responder')->group(function () {
-    Route::get('/dashboard', [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
+Route::middleware(['auth:sanctum', 'verified', 'role:Ambulance Staff, Wildfire Management Officer'])->prefix('first-responder')->group(function () {
+
 });
 
+    Route::get('/dashboard-first-responder', action: [FirstResponderDashboardController::class, 'index'])->name('first-responder.dashboard');
 
 // Add these routes for the command dashboard functionality
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
