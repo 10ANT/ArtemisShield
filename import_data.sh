@@ -1,4 +1,5 @@
 #!/bin/bash
+cd /home/site/wwwroot || exit
 
 php artisan import:fire-hydrants-csv
 php artisan import:firestations

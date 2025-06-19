@@ -16,6 +16,14 @@
 
         <!-- Styles -->
         @livewireStyles
+
+
+        
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+
+    <!-- PWA Theme Color -->
+    <meta name="theme-color" content="#4A90E2">
     </head>
     <body class="font-sans antialiased">
         <x-banner />
@@ -48,4 +56,17 @@
 
         {{-- The global notification script has been DELETED from here --}}
     </body>
+
+    
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            }, function(err) {
+                console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+    }
+</script>
 </html>

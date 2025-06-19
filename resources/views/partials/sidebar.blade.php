@@ -11,6 +11,8 @@
     <audio id="notification-sound" src="https://www.soundjay.com/buttons/sounds/button-7.mp3" preload="auto"></audio>
     <aside id="layout-menu" class="layout-menu menu-vertical menu" data-simplebar>
         <ul class="menu-inner py-3">
+  @auth
+                @if(auth()->user()->role && in_array(auth()->user()->role->name, ['Wildfire Management Officer', 'Firefighter']))
 
             <!-- Data Analyst Views -->
             <li class="menu-item {{ Request::is('analyst*') ? 'active open' : '' }}">
@@ -43,6 +45,7 @@
                     </li>
                 </ul>
             </li>
+                @endif
 
 
             <!-- System Section -->
@@ -50,17 +53,14 @@
                 <span class="menu-title-text">SYSTEM</span>
             </li>
             <li class="menu-item {{ Request::is('wildfire-officer/status-updates') ? 'active' : '' }}">
-                   <a href="/wildfire-officer/status-updates" id="status-updates-link" class="menu-link">
-                    <span class="material-symbols-outlined menu-icon">forum</span>
-                    <span class="title">Community Updates</span>
-                    <!-- MODIFIED: Changed badge color to bg-warning (orange) -->
-                    <span id="status-updates-badge" class="badge bg-warning rounded-pill ms-2 d-none"></span>
+  
+
                 </a>
             </li>
             {{-- Add a log to indicate the sidebar is being rendered --}}
             {{ \Log::info('Sidebar rendering: Checking for authenticated user.') }}
 
-            @auth
+          
                 {{-- This whole section will only be rendered if a user is logged in --}}
                 {{ \Log::info('Sidebar rendering: User ' . auth()->user()->name . ' is authenticated. Building menu based on role.') }}
 
@@ -94,7 +94,7 @@
                                 <a href="/firefighter-dashboard" class="menu-link">Tactical Dashboard</a>
                             </li>
                             <li class="menu-item">
-                                <a href="/firefighter-reports" class="menu-link">Submit Reports</a>
+                                <a href="/firefighter-reports" class="menu-link">Incoming Feature 🚧</a>
                             </li>
                         </ul>
                     </li>
@@ -112,7 +112,7 @@
                                 <a href="/responder-dashboard" class="menu-link">View Alerts</a>
                             </li>
                             <li class="menu-item">
-                                <a href="first-responder/dashboard" class="menu-link">Help Requests</a>
+                                <a href="/dashboard-first-responder" class="menu-link">View Help Request</a>
                             </li>
                          
                         </ul>
