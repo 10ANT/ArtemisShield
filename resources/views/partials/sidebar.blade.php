@@ -22,7 +22,7 @@
                      
                     <li class="menu-item">
                         <a href="/analyst-dashboard" class="menu-link {{ Request::is('analyst-dashboard') ? 'active' : '' }}">
-                            Historical Fire Dashboard
+                            Dashboard
                         </a>
                     </li>
                    

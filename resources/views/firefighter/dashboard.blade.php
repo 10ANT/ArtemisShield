@@ -615,79 +615,115 @@
         
         const renderPreviousTranscriptsAccordion = (reports) => {
             const container = document.getElementById('previous-transcripts-container');
+            if (!container) {
+                console.error("Critical Error: #previous-transcripts-container not found in DOM.");
+                return;
+            }
             const loadingIndicator = document.getElementById('previous-transcripts-loading');
             if (loadingIndicator) loadingIndicator.style.display = 'none';
 
-            if (reports && reports.length > 0) {
-                let html = '<div class="accordion" id="previousReportsAccordion">';
-                reports.forEach((report) => {
-                    const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                    
-                    let actionsData = report.ai_suggested_actions;
-                    if (typeof actionsData === 'string' && actionsData) {
-                        try {
-                            actionsData = JSON.parse(actionsData);
-                        } catch (e) {
-                            console.error("Could not parse ai_suggested_actions JSON for report ID " + report.id, e, actionsData);
-                            actionsData = {}; 
-                        }
-                    } else if (actionsData === null || typeof actionsData !== 'object') {
-                        actionsData = {}; 
-                    }
-
-                    const suggestionsList = actionsData.suggestions || (Array.isArray(actionsData) ? actionsData : []);
-
-                    let suggestionsHtml = '';
-                    if (Array.isArray(suggestionsList) && suggestionsList.length > 0) {
-                        suggestionsHtml = '<ul class="list-group list-group-flush">';
-                        suggestionsList.forEach(s => {
-                            if (s && s.suggestion) {
-                                suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${s.icon || 'fas fa-lightbulb'} me-2 text-success"></i> ${s.suggestion}</li>`;
-                            }
-                        });
-                        suggestionsHtml += '</ul>';
-                    } else {
-                        suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
-                    }
-
-                    const exportUrl = `/report/${report.id}/export`;
-                    const exportButtonHtml = `
-                        <div class="mt-4 text-end">
-                            <a href="${exportUrl}" class="btn btn-sm btn-outline-success">
-                                <i class="fas fa-file-pdf me-2"></i>Export as PDF
-                            </a>
-                        </div>
-                    `;
-
-                    html += `
-                        <div class="accordion-item bg-dark border-secondary mb-2">
-                            <h2 class="accordion-header" id="heading-history-${report.id}">
-                                <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">
-                                    Report from ${reportDate}
-                                </button>
-                            </h2>
-                            <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
-                                <div class="accordion-body">
-                                    <h6 class="text-white-50">Transcript</h6>
-                                    <p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p>
-                                    <h6 class="text-white-50">AI Suggested Actions</h6>
-                                    ${suggestionsHtml}
-                                    ${exportButtonHtml}
-                                </div>
-                            </div>
-                        </div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } else {
+            if (!reports || reports.length === 0) {
                 container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>';
+                return;
             }
+            
+            let html = '<div class="accordion" id="previousReportsAccordion">';
+            
+            reports.forEach((report, index) => {
+                console.log(`--- Processing Report #${index + 1} (ID: ${report.id}) ---`);
+                const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
+                
+                let rawActions = report.ai_suggested_actions;
+                console.log(`Report ${report.id} -> raw ai_suggested_actions:`, rawActions);
+                console.log(`Report ${report.id} -> typeof rawActions:`, typeof rawActions);
+
+                let suggestionsList = [];
+
+                // Step 1: Ensure we have an object/array to work with, not a string.
+                if (typeof rawActions === 'string' && rawActions.trim().startsWith('{')) {
+                    try {
+                        rawActions = JSON.parse(rawActions);
+                        console.log(`Report ${report.id} -> Parsed from string to object:`, rawActions);
+                    } catch (e) {
+                        console.error(`Report ${report.id} -> Failed to parse JSON string.`, { error: e, data: report.ai_suggested_actions });
+                        rawActions = null;
+                    }
+                }
+
+                // Step 2: Normalize the different possible data structures into a consistent array.
+                if (rawActions && typeof rawActions === 'object') {
+                    if (Array.isArray(rawActions)) {
+                        suggestionsList = rawActions;
+                        console.log(`Report ${report.id} -> Normalized as an array.`);
+                    } else if (rawActions.suggestions && Array.isArray(rawActions.suggestions)) {
+                        suggestionsList = rawActions.suggestions;
+                        console.log(`Report ${report.id} -> Normalized from 'suggestions' key.`);
+                    } else if (rawActions.suggestion) {
+                        suggestionsList = [rawActions];
+                        console.log(`Report ${report.id} -> Normalized from a single object.`);
+                    }
+                } else {
+                    console.log(`Report ${report.id} -> rawActions is not a processable object.`);
+                }
+                
+                console.log(`Report ${report.id} -> Final suggestionsList:`, suggestionsList);
+
+                let suggestionsHtml = '';
+                if (suggestionsList && suggestionsList.length > 0) {
+                    suggestionsHtml = '<ul class="list-group list-group-flush">';
+                    suggestionsList.forEach((s, s_index) => {
+                        if (s && typeof s === 'object' && s.suggestion) {
+                            const iconClass = s.icon || 'fas fa-lightbulb';
+                            const suggestionText = s.suggestion;
+                            // Using standard string concatenation for maximum safety
+                            suggestionsHtml += '<li class="list-group-item bg-transparent border-secondary"><i class="' + iconClass + ' me-2 text-success"></i> ' + suggestionText + '</li>';
+                        } else {
+                            console.warn(`Report ${report.id} -> Skipping invalid suggestion item at index ${s_index}:`, s);
+                        }
+                    });
+                    suggestionsHtml += '</ul>';
+                } else {
+                    suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
+                }
+                
+                console.log(`Report ${report.id} -> Generated HTML for suggestions:`, suggestionsHtml);
+
+                const exportUrl = `/report/${report.id}/export`;
+                const exportButtonHtml = `
+                    <div class="mt-4 text-end">
+                        <a href="${exportUrl}" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-file-pdf me-2"></i>Export as PDF
+                        </a>
+                    </div>
+                `;
+
+                html += `
+                    <div class="accordion-item bg-dark border-secondary mb-2">
+                        <h2 class="accordion-header" id="heading-history-${report.id}">
+                            <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">
+                                Report from ${reportDate}
+                            </button>
+                        </h2>
+                        <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
+                            <div class="accordion-body">
+                                <h6 class="text-white-50">Transcript</h6>
+                                <p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p>
+                                <h6 class="text-white-50">AI Suggested Actions</h6>
+                                ${suggestionsHtml}
+                                ${exportButtonHtml}
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
         };
 
         const renderNotificationsFromReports = (reports) => { const list = document.getElementById('notifications-list'); const placeholder = document.getElementById('notifications-placeholder'); if (reports && reports.length > 0) { placeholder.classList.add('d-none'); let html = ''; reports.forEach(report => { const timeAgo = new Date(report.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }); const transcript = report.transcript || 'Transcript not available.'; html += `<div class="list-group-item list-group-item-action p-3"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 text-info"><i class="fas fa-file-alt me-2"></i>Field Report Logged</h6><small class="text-body-secondary">${timeAgo}</small></div><p class="mb-1 small fst-italic">"${transcript.substring(0, 150)}${transcript.length > 150 ? '...' : ''}"</p></div>`; }); list.innerHTML = html; } else { placeholder.classList.remove('d-none'); list.innerHTML = ''; list.appendChild(placeholder); } };
         const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { console.error("Microphone Access Error:", err); showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); loadAndRenderReportHistory(); } catch (err) { console.error('Error processing report:', err); showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Field Report'; recordButton.disabled = false; } };
         
         const displayResults = (data) => {
+            const resultsContainer = document.getElementById('ai-analysis-results');
             let entityHtml = '';
             if (data.entities?.length) {
                 data.entities.forEach(entity => {
@@ -701,11 +737,26 @@
             }
             
             let suggestionHtml = '';
-            const suggestionsList = data.suggestions?.suggestions || data.suggestions;
-            if (Array.isArray(suggestionsList)) {
+            let suggestionsList = [];
+            const rawSuggestions = data.suggestions;
+
+            if (rawSuggestions && typeof rawSuggestions === 'object') {
+                if (Array.isArray(rawSuggestions)) {
+                    suggestionsList = rawSuggestions;
+                } else if (rawSuggestions.suggestions && Array.isArray(rawSuggestions.suggestions)) {
+                    suggestionsList = rawSuggestions.suggestions;
+                } else if (rawSuggestions.suggestion) {
+                    suggestionsList = [rawSuggestions];
+                }
+            }
+            
+            if (suggestionsList.length > 0) {
                 suggestionsList.forEach(s => {
-                    const suggestionText = s.suggestion || '...';
-                    suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${s.icon || 'fas fa-lightbulb'} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`;
+                    if (s && typeof s === 'object' && s.suggestion) {
+                        const suggestionText = s.suggestion;
+                        const iconClass = s.icon || 'fas fa-lightbulb';
+                        suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${iconClass} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`;
+                    }
                 });
             }
 
@@ -740,7 +791,19 @@
             if (resultsContainer) resultsContainer.innerHTML = resultsHtml;
         };
 
-        const showError = (message) => { if (errorContainer) { errorContainer.textContent = message; errorContainer.classList.remove('d-none'); } if (placeholder) placeholder.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; }; setupAudio(); };
+        const showError = (message) => { 
+            const errorContainer = document.getElementById('report-error');
+            const placeholder = document.getElementById('report-placeholder');
+            const resultsContainer = document.getElementById('ai-analysis-results');
+            if (errorContainer) { 
+                errorContainer.textContent = message; 
+                errorContainer.classList.remove('d-none'); 
+            } 
+            if (placeholder) placeholder.classList.add('d-none'); 
+            if (resultsContainer) resultsContainer.innerHTML = ''; 
+        }; 
+        setupAudio(); 
+    };
         const initNotificationSystem = () => { const badge = document.getElementById('notification-badge'); if(badge) badge.classList.add('d-none'); };
         const initTextToSpeech = () => { if (!('speechSynthesis' in window)) { console.warn('Speech Synthesis not supported.'); return; } document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
         const initRouting = () => { const calculateBtn = document.getElementById('calculate-route-btn'); const clearBtn = document.getElementById('clear-route-btn'); const toggleLoadingState = (isLoading) => { const spinner = calculateBtn.querySelector('.spinner-border'); const icon = calculateBtn.querySelector('.icon'); calculateBtn.disabled = isLoading; if(isLoading) { spinner.classList.remove('d-none'); icon.classList.add('d-none'); } else { calculateBtn.disabled = (selectedFireFeature === null); spinner.classList.add('d-none'); icon.classList.remove('d-none'); } }; const clearRoute = () => { if (routeLayer) map.removeLayer(routeLayer); if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); routeLayer = null; selectedFireFeature = null; selectedFireMarker = null; document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`; calculateBtn.disabled = true; clearBtn.style.display = 'none'; document.getElementById('route-summary').classList.add('d-none'); document.getElementById('route-placeholder').classList.remove('d-none'); document.getElementById('route-placeholder').textContent = 'Route information will appear here.'; map.closePopup(); }; calculateBtn.addEventListener('click', async () => { if (!selectedFireFeature) return; toggleLoadingState(true); const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]); const bbox = map.getBounds().toBBoxString(); try { const response = await fetch(`/api/fire_stations?bbox=${bbox}&limit=2000`); if (!response.ok) throw new Error('Could not fetch fire stations.'); const stationsData = await response.json(); if (!stationsData.features || stationsData.features.length === 0) { throw new Error('No fire stations found in the current map view. Please pan or zoom out.'); } let closestStation = null; let minDistance = Infinity; const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}; stationsData.features.forEach(stationFeature => { const stationCoords = L.latLng(stationFeature.geometry.coordinates[1], stationFeature.geometry.coordinates[0]); const distance = getDistance(fireCoords.lat, fireCoords.lng, stationCoords.lat, stationCoords.lng); if (distance < minDistance) { minDistance = distance; closestStation = stationFeature; } }); if (!closestStation) throw new Error('Could not determine closest station.'); const stationCoords = closestStation.geometry.coordinates; const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`; const osrmResponse = await fetch(osrmUrl); if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`); const routeData = await osrmResponse.json(); if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.'); const route = routeData.routes[0]; if (routeLayer) map.removeLayer(routeLayer); routeLayer = L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(map); map.fitBounds(routeLayer.getBounds().pad(0.2)); document.getElementById('route-station-name').textContent = closestStation.properties.name || 'Unnamed Station'; document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`; document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`; document.getElementById('route-summary').classList.remove('d-none'); document.getElementById('route-placeholder').classList.add('d-none'); clearBtn.style.display = 'block'; } catch (error) { console.error('Routing error:', error); alert(`Could not calculate route: ${error.message}`); document.getElementById('route-placeholder').textContent = `Error: ${error.message}`; } finally { toggleLoadingState(false); } }); clearBtn.addEventListener('click', clearRoute); };
