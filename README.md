@@ -67,7 +67,7 @@ Our Solution provides a unified, intelligent dashboard that centralizes real-tim
 
 * 🧠 **Predictive Intelligence (Azure ML)**: A machine learning model predicts fire intensity (FRP) and fire spread based on satellite data, giving officers a forward-looking view of a fire's potential. It also uses image classification to predict risk of wildfire in particular areas based on satellite imagery giving analysts key data to analyse vulnerable places and suggest environmental assistances.
 
-* 🎤 **Voice-to-Text Field Reporting (Azure Speech)**: Firefighters in the field can log reports using their voice. Azure Speech services transcribe the audio, which is then translated to appropriate languages for individual users and analyzed for key entities (locations, resources needed).
+* 🎤 **Voice-to-Text Field Reporting (Azure Speech)**: Firefighters in the field can log reports using their voice. Azure Speech services transcribe the audio, which is then analyzed for key entities (locations, resources needed) and summarized using Azure AI Language.
 
 * 🚨 **Real-Time Alerting (Pusher & Laravel Echo)**: Community alerts and critical updates are broadcast to all users in real-time using Pusher and Echo which allows for a speedy and easy accessibility to updated information by end users.
 
