@@ -1,4 +1,4 @@
-# 🔥 ArtemisShield: AI-Powered Wildfire Command Center
+# 🔥 ArtemisShield: AI-Powered Wildfire Command Center 👩‍🚒
 
 [![Microsoft Azure](https://img.shields.io/badge/Built%20with-Microsoft%20Azure-0078D4?style=for-the-badge&logo=microsoftazure)](https://azure.microsoft.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -13,18 +13,62 @@
 --- 
 
  
-## Introduction 
+## 🌟 Introduction 🌟
 **ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires."
 
+**[Live Demonstration](https://www.your-live-demo-url.com)🚀**
 
-![Alt text for the image](https://i.ibb.co/pjS8NM5M/mobile.jpg)
+**[Video Presentation](https://www.your-video-presentation-url.com)🎥**
+
+# Project Screenshots
+
+## Dashboard Overview
+
+### Main Dashboard (Wildfire Officer)
+<div align="center">
+  <img src="https://i.ibb.co/tMR7pQLn/dashboard.jpg" alt="Main Dashboard" width="800"/>
+</div>
+
+### Dashboard Showcase
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="https://i.ibb.co/KxjLPmLP/image.png" alt="Feature 1" width="100%"/>
+      <p align="center"><strong>Historical Fire Dashboard</strong></p>
+    </td>
+    <td width="50%">
+      <img src="https://i.ibb.co/v4fqzHYh/image.png" alt="Feature 2" width="100%"/>
+      <p align="center"><strong>User Safety Dashboard</strong></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="https://i.ibb.co/Txg1dk2C/image.png" alt="Feature 3" width="100%"/>
+      <p align="center"><strong>Firefighter Dashboard</strong></p>
+    </td>
+    <td width="50%">
+      <img src="https://i.ibb.co/Vpj0THnQ/image.png" alt="Feature 4" width="100%"/>
+      <p align="center"><strong>Risk Anlytics View</strong></p>
+    </td>
+  </tr>
+</table>
+
+## Mobile Views
+
+<div align="center">
+  <img src="https://i.ibb.co/pjS8NM5M/mobile.jpg" width="250"/>
+  <img src="https://via.placeholder.com/300x600/A29BFE/FFFFFF?text=Mobile+View+2" alt="Mobile Menu" width="250"/>
+  <img src="https://via.placeholder.com/300x600/FD79A8/FFFFFF?text=Mobile+View+3" alt="Mobile Settings" width="250"/>
+</div>
+
 
 
 ---
 
 
 
-## Table of Contents
+## 📝 Table of Contents
 
 1.  [Introduction](#introduction)
 2.  [The Problem](#the-problem)
@@ -46,42 +90,37 @@
 
 
 
-**[Live Demonstration](https://www.your-live-demo-url.com)**
-
-**[Video Presentation](https://www.your-video-presentation-url.com)**
 
 <br>
 
 
- ## The Problem 
+ ## ⚠️ The Problem ⚠️
 
 Wildfire management is often a race against time with fragmented information. Officers need to synthesize data from satellites, field reports, and weather forecasts under immense pressure. Making the right decision can be the difference between containment and catastrophe. 
 
  <br>
 
-## Our Solution: ArtemisShield - Your AI-Powered Command Center
+## 💡 Our Solution: ArtemisShield - Your AI-Powered Command Center 💡
 
 ArtemisShield is a unified, intelligent command and control platform that transforms wildfire management from reactive to proactive. It centralizes real-time data from satellites, weather, and field reports, augmenting human decision-making with powerful Azure AI. This includes an **AI Co-Pilot** for natural language queries, **Azure Custom Vision** for early hotspot detection, and **Azure Machine Learning** for predicting fire behavior. **Azure Speech-to-Text** also simplifies field reporting. ArtemisShield provides clear, actionable intelligence, helping commanders save lives, protect property, and manage wildfires more effectively.
 
 <br>
 
 
-## System Architecture 
+## 🏛️ System Architecture 
 
-![Alt text for the image](https://pixeldrain.com/api/file/A4uHLQpa)
+![Alt text for the image](https://i.ibb.co/d471gPpJ/sys-arch-artemis.png)
 
 
 
 ---
  <br>
 
-## Key Features 
+## ✨  Key Features ✨
 Our Solution provides a unified, intelligent dashboard that centralizes real-time data and augments human decision-making with powerful AI. Here are its *key features*:
 
 *   🗺️ **Interactive Geo-Dashboard:** A multi-layered Leaflet map showing official perimeters, live satellite hotspots (MODIS/VIIRS), weather overlays, and community-sourced alerts. Also allows for measuring and annoting of the maps for a more controlled and personal analyzation done by the user.
 
-
-![Alt text for the image](https://i.ibb.co/tMR7pQLn/dashboard.jpg)
 
 *   🤖 **AI Co-Pilot (Azure AI Agent):** A conversational agent that interacts with the map. Officers can ask questions in natural language like *"Show me the risk to infrastructure near the Canyon Fire"* or *"Plan an evacuation route from Pine Ridge to the nearest shelter."* 
 
@@ -103,37 +142,25 @@ Our Solution provides a unified, intelligent dashboard that centralizes real-tim
 
  
 
-## Technology Stack 
+##  🛠️ Technology Stack  🛠️
 
 This project proudly utilizes a wide range of Azure services and modern technologies: 
 
- 
-
-| Category          | Technology / Azure Service                                                              | 
-
-| ----------------- | --------------------------------------------------------------------------------------- | 
-
-| **Frontend**      | Laravel Blade, Bootstrap 5, Leaflet.js, CesiumJS (for 3D), Axios                        | 
-
-| **Backend**       | Laravel 11, PHP 8.2                                                                     | 
-
-| **Database**      | Azure SQL, MySQL Database                                                                      | 
-
-| **Hosting**       | Azure App Service, Azure Function Service                                                                       | 
-
-| **Intelligence**  | **Azure AI Agent Service**, **Azure OpenAI (GPT-4o)**, **Azure Machine Learning**, **Azure Custom Vision** | 
-
-| **AI Services**   | **Azure AI Speech** (Speech-to-Text), **Azure AI Translator**, **Azure AI Language** (Entity Recognition), **Azure AI Search**          | 
-
-| **Real-Time**     | Pusher, Laravel Echo                                                                    | 
-
-| **Data Sources**  | ArcGIS REST Services, NASA FIRMS API, NOAA GOES,  Imagery, Ambee, Google Earth Engine API                                 | 
-
+| Category | Technology / Azure Service |
+| :----------------- | :--------------------------------------------------------------------------------------- |
+| Frontend | Laravel Blade, Bootstrap 5, Leaflet.js, CesiumJS (for 3D), Axios |
+| Backend | Laravel 11, PHP 8.2 |
+| Database | Azure SQL, MySQL Database |
+| Hosting | Azure App Service, Azure Function App Service |
+| Intelligence | Azure AI Agent Service, Azure OpenAI (GPT-4o), Azure Machine Learning, Azure Custom Vision |
+| AI Services | Azure AI Speech (Speech-to-Text), Azure AI Translator, Azure AI Language (Entity Recognition), Azure AI Search |
+| Real-Time | Pusher, Laravel Echo |
+| Data Sources | ArcGIS REST Services, NASA FIRMS API, NOAA GOES, Imagery, Ambee, Google Earth Engine API |
  <b>
 
  ---
 
-## Our Commitment to Responsible AI 
+## 🤝 Our Commitment to Responsible AI 🤝
 
 We built ArtemisShield with Microsoft's Responsible AI principles at its core: 
 
@@ -153,7 +180,7 @@ We built ArtemisShield with Microsoft's Responsible AI principles at its core:
 
  ---
 
- ## Repository Structure
+ ## 🗂️  Repository Structure
 ``` 
 
 artemis-shield/ 
@@ -224,7 +251,7 @@ artemis-shield/
 
 ---
 
-## Setup & Installation
+## 🚀 Setup & Installation
 
 1.  **Clone the repository:**
     `git clone https://github.com/10ANT/ArtemisShield.git`
@@ -266,7 +293,7 @@ artemis-shield/
 --- 
 
 
-## Deployment
+## ☁️ Deployment ☁️
 
 ArtemisShield is designed for deployment on **Microsoft Azure App Service**, leveraging its scalable and managed environment.
 
@@ -280,7 +307,7 @@ For detailed deployment instructions, refer to the [Azure documentation on deplo
  
 ---
 
-## How to Contribute
+## 🤝 How to Contribute 🤝
 
 We welcome contributions to ArtemisShield! Whether you're fixing a bug, adding a new feature, or improving documentation, your help is valuable.
 
@@ -296,14 +323,18 @@ For major changes or new features, please open an issue first to discuss the pro
 ---
 
 
-## Team Members
+## 👥 Team Members 👥
 
-**[Adrian Tennant](https://github.com/10ANT)**
+**[Adrian Tennant](https://github.com/10ANT)** 
+**[<img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white">](https://www.linkedin.com/in/adrian-tennant-23741923a/)** 
+**[<img alt="GitHub" src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white">](https://github.com/10ANT)**
 
-**[Gary Bryan](https://github.com/SlugVortex)**
+**[Gary Bryan](https://github.com/SlugVortex)** 
+**[<img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white">](https://www.linkedin.com/in/gary-bryan-b46b10288/)** 
+**[<img alt="GitHub" src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white">](https://github.com/SlugVortex)**
 
 ---
-## Acknowledgements
+## 🙏 Acknowledgements 🙏
 
 * **NASA FIRMS:** For providing real-time fire and thermal anomaly data.
 * **NOAA GOES:** For satellite imagery data.
@@ -316,7 +347,7 @@ For major changes or new features, please open an issue first to discuss the pro
 
 
 
-## License
+## 📄 License 📄
 
 MIT License
 
@@ -342,4 +373,3 @@ SOFTWARE.
 
 
 
- 
