@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="https://i.ibb.co/SDppRJfk/image.png" alt="ArtemisShield Banner" width="100%">
+</div>
+
+
 # 🔥 ArtemisShield: AI-Powered Wildfire Command Center 👩‍🚒
 
 [![Microsoft Azure](https://img.shields.io/badge/Built%20with-Microsoft%20Azure-0078D4?style=for-the-badge&logo=microsoftazure)](https://azure.microsoft.com/)
