@@ -263,8 +263,10 @@ npm run dev &
 Navigate to: `http://localhost:8000`
 
 ### Default Login Credentials
-- **Wildfire Officer:** `officer@artemisshield.com` / `password`
-- **Resident:** `resident@artemisshield.com` / `password`
+- **Wildfire Officer:** `officer@artemiss.com` / `password`
+- **Firefighter:** `firefighter@artemis.com` / `password`
+- **Ambulance Staff:** `ambulance@artemis.com` / `password`
+- **Resident:** `resident@artemis.com` / `password`
 
 ### Troubleshooting
 - **Database connection issues:** Verify your `.env` database credentials
