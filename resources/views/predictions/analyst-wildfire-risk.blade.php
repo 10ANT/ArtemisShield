@@ -62,6 +62,21 @@
             border: 1px solid var(--bs-border-color);
         }
 
+        /* START: SIDEBAR Z-INDEX FIX */
+        @media (min-width: 1200px) {
+            /*
+             This rule targets desktop resolutions where the sidebar expands on hover.
+             The Leaflet map contains elements (map panes, controls) that create a complex
+             stacking context. To ensure the hovered sidebar menu appears *above* the map,
+             we must give the `.sidebar-area` a `z-index` that is higher than the map's components.
+             The `!important` flag is used to override any conflicting styles from the base theme.
+            */
+            .sidebar-area {
+                z-index: 1035 !important;
+            }
+        }
+        /* END: SIDEBAR Z-INDEX FIX */
+
         /* START: TABLET/MOBILE SIDEBAR RESPONSIVENESS FIX */
         @media (max-width: 1199.98px) {
             .sidebar-area {
