@@ -158,8 +158,11 @@ php artisan db:seed --class=RoleSeeder
 php artisan db:seed --class=UserSeeder
 
 # Import initial data
-php artisan import:fire_hydrants
-php artisan import:stations
+php artisan import:fire-hydrants-csv
+php artisan import:firestations
+php artisan import:fires app/Console/Commands/fires/part_1.csv
+php artisan import:fires app/Console/Commands/fires/part_2.csv
+php artisan import:fires app/Console/Commands/fires/part_3.csv
 ```
 
 #### 7. Build Frontend Assets
@@ -406,12 +409,30 @@ artemis-shield/
 ArtemisShield is designed for deployment on **Microsoft Azure App Service**, leveraging its scalable and managed environment.
 
 ### Key Azure Services for Deployment:
-
 * **Azure App Service:** For hosting the Laravel application
-* **Azure SQL Database:** For robust and scalable database needs
+* **Azure SQL Database:** For robust and scalable database needs  
 * **Azure Function Apps:** For background tasks or processing (e.g., image analysis, data imports)
 
-For detailed deployment instructions, refer to the [Azure documentation on deploying Laravel applications](https://learn.microsoft.com/en-us/azure/app-service/quickstart-php?pivots=platform-linux). Ensure all your Azure service keys and configurations are correctly set in the `.env` file within your App Service environment.
+### 📚 Deployment Resources
+
+**Getting Started:**
+- [Deploy Laravel to Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/quickstart-php?pivots=platform-linux) - Complete quickstart guide
+- [Laravel on Azure App Service Best Practices](https://learn.microsoft.com/en-us/azure/app-service/configure-language-php?pivots=platform-linux) - Configuration and optimization tips
+
+**Database Setup:**
+- [Create and Configure Azure SQL Database](https://learn.microsoft.com/en-us/azure/azure-sql/database/single-database-create-quickstart) - Set up your production database
+- [Connect Laravel to Azure SQL Database](https://learn.microsoft.com/en-us/azure/app-service/tutorial-php-database-app) - Database integration guide
+
+**Advanced Configuration:**
+- [Environment Variables in Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/configure-common) - Secure configuration management
+- [Azure Function Apps for Laravel](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-php) - Background processing setup
+- [Custom Domains and SSL](https://learn.microsoft.com/en-us/azure/app-service/app-service-web-tutorial-custom-domain) - Production domain configuration
+
+**Monitoring & Scaling:**
+- [Application Insights for Laravel](https://learn.microsoft.com/en-us/azure/azure-monitor/app/php) - Performance monitoring
+- [Auto-scaling Azure App Service](https://learn.microsoft.com/en-us/azure/app-service/manage-scale-up) - Handle traffic spikes
+
+> **💡 Quick Tip:** Ensure all your Azure service keys and configurations are correctly set in the App Service Configuration settings (equivalent to your local `.env` file).
 
 ---
 
