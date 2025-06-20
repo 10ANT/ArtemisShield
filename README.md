@@ -58,8 +58,6 @@
 
 <div align="center">
   <img src="https://i.ibb.co/pjS8NM5M/mobile.jpg" width="250"/>
-  <img src="https://via.placeholder.com/300x600/A29BFE/FFFFFF?text=Mobile+View+2" alt="Mobile Menu" width="250"/>
-  <img src="https://via.placeholder.com/300x600/FD79A8/FFFFFF?text=Mobile+View+3" alt="Mobile Settings" width="250"/>
 </div>
 
 
