@@ -85,6 +85,29 @@ class ReportController extends Controller
         return $pdf->download($filename);
     }
 
+    /**
+     * Remove the specified report from storage.
+     *
+     * @param  \App\Models\Report  $report
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Report $report)
+    {
+        // Authorization check: Ensure the user owns the report.
+        // You could expand this to allow admin roles to delete any report.
+        if (Auth::id() !== $report->user_id) {
+            return response()->json(['message' => 'Unauthorized action.'], 403);
+        }
+
+        try {
+            $report->delete();
+            return response()->json(['message' => 'Report deleted successfully']);
+        } catch (\Throwable $e) {
+            Log::error('Failed to delete report: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['message' => 'Server error while deleting report.'], 500);
+        }
+    }
+
 
     private function transcribeAudio($audioFile)
     {
@@ -284,7 +307,8 @@ Based on the official documents and the report, provide 3-4 concise suggestions 
             'id', 
             'transcript', 
             'ai_suggested_actions', 
-            'created_at'
+            'created_at',
+            'user_id' // Also fetch user_id for the authorization check on the frontend if needed
         ]);
 
         return response()->json($reports);

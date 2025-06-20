@@ -41,10 +41,12 @@
     #map-overlay-widgets {
         position: absolute;
         top: 1rem;
-        left: 1rem;
+        right: 1rem; /* MOVED from left to right */
         z-index: 1001;
         display: flex;
         gap: 0.75rem;
+        flex-direction: column; /* ADDED to stack vertically */
+        align-items: flex-end; /* ADDED to align to the right */
     }
     .map-widget-container {
         cursor: grab;
@@ -113,6 +115,24 @@
         overflow-y: auto;
     }
     /* END: Routing Panel Specifics */
+
+    /* START: Previous Reports Container Styling */
+    #previous-transcripts-container {
+        max-height: 400px;  /* The list will not exceed this height */
+        overflow-y: auto;   /* Enable vertical scrolling only if content exceeds max-height */
+        border: 1px solid var(--bs-border-color-translucent);
+        border-radius: var(--bs-border-radius);
+        padding: 0.5rem;
+        background-color: rgba(var(--bs-tertiary-bg-rgb), 0.5); /* A subtle background to distinguish it */
+    }
+    /* Style for the master collapse button icon to make it rotate */
+    [data-bs-target="#previous-reports-collapsible-area"] .fa-chevron-up {
+        transition: transform 0.35s ease-in-out;
+    }
+    [data-bs-target="#previous-reports-collapsible-area"].collapsed .fa-chevron-up {
+        transform: rotate(180deg);
+    }
+    /* END: Previous Reports Container Styling */
 
     .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
     .sidebar-wrapper .tab-content { flex-grow: 1; overflow-y: auto; }
@@ -191,7 +211,13 @@
     .suggestion-icon { font-size: 1.25rem; color: var(--bs-success); margin-top: 0.25rem; }
     .suggestion-item-tts { display: flex; justify-content: space-between; align-items: center; }
     #map-column, #right-sidebar-column { transition: flex 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out; }
-    #right-sidebar-toggle { position: absolute; top: 1rem; right: 1rem; z-index: 1001; display: none; }
+    #right-sidebar-toggle {
+        position: absolute;
+        top: 10rem; /* MOVED DOWN to avoid overlap with map widgets */
+        right: 1rem;
+        z-index: 1001;
+        display: none;
+    }
     #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
     .wildfire-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
     .wildfire-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
@@ -589,11 +615,22 @@
                                 <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-wind fa-3x mb-3"></i><p>Awaiting field report...</p></div>
                                 <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
                             </div>
+                            <!-- START: Modified Previous Reports Section -->
                             <div class="px-3 pb-3 mt-4">
                                 <hr>
-                                <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
-                                <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#previous-reports-collapsible-area" aria-expanded="true" aria-controls="previous-reports-collapsible-area" title="Toggle Report History">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </div>
+                                <div class="collapse show" id="previous-reports-collapsible-area">
+                                    <div id="previous-transcripts-container">
+                                        <p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p>
+                                    </div>
+                                </div>
                             </div>
+                            <!-- END: Modified Previous Reports Section -->
                         </div>
                     </div>
                 </div>
@@ -755,7 +792,10 @@
             if (!container) return;
             const loadingIndicator = document.getElementById('previous-transcripts-loading');
             if (loadingIndicator) loadingIndicator.style.display = 'none';
-            if (!reports || reports.length === 0) { container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>'; return; }
+            if (!reports || reports.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>';
+                return;
+            }
             let html = '<div class="accordion" id="previousReportsAccordion">';
             reports.forEach((report) => {
                 const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
@@ -767,13 +807,48 @@
                 } else { suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>'; }
                 const exportUrl = `/report/${report.id}/export`;
                 const exportButtonHtml = `<div class="mt-4 text-end"><a href="${exportUrl}" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export as PDF</a></div>`;
-                html += `<div class="accordion-item bg-dark border-secondary mb-2"><h2 class="accordion-header" id="heading-history-${report.id}"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">Report from ${reportDate}</button></h2><div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion"><div class="accordion-body"><h6 class="text-white-50">Transcript</h6><p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p><h6 class="text-white-50">AI Suggested Actions</h6>${suggestionsHtml}${exportButtonHtml}</div></div></div>`;
+                
+                html += `<div class="accordion-item bg-dark border-secondary mb-2" id="report-accordion-item-${report.id}">
+                            <h2 class="accordion-header d-flex align-items-center" id="heading-history-${report.id}">
+                                <button class="accordion-button collapsed bg-body-tertiary flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">Report from ${reportDate}</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2 me-2 delete-report-btn" data-id="${report.id}" title="Delete Report"><i class="fas fa-trash-alt"></i></button>
+                            </h2>
+                            <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
+                                <div class="accordion-body"><h6 class="text-white-50">Transcript</h6><p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p><h6 class="text-white-50">AI Suggested Actions</h6>${suggestionsHtml}${exportButtonHtml}</div>
+                            </div>
+                         </div>`;
             });
             html += '</div>';
             container.innerHTML = html;
         };
 
-        const renderNotificationsFromReports = (reports) => { const list = document.getElementById('notifications-list'); const placeholder = document.getElementById('notifications-placeholder'); if (reports && reports.length > 0) { placeholder.classList.add('d-none'); let html = ''; reports.forEach(report => { const timeAgo = new Date(report.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }); const transcript = report.transcript || 'Transcript not available.'; html += `<div class="list-group-item list-group-item-action p-3"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 text-info"><i class="fas fa-file-alt me-2"></i>Field Report Logged</h6><small class="text-body-secondary">${timeAgo}</small></div><p class="mb-1 small fst-italic">"${transcript.substring(0, 150)}${transcript.length > 150 ? '...' : ''}"</p></div>`; }); list.innerHTML = html; } else { placeholder.classList.remove('d-none'); list.innerHTML = ''; list.appendChild(placeholder); } };
+        const renderNotificationsFromReports = (reports) => { 
+            const list = document.getElementById('notifications-list');
+            const placeholder = document.getElementById('notifications-placeholder');
+            if (reports && reports.length > 0) {
+                placeholder.classList.add('d-none');
+                let html = '';
+                reports.forEach(report => {
+                    const timeAgo = new Date(report.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+                    const transcript = report.transcript || 'Transcript not available.';
+                    html += `<div class="list-group-item list-group-item-action p-3" id="notification-report-${report.id}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 text-info"><i class="fas fa-file-alt me-2"></i>Field Report Logged</h6>
+                                    <div>
+                                        <small class="text-body-secondary me-2">${timeAgo}</small>
+                                        <button type="button" class="btn-close btn-close-white delete-notification-btn" aria-label="Delete Notification" title="Delete Report" data-id="${report.id}"></button>
+                                    </div>
+                                </div>
+                                <p class="mb-1 small fst-italic">"${transcript.substring(0, 150)}${transcript.length > 150 ? '...' : ''}"</p>
+                            </div>`;
+                });
+                list.innerHTML = html;
+            } else {
+                placeholder.classList.remove('d-none');
+                list.innerHTML = '';
+                list.appendChild(placeholder);
+            }
+        };
         const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); loadAndRenderReportHistory(); } catch (err) { showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Field Report'; recordButton.disabled = false; } };
         
         const displayResults = (data) => {
@@ -790,7 +865,66 @@
         const showError = (message) => { const e = document.getElementById('report-error'); const p = document.getElementById('report-placeholder'); const r = document.getElementById('ai-analysis-results'); if (e) { e.textContent = message; e.classList.remove('d-none'); } if (p) p.classList.add('d-none'); if (r) r.innerHTML = ''; }; 
         setupAudio(); 
     };
-        const initNotificationSystem = () => { const badge = document.getElementById('notification-badge'); if(badge) badge.classList.add('d-none'); };
+        
+        const deleteReport = async (reportId) => {
+            if (!confirm('Are you sure you want to delete this report? This action is permanent.')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/reports/${reportId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to delete the report.');
+                }
+                const notificationElement = document.getElementById(`notification-report-${reportId}`);
+                if (notificationElement) {
+                    notificationElement.remove();
+                }
+                const accordionItem = document.getElementById(`report-accordion-item-${reportId}`);
+                if (accordionItem) {
+                    accordionItem.remove();
+                }
+            } catch (error) {
+                console.error('Deletion failed:', error);
+                alert(`Error: ${error.message}`);
+            }
+        };
+
+        const initNotificationDeletion = () => {
+            const notificationsList = document.getElementById('notifications-list');
+            if (!notificationsList) return;
+            notificationsList.addEventListener('click', (event) => {
+                const deleteButton = event.target.closest('.delete-notification-btn');
+                if (deleteButton) {
+                    const reportId = deleteButton.dataset.id;
+                    if (reportId) {
+                        deleteReport(reportId);
+                    }
+                }
+            });
+        };
+        
+        const initPreviousReportDeletion = () => {
+            const reportsContainer = document.getElementById('previous-transcripts-container');
+            if (!reportsContainer) return;
+            reportsContainer.addEventListener('click', (event) => {
+                const deleteButton = event.target.closest('.delete-report-btn');
+                if (deleteButton) {
+                    const reportId = deleteButton.dataset.id;
+                    if (reportId) {
+                        deleteReport(reportId);
+                    }
+                }
+            });
+        };
+
         const initTextToSpeech = () => { if (!('speechSynthesis' in window)) return; document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
         
         const initRouting = () => {
@@ -883,7 +1017,8 @@
         setTimeout(initMap, 250);
         initChat();
         initLiveReport();
-        initNotificationSystem();
+        initNotificationDeletion(); 
+        initPreviousReportDeletion(); 
         initTextToSpeech();
         loadAndRenderReportHistory();
         initRouting();

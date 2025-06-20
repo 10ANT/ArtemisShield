@@ -139,3 +139,5 @@ Route::post('/predict-intensity', [WildfirePredictionController::class, 'predict
 
 // NEW route for classification-based spread prediction
 Route::post('/predict-spread', [App\Http\Controllers\WildfirePredictionController::class, 'predictSpread'])->name('api.predict.spread');
+
+Route::delete('/reports/{report}', [ReportController::class, 'destroy']);
