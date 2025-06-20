@@ -10,7 +10,7 @@
 
 
 
---- 
+<br>
 
  
 ## 🌟 Introduction 🌟
@@ -20,9 +20,188 @@
 
 **[Video Presentation](https://www.your-video-presentation-url.com)🎥**
 
-# Project Screenshots
 
-## Dashboard Overview
+## 🚀QuickStart 
+
+Follow these steps to get Artemis Shield up and running on your machine in minutes:
+
+### Prerequisites
+- PHP 8.2+
+- Composer
+- Node.js 16+
+- FFmpeg
+- XAMPP (Windows) or LAMP stack (Linux)
+- Git
+
+---
+
+### Windows (XAMPP)
+
+#### 1. Start XAMPP Services
+```bash
+# Start Apache and MySQL from XAMPP Control Panel
+# Or via command line:
+xampp-control.exe
+```
+
+#### 2. Clone the Repository
+```bash
+# Navigate to XAMPP htdocs directory
+cd C:\xampp\htdocs
+
+# Clone the repository
+git clone https://github.com/10ANT/ArtemisShield.git
+cd ArtemisShield
+```
+
+#### 3. Install Dependencies
+```bash
+# Install PHP dependencies
+composer install
+
+# Install Node.js dependencies
+npm install
+```
+
+#### 4. Install FFmpeg
+Download FFmpeg from [https://github.com/BtbN/FFmpeg-Builds/releases](https://github.com/BtbN/FFmpeg-Builds/releases) and ensure it's in your system PATH.
+
+#### 5. Configure Environment
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Edit .env file with your database credentials and Azure service keys
+# Set DB_HOST=127.0.0.1, DB_DATABASE=artemis_shield, etc.
+```
+
+#### 6. Setup Database
+```bash
+# Generate application key
+php artisan key:generate
+
+# Run database migrations
+php artisan migrate
+
+# Seed the database
+php artisan db:seed --class=RoleSeeder
+php artisan db:seed --class=UserSeeder
+
+# Import initial data
+php artisan import:fire_hydrants
+php artisan import:stations
+```
+
+#### 7. Build Frontend Assets
+```bash
+npm run build
+```
+
+#### 8. Start the Application
+```bash
+# Start Laravel development server
+php artisan serve
+
+# In a new terminal, start Vite dev server (optional for development)
+npm run dev
+```
+
+#### 9. Access the Application
+Navigate to: `http://localhost:8000`
+
+---
+
+### Linux (Ubuntu/Debian)
+
+#### 1. Update System and Install Dependencies
+```bash
+sudo apt update
+sudo apt install php8.2 php8.2-cli php8.2-common php8.2-mysql php8.2-zip php8.2-gd php8.2-mbstring php8.2-curl php8.2-xml php8.2-bcmath
+sudo apt install composer nodejs npm mysql-server ffmpeg git
+```
+
+#### 2. Clone the Repository
+```bash
+# Navigate to web directory
+cd /var/www/html
+
+# Clone the repository
+sudo git clone https://github.com/10ANT/ArtemisShield.git
+cd ArtemisShield
+
+# Set proper permissions
+sudo chown -R www-data:www-data /var/www/html/ArtemisShield
+sudo chmod -R 755 /var/www/html/ArtemisShield
+```
+
+#### 3. Install Dependencies
+```bash
+# Install PHP dependencies
+composer install
+
+# Install Node.js dependencies
+npm install
+```
+
+#### 4. Configure Environment
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Edit .env file with your database credentials and Azure service keys
+nano .env
+```
+
+#### 5. Setup Database
+```bash
+# Generate application key
+php artisan key:generate
+
+# Run database migrations
+php artisan migrate
+
+# Seed the database
+php artisan db:seed --class=RoleSeeder
+php artisan db:seed --class=UserSeeder
+
+# Import initial data
+php artisan import:fire_hydrants
+php artisan import:stations
+```
+
+#### 6. Build Frontend Assets
+```bash
+npm run build
+```
+
+#### 7. Start the Application
+```bash
+# Start Laravel development server
+php artisan serve --host=0.0.0.0 --port=8000 &
+
+# Start Vite dev server (optional for development)
+npm run dev &
+```
+
+#### 8. Access the Application
+Navigate to: `http://localhost:8000`
+
+---
+
+### Default Login Credentials
+- **Wildfire Officer:** `officer@artemisshield.com` / `password`
+- **Resident:** `resident@artemisshield.com` / `password`
+
+### Troubleshooting
+- **Database connection issues:** Verify your `.env` database credentials
+- **FFmpeg not found:** Ensure FFmpeg is installed and in your system PATH and path is specified in `.env`
+- **Permission denied (Linux):** Check file permissions with `sudo chown -R www-data:www-data`
+- **Port already in use:** Use `php artisan serve --port=8080` to use a different port
+
+
+
+
+## Project Screenshots - Dashboard Overview
 
 ### Main Dashboard (Wildfire Officer)
 <div align="center">
@@ -58,31 +237,31 @@
 
 <div align="center">
   <img src="https://i.ibb.co/pjS8NM5M/mobile.jpg" width="250"/>
+
 </div>
 
 
 
 ---
 
-
+<br>
 
 ## 📝 Table of Contents
 
-1.  [Introduction](#introduction)
-2.  [The Problem](#the-problem)
-3.  [Our Solution: ArtemisShield - Your AI-Powered Command Center](#our-solution-artemisshield---your-ai-powered-command-center)
-    * [Key Features](#key-features)
-4.  [High-Level System Architecture](#high-level-system-architecture)
-5.  [Lower-Level System Architecture](#lower-level-system-architecture)
-6.  [Technology Stack](#technology-stack)
-7.  [Our Commitment to Responsible AI](#our-commitment-to-responsible-ai)
-8.  [Repository Structure](#repository-structure)
-9.  [Setup & Installation](#setup--installation)
-10. [Deployment](#deployment)
-11. [How to Contribute](#how-to-contribute)
-12. [Team Members](#team-members)
-13. [Acknowledgements](#acknowledgements)
-14. [License](#license)
+1.  [Introduction](#-introduction-)
+2.  [The Problem](#️-the-problem-️)
+3.  [Our Solution: ArtemisShield - Your AI-Powered Command Center](#-our-solution-artemisshield---your-ai-powered-command-center-)
+    * [Key Features](#-key-features-)
+4.  [System Architecture](#️-system-architecture)
+5.  [Technology Stack](#️-technology-stack--️)
+6.  [Our Commitment to Responsible AI](#-our-commitment-to-responsible-ai-)
+7.  [Repository Structure](#️-repository-structure)
+8.  [Setup & Installation](#-setup--installation)
+9.  [Deployment](#️-deployment-️)
+10. [How to Contribute](#-how-to-contribute-)
+11. [Team Members](#-team-members-)
+12. [Acknowledgements](#-acknowledgements-)
+13. [License](#-license-)
 
 
 
@@ -337,12 +516,11 @@ For major changes or new features, please open an issue first to discuss the pro
 * **NASA FIRMS:** For providing real-time fire and thermal anomaly data.
 * **NOAA GOES:** For satellite imagery data.
 * **Ambee API:** For weather and environmental data.
-* **Google Earth Engine API:** For geospatial data processing capabilities.
+* **Overpass API:** For querying openstreetmap for geographical infrastructure data.
 * This project was developed as part of the **Microsoft Innovation Challenge 2025**.
 
 
 ---
-
 
 
 ## 📄 License 📄
@@ -368,6 +546,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-
-
