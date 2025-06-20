@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>PulsePoint Command - Historical Fire Map</title>
+    <title>Artemis - Historical Fire Map</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -74,8 +74,8 @@
         .modal-body .row .col-md-4 { font-weight: bold; color: var(--bs-secondary-color); }
         .modal-body .row .col-md-8 { word-break: break-all; }
 
-        /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
-        @media (max-width: 991.98px) {
+        /* START: TABLET/MOBILE SIDEBAR RESPONSIVENESS FIX */
+        @media (max-width: 1199.98px) {
             .sidebar-area {
                 position: static !important;
                 width: 100% !important;
@@ -129,7 +129,7 @@
                 border-top: 1px solid var(--bs-border-color) !important;
             }
         }
-        /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
+        /* END: TABLET/MOBILE SIDEBAR RESPONSIVENESS FIX */
     </style>
 </head>
 <body class="boxed-size">
@@ -349,12 +349,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const body = document.body;
 
         if (burgerMenu && body) {
-            if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
+            // Updated Breakpoint: from 992 to 1200
+            if (window.innerWidth < 1200 && !body.classList.contains('sidebar-close')) {
                 body.classList.add('sidebar-close');
             }
 
             burgerMenu.addEventListener('click', function(event) {
-                if (window.innerWidth < 992) {
+                // Updated Breakpoint: from 992 to 1200
+                if (window.innerWidth < 1200) {
                     event.preventDefault();
                     event.stopPropagation();
                     body.classList.toggle('sidebar-close');

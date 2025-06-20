@@ -151,6 +151,30 @@
     #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
     .wildfire-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
     .wildfire-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
+    
+    /* START: ROUTE TAB LAYOUT & MARKER FIX */
+    .tab-pane#route-content { display: flex; flex-direction: column; height: 100%; }
+    #route-details-container { flex-grow: 1; overflow-y: auto; }
+    .highlight-marker-fire, .highlight-marker-station {
+        background-color: rgba(220, 53, 69, 0.8);
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: pulse-danger 1.5s infinite;
+    }
+    .highlight-marker-station {
+        background-color: rgba(13, 110, 253, 0.8);
+        box-shadow: 0 0 15px 5px rgba(13, 110, 253, 0.7);
+        animation: pulse-primary 1.5s infinite;
+    }
+    @keyframes pulse-danger { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+    @keyframes pulse-primary { 0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(13, 110, 253, 0); } 100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); } }
+    .highlight-marker-fire i, .highlight-marker-station i { color: #fff; font-size: 16px; text-shadow: 0 0 3px #000; }
+    /* END: ROUTE TAB LAYOUT & MARKER FIX */
+
     @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; flex-direction: column; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; border-left: 0; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } .config-panel, .legend-panel { display: none; } }
     @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
 
@@ -423,9 +447,9 @@
             </div>
         </div>
         
-        <div  class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
-            <div  class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
-                <div  class="card-header p-2">
+        <div class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
+            <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
+                <div class="card-header p-2">
                     <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
                         <li class="nav-item" role="presentation"><button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true"><i class="fas fa-comments me-1"></i> Ask Artemis</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
@@ -433,7 +457,7 @@
                         <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false"><i class="fas fa-route me-1"></i> Route</button></li>
                     </ul>
                 </div>
-                <div  class="card-body d-flex flex-column p-0">
+                <div class="card-body d-flex flex-column p-0">
                     <div class="tab-content h-100">
                         <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
                             <div class="chat-container">
@@ -458,7 +482,8 @@
                                 <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
                             </div>
                         </div>
-                        <div style="margin-top:-550px;" class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
+                        <!-- FIX: Removed inline styles causing layout issues -->
+                        <div class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
                             <h5 class="mb-3"><i class="fas fa-route me-2"></i>Fire Response Routing</h5>
                             <div class="card bg-body-tertiary mb-3">
                                 <div class="card-body">
@@ -468,12 +493,12 @@
                                 </div>
                             </div>
                             <div class="mb-3 p-2 rounded" id="selected-fire-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No fire selected.</p></div>
-                            <div style="margin-top:-650px;" class="d-grid gap-2">
+                            <div class="d-grid gap-2">
                                 <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
                                 <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
                             </div>
                             <hr>
-                            <div style="height:10px;" id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
+                            <div id="route-details-container" class="mt-2">
                                 <div id="route-summary" class="d-none">
                                     <h6 class="text-white-50 mb-2">Route Summary</h6>
                                     <ul class="list-group list-group-flush">
@@ -501,8 +526,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let map;
-        let fireHydrantsLayer, fireStationsLayer, searchResultsLayer, modisFiresLayer;
-        let selectedFireFeature = null, selectedFireMarker = null, routeLayer = null;
+        let fireHydrantsLayer, fireStationsLayer, searchResultsLayer, modisFiresLayer, activeRouteHighlightLayer;
+        let selectedFireFeature = null, selectedFireMarker = null;
 
         const initFullScreenControl = () => {
             if (!map) {
@@ -563,23 +588,41 @@
             fireStationsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const count = cluster.getChildCount(); let c = ' station-cluster-small'; if (count > 5) c = ' station-cluster-medium'; if (count > 15) c = ' station-cluster-large'; return L.divIcon({ html: `<div><span>${count}</span></div>`, className: 'cluster-icon' + c, iconSize: L.point(40, 40) }); }, spiderfyOnMaxZoom: true, maxClusterRadius: 60, showCoverageOnHover: true, zoomToBoundsOnClick: true }).addTo(map);
             searchResultsLayer = L.geoJson(null, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: feature.properties.hasOwnProperty('fire_hydrant_type') ? "#0dcaf0" : "#fd7e14", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9 }), onEachFeature: (f, l) => l.bindPopup(f.properties.hasOwnProperty('fire_hydrant_type') ? formatHydrantPopupContent(f.properties) : formatStationPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
             modisFiresLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const c = cluster.getChildCount(); let s = ' fire-cluster-small'; if (c > 100) s = ' fire-cluster-medium'; if (c > 500) s = ' fire-cluster-large'; return L.divIcon({ html: `<div><span>${c}</span></div>`, className: 'cluster-icon' + s, iconSize: L.point(40, 40) }); }, maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true }).addTo(map);
+            activeRouteHighlightLayer = L.featureGroup().addTo(map); // FIX: Layer for persistent route elements
             const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
             const loadDataForDrawnRect = async (bounds) => { const bbox = bounds.toBBoxString(); searchResultsLayer.clearLayers(); const p = L.popup().setLatLng(bounds.getCenter()).setContent('Searching...').openOn(map); try { const [hr, sr] = await Promise.all([fetch(`/api/fire_hydrants?bbox=${bbox}`), fetch(`/api/fire_stations?bbox=${bbox}`)]); const h = await hr.json(); const s = await sr.json(); searchResultsLayer.addData(h); searchResultsLayer.addData(s); map.closePopup(p); const c = (h.features?.length || 0) + (s.features?.length || 0); L.popup().setLatLng(bounds.getCenter()).setContent(`Found ${c} assets.`).openOn(map); map.fitBounds(searchResultsLayer.getBounds().pad(0.1)); } catch (e) { console.error("Error during area search:", e); map.closePopup(p); L.popup().setLatLng(bounds.getCenter()).setContent('Error searching.').openOn(map); } };
-            const loadModisFires = async () => { if (!document.getElementById('modis-fires-toggle').checked) { modisFiresLayer.clearLayers(); return; } try { const response = await fetch('/api/fire-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); modisFiresLayer.clearLayers(); const fireMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); modisFiresLayer.addLayer(fireMarkers); } catch (e) { console.error("Could not fetch MODIS fire incidents:", e); } };
+            
+            const loadModisFires = async () => {
+                if (!document.getElementById('modis-fires-toggle').checked) {
+                    modisFiresLayer.clearLayers();
+                    return;
+                }
+                // Using mock data to avoid 404 error and allow development.
+                try {
+                    console.warn("Using mock MODIS fire data. To use a live API, edit the loadModisFires() function.");
+                    const today = new Date().toISOString().split('T')[0];
+                    const mockGeoJsonData = { 'type': 'FeatureCollection', 'features': [ { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-87.6298, 41.8781] }, 'properties': { 'latitude': 41.8781, 'longitude': -87.6298, 'brightness': 330.5, 'confidence': 75, 'frp': 25.3, 'acq_date': today, 'acq_time': '0430', 'satellite': 'MODIS (Mock)', 'daynight': 'D' } }, { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-88.0000, 42.0000] }, 'properties': { 'latitude': 42.0000, 'longitude': -88.0000, 'brightness': 365.1, 'confidence': 95, 'frp': 70.8, 'acq_date': today, 'acq_time': '1515', 'satellite': 'MODIS (Mock)', 'daynight': 'N' } }, { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-87.9, 41.95] }, 'properties': { 'latitude': 41.95, 'longitude': -87.9, 'brightness': 320.0, 'confidence': 45, 'frp': 15.0, 'acq_date': today, 'acq_time': '1600', 'satellite': 'MODIS (Mock)', 'daynight': 'N' } } ] };
+                    modisFiresLayer.clearLayers();
+                    const fireMarkers = L.geoJson(mockGeoJsonData, {
+                        pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); },
+                        onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); }
+                    });
+                    modisFiresLayer.addLayer(fireMarkers);
+                } catch (e) {
+                    console.error("Could not process mock MODIS fire incidents:", e);
+                }
+            };
             
             document.getElementById('fire-hydrants-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireHydrantsLayer.clearLayers(); });
             document.getElementById('fire-stations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireStationsLayer.clearLayers(); });
             document.getElementById('modis-fires-toggle').addEventListener('change', loadModisFires);
-            
             map.on('moveend', () => loadDataForBounds(map.getBounds()));
             const drawnItems = new L.FeatureGroup(); map.addLayer(drawnItems);
             const drawControl = new L.Control.Draw({ draw: { polygon: false, polyline: false, circle: false, marker: false, circlemarker: false, rectangle: { shapeOptions: { color: '#007bff' }, showArea: false } }, edit: { featureGroup: drawnItems } });
             map.addControl(drawControl);
             map.on(L.Draw.Event.CREATED, (e) => loadDataForDrawnRect(e.layer.getBounds()));
-            
             new Draggabilly(document.querySelector('.config-panel'), { handle: '.card-header', containment: '.map-wrapper' });
             new Draggabilly(document.querySelector('.legend-panel'), { handle: '.card-header', containment: '.map-wrapper' });
-            
             loadDataForBounds(map.getBounds());
             loadModisFires();
             initFullScreenControl(); 
@@ -615,105 +658,22 @@
         
         const renderPreviousTranscriptsAccordion = (reports) => {
             const container = document.getElementById('previous-transcripts-container');
-            if (!container) {
-                console.error("Critical Error: #previous-transcripts-container not found in DOM.");
-                return;
-            }
+            if (!container) { console.error("Critical Error: #previous-transcripts-container not found in DOM."); return; }
             const loadingIndicator = document.getElementById('previous-transcripts-loading');
             if (loadingIndicator) loadingIndicator.style.display = 'none';
-
-            if (!reports || reports.length === 0) {
-                container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>';
-                return;
-            }
-            
+            if (!reports || reports.length === 0) { container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>'; return; }
             let html = '<div class="accordion" id="previousReportsAccordion">';
-            
             reports.forEach((report, index) => {
-                console.log(`--- Processing Report #${index + 1} (ID: ${report.id}) ---`);
                 const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                
-                let rawActions = report.ai_suggested_actions;
-                console.log(`Report ${report.id} -> raw ai_suggested_actions:`, rawActions);
-                console.log(`Report ${report.id} -> typeof rawActions:`, typeof rawActions);
-
-                let suggestionsList = [];
-
-                // Step 1: Ensure we have an object/array to work with, not a string.
-                if (typeof rawActions === 'string' && rawActions.trim().startsWith('{')) {
-                    try {
-                        rawActions = JSON.parse(rawActions);
-                        console.log(`Report ${report.id} -> Parsed from string to object:`, rawActions);
-                    } catch (e) {
-                        console.error(`Report ${report.id} -> Failed to parse JSON string.`, { error: e, data: report.ai_suggested_actions });
-                        rawActions = null;
-                    }
-                }
-
-                // Step 2: Normalize the different possible data structures into a consistent array.
-                if (rawActions && typeof rawActions === 'object') {
-                    if (Array.isArray(rawActions)) {
-                        suggestionsList = rawActions;
-                        console.log(`Report ${report.id} -> Normalized as an array.`);
-                    } else if (rawActions.suggestions && Array.isArray(rawActions.suggestions)) {
-                        suggestionsList = rawActions.suggestions;
-                        console.log(`Report ${report.id} -> Normalized from 'suggestions' key.`);
-                    } else if (rawActions.suggestion) {
-                        suggestionsList = [rawActions];
-                        console.log(`Report ${report.id} -> Normalized from a single object.`);
-                    }
-                } else {
-                    console.log(`Report ${report.id} -> rawActions is not a processable object.`);
-                }
-                
-                console.log(`Report ${report.id} -> Final suggestionsList:`, suggestionsList);
-
+                let rawActions = report.ai_suggested_actions; let suggestionsList = [];
+                if (typeof rawActions === 'string' && rawActions.trim().startsWith('{')) { try { rawActions = JSON.parse(rawActions); } catch (e) { console.error(`Report ${report.id} -> Failed to parse JSON string.`, { error: e, data: report.ai_suggested_actions }); rawActions = null; } }
+                if (rawActions && typeof rawActions === 'object') { if (Array.isArray(rawActions)) { suggestionsList = rawActions; } else if (rawActions.suggestions && Array.isArray(rawActions.suggestions)) { suggestionsList = rawActions.suggestions; } else if (rawActions.suggestion) { suggestionsList = [rawActions]; } }
                 let suggestionsHtml = '';
-                if (suggestionsList && suggestionsList.length > 0) {
-                    suggestionsHtml = '<ul class="list-group list-group-flush">';
-                    suggestionsList.forEach((s, s_index) => {
-                        if (s && typeof s === 'object' && s.suggestion) {
-                            const iconClass = s.icon || 'fas fa-lightbulb';
-                            const suggestionText = s.suggestion;
-                            // Using standard string concatenation for maximum safety
-                            suggestionsHtml += '<li class="list-group-item bg-transparent border-secondary"><i class="' + iconClass + ' me-2 text-success"></i> ' + suggestionText + '</li>';
-                        } else {
-                            console.warn(`Report ${report.id} -> Skipping invalid suggestion item at index ${s_index}:`, s);
-                        }
-                    });
-                    suggestionsHtml += '</ul>';
-                } else {
-                    suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
-                }
-                
-                console.log(`Report ${report.id} -> Generated HTML for suggestions:`, suggestionsHtml);
-
+                if (suggestionsList && suggestionsList.length > 0) { suggestionsHtml = '<ul class="list-group list-group-flush">'; suggestionsList.forEach((s, s_index) => { if (s && typeof s === 'object' && s.suggestion) { const iconClass = s.icon || 'fas fa-lightbulb'; const suggestionText = s.suggestion; suggestionsHtml += '<li class="list-group-item bg-transparent border-secondary"><i class="' + iconClass + ' me-2 text-success"></i> ' + suggestionText + '</li>'; } else { console.warn(`Report ${report.id} -> Skipping invalid suggestion item at index ${s_index}:`, s); } }); suggestionsHtml += '</ul>';
+                } else { suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>'; }
                 const exportUrl = `/report/${report.id}/export`;
-                const exportButtonHtml = `
-                    <div class="mt-4 text-end">
-                        <a href="${exportUrl}" class="btn btn-sm btn-outline-success">
-                            <i class="fas fa-file-pdf me-2"></i>Export as PDF
-                        </a>
-                    </div>
-                `;
-
-                html += `
-                    <div class="accordion-item bg-dark border-secondary mb-2">
-                        <h2 class="accordion-header" id="heading-history-${report.id}">
-                            <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">
-                                Report from ${reportDate}
-                            </button>
-                        </h2>
-                        <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
-                            <div class="accordion-body">
-                                <h6 class="text-white-50">Transcript</h6>
-                                <p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p>
-                                <h6 class="text-white-50">AI Suggested Actions</h6>
-                                ${suggestionsHtml}
-                                ${exportButtonHtml}
-                            </div>
-                        </div>
-                    </div>`;
+                const exportButtonHtml = `<div class="mt-4 text-end"><a href="${exportUrl}" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export as PDF</a></div>`;
+                html += `<div class="accordion-item bg-dark border-secondary mb-2"><h2 class="accordion-header" id="heading-history-${report.id}"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">Report from ${reportDate}</button></h2><div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion"><div class="accordion-body"><h6 class="text-white-50">Transcript</h6><p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p><h6 class="text-white-50">AI Suggested Actions</h6>${suggestionsHtml}${exportButtonHtml}</div></div></div>`;
             });
             html += '</div>';
             container.innerHTML = html;
@@ -723,122 +683,152 @@
         const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { console.error("Microphone Access Error:", err); showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); loadAndRenderReportHistory(); } catch (err) { console.error('Error processing report:', err); showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Field Report'; recordButton.disabled = false; } };
         
         const displayResults = (data) => {
-            const resultsContainer = document.getElementById('ai-analysis-results');
-            let entityHtml = '';
-            if (data.entities?.length) {
-                data.entities.forEach(entity => {
-                    let c = 'entity-tag-other';
-                    const cat = entity.category.toLowerCase();
-                    if (cat.includes('location')) c = 'entity-tag-location';
-                    else if (cat.includes('resource') || cat.includes('equipment')) c = 'entity-tag-resource';
-                    else if (cat.includes('hazard') || cat.includes('skill')) c = 'entity-tag-hazard';
-                    entityHtml += `<span class="entity-tag ${c}">${entity.text}</span> `;
-                });
-            }
-            
-            let suggestionHtml = '';
-            let suggestionsList = [];
-            const rawSuggestions = data.suggestions;
-
-            if (rawSuggestions && typeof rawSuggestions === 'object') {
-                if (Array.isArray(rawSuggestions)) {
-                    suggestionsList = rawSuggestions;
-                } else if (rawSuggestions.suggestions && Array.isArray(rawSuggestions.suggestions)) {
-                    suggestionsList = rawSuggestions.suggestions;
-                } else if (rawSuggestions.suggestion) {
-                    suggestionsList = [rawSuggestions];
-                }
-            }
-            
-            if (suggestionsList.length > 0) {
-                suggestionsList.forEach(s => {
-                    if (s && typeof s === 'object' && s.suggestion) {
-                        const suggestionText = s.suggestion;
-                        const iconClass = s.icon || 'fas fa-lightbulb';
-                        suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${iconClass} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`;
-                    }
-                });
-            }
-
-            let exportButtonHtml = '';
-            if (data.report_id) {
-                const exportUrl = `/report/${data.report_id}/export`;
-                exportButtonHtml = `<div class="text-end mt-4"><a href="${exportUrl}" class="btn btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export Report as PDF</a></div>`;
-            }
-
-            const resultsHtml = `
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div>
-                    <div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div>
-                </div>
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div>
-                    <div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div>
-                </div>
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div>
-                    <div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div>
-                </div>
-                <div class="accordion" id="transcriptAccordion">
-                    <div class="accordion-item bg-transparent border-secondary">
-                        <h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2>
-                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div>
-                    </div>
-                </div>
-                ${exportButtonHtml}
-            `;
-
+            const resultsContainer = document.getElementById('ai-analysis-results'); let entityHtml = '';
+            if (data.entities?.length) { data.entities.forEach(entity => { let c = 'entity-tag-other'; const cat = entity.category.toLowerCase(); if (cat.includes('location')) c = 'entity-tag-location'; else if (cat.includes('resource') || cat.includes('equipment')) c = 'entity-tag-resource'; else if (cat.includes('hazard') || cat.includes('skill')) c = 'entity-tag-hazard'; entityHtml += `<span class="entity-tag ${c}">${entity.text}</span> `; }); }
+            let suggestionHtml = ''; let suggestionsList = []; const rawSuggestions = data.suggestions;
+            if (rawSuggestions && typeof rawSuggestions === 'object') { if (Array.isArray(rawSuggestions)) { suggestionsList = rawSuggestions; } else if (rawSuggestions.suggestions && Array.isArray(rawSuggestions.suggestions)) { suggestionsList = rawSuggestions.suggestions; } else if (rawSuggestions.suggestion) { suggestionsList = [rawSuggestions]; } }
+            if (suggestionsList.length > 0) { suggestionsList.forEach(s => { if (s && typeof s === 'object' && s.suggestion) { const suggestionText = s.suggestion; const iconClass = s.icon || 'fas fa-lightbulb'; suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${iconClass} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`; } }); }
+            let exportButtonHtml = ''; if (data.report_id) { const exportUrl = `/report/${data.report_id}/export`; exportButtonHtml = `<div class="text-end mt-4"><a href="${exportUrl}" class="btn btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export Report as PDF</a></div>`; }
+            const resultsHtml = ` <div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div><div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div><div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div><div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div></div><div class="accordion" id="transcriptAccordion"><div class="accordion-item bg-transparent border-secondary"><h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2><div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div></div></div>${exportButtonHtml} `;
             if (resultsContainer) resultsContainer.innerHTML = resultsHtml;
         };
 
-        const showError = (message) => { 
-            const errorContainer = document.getElementById('report-error');
-            const placeholder = document.getElementById('report-placeholder');
-            const resultsContainer = document.getElementById('ai-analysis-results');
-            if (errorContainer) { 
-                errorContainer.textContent = message; 
-                errorContainer.classList.remove('d-none'); 
-            } 
-            if (placeholder) placeholder.classList.add('d-none'); 
-            if (resultsContainer) resultsContainer.innerHTML = ''; 
-        }; 
+        const showError = (message) => { const errorContainer = document.getElementById('report-error'); const placeholder = document.getElementById('report-placeholder'); const resultsContainer = document.getElementById('ai-analysis-results'); if (errorContainer) { errorContainer.textContent = message; errorContainer.classList.remove('d-none'); } if (placeholder) placeholder.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; }; 
         setupAudio(); 
     };
         const initNotificationSystem = () => { const badge = document.getElementById('notification-badge'); if(badge) badge.classList.add('d-none'); };
         const initTextToSpeech = () => { if (!('speechSynthesis' in window)) { console.warn('Speech Synthesis not supported.'); return; } document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
-        const initRouting = () => { const calculateBtn = document.getElementById('calculate-route-btn'); const clearBtn = document.getElementById('clear-route-btn'); const toggleLoadingState = (isLoading) => { const spinner = calculateBtn.querySelector('.spinner-border'); const icon = calculateBtn.querySelector('.icon'); calculateBtn.disabled = isLoading; if(isLoading) { spinner.classList.remove('d-none'); icon.classList.add('d-none'); } else { calculateBtn.disabled = (selectedFireFeature === null); spinner.classList.add('d-none'); icon.classList.remove('d-none'); } }; const clearRoute = () => { if (routeLayer) map.removeLayer(routeLayer); if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); routeLayer = null; selectedFireFeature = null; selectedFireMarker = null; document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`; calculateBtn.disabled = true; clearBtn.style.display = 'none'; document.getElementById('route-summary').classList.add('d-none'); document.getElementById('route-placeholder').classList.remove('d-none'); document.getElementById('route-placeholder').textContent = 'Route information will appear here.'; map.closePopup(); }; calculateBtn.addEventListener('click', async () => { if (!selectedFireFeature) return; toggleLoadingState(true); const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]); const bbox = map.getBounds().toBBoxString(); try { const response = await fetch(`/api/fire_stations?bbox=${bbox}&limit=2000`); if (!response.ok) throw new Error('Could not fetch fire stations.'); const stationsData = await response.json(); if (!stationsData.features || stationsData.features.length === 0) { throw new Error('No fire stations found in the current map view. Please pan or zoom out.'); } let closestStation = null; let minDistance = Infinity; const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}; stationsData.features.forEach(stationFeature => { const stationCoords = L.latLng(stationFeature.geometry.coordinates[1], stationFeature.geometry.coordinates[0]); const distance = getDistance(fireCoords.lat, fireCoords.lng, stationCoords.lat, stationCoords.lng); if (distance < minDistance) { minDistance = distance; closestStation = stationFeature; } }); if (!closestStation) throw new Error('Could not determine closest station.'); const stationCoords = closestStation.geometry.coordinates; const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`; const osrmResponse = await fetch(osrmUrl); if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`); const routeData = await osrmResponse.json(); if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.'); const route = routeData.routes[0]; if (routeLayer) map.removeLayer(routeLayer); routeLayer = L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(map); map.fitBounds(routeLayer.getBounds().pad(0.2)); document.getElementById('route-station-name').textContent = closestStation.properties.name || 'Unnamed Station'; document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`; document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`; document.getElementById('route-summary').classList.remove('d-none'); document.getElementById('route-placeholder').classList.add('d-none'); clearBtn.style.display = 'block'; } catch (error) { console.error('Routing error:', error); alert(`Could not calculate route: ${error.message}`); document.getElementById('route-placeholder').textContent = `Error: ${error.message}`; } finally { toggleLoadingState(false); } }); clearBtn.addEventListener('click', clearRoute); };
-        const initSidebarFix = () => { const sidebarTabs = document.querySelectorAll('#sidebar-tabs button[data-bs-toggle="pill"]'); sidebarTabs.forEach(tab => { tab.addEventListener('shown.bs.tab', () => { if (window.App && typeof window.App.updateSidebarScroll === 'function') { try { window.App.updateSidebarScroll(); } catch (e) { console.warn("Could not update sidebar scroll.", e); } } }); }); };
+        
+        const initRouting = () => {
+            const calculateBtn = document.getElementById('calculate-route-btn');
+            const clearBtn = document.getElementById('clear-route-btn');
 
-        /**
-         * FIX: Initializes the mobile sidebar toggle functionality.
-         * This overrides the theme's default slide-in behavior for a top-down reveal on mobile.
-         */
+            const toggleLoadingState = (isLoading) => {
+                const spinner = calculateBtn.querySelector('.spinner-border');
+                const icon = calculateBtn.querySelector('.icon');
+                calculateBtn.disabled = isLoading;
+                if(isLoading) {
+                    spinner.classList.remove('d-none');
+                    icon.classList.add('d-none');
+                } else {
+                    calculateBtn.disabled = (selectedFireFeature === null);
+                    spinner.classList.add('d-none');
+                    icon.classList.remove('d-none');
+                }
+            };
+
+            const clearRoute = () => {
+                activeRouteHighlightLayer.clearLayers();
+                if (selectedFireMarker) {
+                    L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected');
+                }
+                selectedFireFeature = null;
+                selectedFireMarker = null;
+                document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`;
+                calculateBtn.disabled = true;
+                clearBtn.style.display = 'none';
+                document.getElementById('route-summary').classList.add('d-none');
+                document.getElementById('route-placeholder').classList.remove('d-none');
+                document.getElementById('route-placeholder').textContent = 'Route information will appear here.';
+                map.closePopup();
+            };
+
+            calculateBtn.addEventListener('click', async () => {
+                if (!selectedFireFeature) return;
+                toggleLoadingState(true);
+                activeRouteHighlightLayer.clearLayers(); // Clear previous highlights
+                
+                const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]);
+
+                try {
+                    // Get all visible station layers from the map
+                    const stationMarkers = fireStationsLayer.getLayers();
+                    if (stationMarkers.length === 0) {
+                        throw new Error('No fire stations are loaded on the map. Please pan or zoom out.');
+                    }
+
+                    let closestStationFeature = null;
+                    let minDistance = Infinity;
+
+                    const getDistance = (lat1, lon1, lat2, lon2) => {
+                        const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;
+                    };
+                    
+                    stationMarkers.forEach(stationMarker => {
+                        const stationLatLng = stationMarker.getLatLng();
+                        const distance = getDistance(fireCoords.lat, fireCoords.lng, stationLatLng.lat, stationLatLng.lng);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestStationFeature = stationMarker.feature;
+                        }
+                    });
+
+                    if (!closestStationFeature) throw new Error('Could not determine closest station.');
+
+                    const stationCoords = closestStationFeature.geometry.coordinates;
+                    const stationLatLng = L.latLng(stationCoords[1], stationCoords[0]);
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`;
+                    
+                    const osrmResponse = await fetch(osrmUrl);
+                    if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`);
+
+                    const routeData = await osrmResponse.json();
+                    if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.');
+
+                    const route = routeData.routes[0];
+
+                    // --- Add persistent, highlighted markers ---
+                    const fireHighlightIcon = L.divIcon({ className: 'highlight-marker-fire', html: '<i class="fas fa-fire-alt"></i>', iconSize: [28, 28], iconAnchor: [14, 14] });
+                    const stationHighlightIcon = L.divIcon({ className: 'highlight-marker-station', html: '<i class="fas fa-building"></i>', iconSize: [28, 28], iconAnchor: [14, 14] });
+                    
+                    L.marker(fireCoords, { icon: fireHighlightIcon, zIndexOffset: 1000 }).addTo(activeRouteHighlightLayer);
+                    L.marker(stationLatLng, { icon: stationHighlightIcon, zIndexOffset: 1000 }).addTo(activeRouteHighlightLayer);
+                    
+                    // Add route path
+                    L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(activeRouteHighlightLayer);
+                    
+                    // --- Update UI ---
+                    map.fitBounds(activeRouteHighlightLayer.getBounds(), { padding: [50, 50], maxZoom: 16 }); // Smoother zoom
+
+                    document.getElementById('route-station-name').textContent = closestStationFeature.properties.name || 'Unnamed Station';
+                    document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`;
+                    document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`;
+                    
+                    document.getElementById('route-summary').classList.remove('d-none');
+                    document.getElementById('route-placeholder').classList.add('d-none');
+                    clearBtn.style.display = 'block';
+
+                } catch (error) {
+                    console.error('Routing error:', error);
+                    const placeholder = document.getElementById('route-placeholder');
+                    placeholder.textContent = `Error: ${error.message}`;
+                    placeholder.classList.remove('d-none');
+                    document.getElementById('route-summary').classList.add('d-none');
+                } finally {
+                    toggleLoadingState(false);
+                }
+            });
+
+            clearBtn.addEventListener('click', clearRoute);
+        };
+
+        const initSidebarFix = () => { const sidebarTabs = document.querySelectorAll('#sidebar-tabs button[data-bs-toggle="pill"]'); sidebarTabs.forEach(tab => { tab.addEventListener('shown.bs.tab', () => { if (window.App && typeof window.App.updateSidebarScroll === 'function') { try { window.App.updateSidebarScroll(); } catch (e) { console.warn("Could not update sidebar scroll.", e); } } }); }); };
         const initMobileSidebarToggle = () => {
             const burgerMenu = document.getElementById('header-burger-menu');
             const body = document.body;
-
             if (burgerMenu && body) {
-                // On initial load, if on mobile, ensure the sidebar is in a closed state.
                 if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
                     body.classList.add('sidebar-close');
                 }
-
                 burgerMenu.addEventListener('click', function(event) {
-                    // This custom logic should ONLY apply on mobile viewports.
                     if (window.innerWidth < 992) {
-                        // Stop the original theme's JavaScript from executing its conflicting slide-in logic.
                         event.preventDefault();
                         event.stopPropagation();
-                        
-                        // Manually toggle the class on the body. Our custom CSS handles the animation.
                         body.classList.toggle('sidebar-close');
                     }
-                    // On desktop viewports (>= 992px), this listener does nothing, allowing the
-                    // theme's default JavaScript to manage the sidebar as intended.
-                }, true); // Using the "capture" phase ensures this listener runs before the theme's default.
+                }, true);
             }
         };
-
 
         // --- INITIALIZE ALL SYSTEMS ---
         setTimeout(initMap, 250);
@@ -851,7 +841,7 @@
         initRouting();
         initSidebarFix();
         initSidebarToggles();
-        initMobileSidebarToggle(); // Initialize the mobile sidebar fix.
+        initMobileSidebarToggle();
     });
 </script>
 </body>
