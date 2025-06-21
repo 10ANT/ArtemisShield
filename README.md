@@ -17,9 +17,13 @@
 
 **ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires.
 
-**[🚀 Live Demo](https://www.your-live-demo-url.com)**  
+**[🚀 Live Demo](http://artemisshield-hcd4hacbbjfkb2hq.westus-01.azurewebsites.net/)**  
 
-**Important Notice:** Access credentials are required to log in. Please direct message to request the appropriate login details.
+
+
+**Notice:**  Autonomous agents and live AI features are currently disabled in this public demo to manage costs. If you need to test these features, please contact us to have them enabled.
+
+
 
 ---
 
@@ -152,6 +156,7 @@ cp .env.example .env
 ```
 
 #### 6. Setup Database
+Go to `C:\xampp\htdocs\ArtemisShield\database\seeders\DatabaseSeeder.php` and uncomment `UserSeederlocal::class,`
 ```bash
 # Generate application key
 php artisan key:generate
@@ -230,6 +235,7 @@ nano .env
 ```
 
 #### 5. Setup Database
+Go to `C:\xampp\htdocs\ArtemisShield\database\seeders\DatabaseSeeder.php` and uncomment `UserSeederlocal::class,`
 ```bash
 # Generate application key
 php artisan key:generate
