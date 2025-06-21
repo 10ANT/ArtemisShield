@@ -17,8 +17,9 @@
 
 **ArtemisShield** is an AI-powered command and control platform designed to transform wildfire management from a reactive process into a proactive, data-driven operation. Leveraging the full breadth of Azure cloud services—including predictive machine learning, interactive AI Agents, and real-time computer vision—ArtemisShield provides first responders and officers with the critical intelligence needed to save lives, protect property, and effectively manage wildfires.
 
-**[🚀 Live Demonstration](https://www.your-live-demo-url.com)**  
-**[🎥 Video Presentation](https://www.your-video-presentation-url.com)**
+**[🚀 Live Demo](https://www.your-live-demo-url.com)**  
+
+**Important Notice:** Access credentials are required to log in. Please direct message to request the appropriate login details.
 
 ---
 
@@ -451,7 +452,7 @@ We built ArtemisShield with Microsoft's Responsible AI principles at its core:
 
 * **Reliability & Safety:** Critical AI outputs (like predictions) are clearly labeled as "AI-Generated" with confidence scores to prevent over-reliance. The system has fallbacks for when an AI service is unavailable. All data used in association with the AI has been verified and chosen to be some of the most useful and relevant for its usage in the system.
 
-* **Privacy & Security:** All user data is handled securely. Field reports are anonymized before analysis, and authentication is managed by Laravel Jetstream which enforces several encryption techniques to keep personal user data in safe hands and out of harm's way when used in machine learning analytics.
+* **Privacy & Security:** All user data is handled securely. Authentication is managed by Laravel Jetstream which enforces several encryption techniques to keep personal user data in safe hands and out of harm's way.
 
 * **Inclusiveness:** The UI uses high-contrast themes and clear iconography. Voice-to-text reporting aids users who cannot type in the field as well as text translation for non-native speakers to have equal access to the platform.
 
