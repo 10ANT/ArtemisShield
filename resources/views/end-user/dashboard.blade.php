@@ -32,7 +32,15 @@
         /* Responsive behavior for smaller screens */
         @media (max-width: 991.98px) { /* Corresponds to Bootstrap's 'lg' breakpoint */
             #map {
-                height: 300px; /* Adjust map height for stacked layout */
+                height: 50px; /* Adjust map height for stacked layout */
+            }
+            /*
+             * FIX: Make the sidebar content scrollable on mobile.
+             * By setting a max-height, we constrain the container, which enables the
+             * existing 'overflow-y: auto' to work correctly when content is too tall.
+             */
+            .sidebar-column .card-body {
+                max-height: 55vh;
             }
         }
 
@@ -40,34 +48,47 @@
         /* This rule targets the accordion body and its list items specifically */
         /* within #safetyAccordion, and uses !important to override external styles. */
         #safetyAccordion .accordion-body,
-#safetyAccordion .accordion-body *,
-#safetyAccordion .accordion-body ul,
-#safetyAccordion .accordion-body ul li,
-#safetyAccordion .accordion-body p {
-    color: var(--bs-body-color) !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-}
+        #safetyAccordion .accordion-body *,
+        #safetyAccordion .accordion-body ul,
+        #safetyAccordion .accordion-body ul li,
+        #safetyAccordion .accordion-body p {
+            color: var(--bs-body-color) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
 
+        .sidebar-column {
+            position: relative;
+            z-index: 1000;
+        }
 
-.sidebar-column {
-    position: relative;
-    z-index: 1000;
-}
-
-.sidebar-column .card {
-    position: relative;
-    z-index: 1001;
-}
+        .sidebar-column .card {
+            position: relative;
+            z-index: 1001;
+        }
         /* --- END OF FIX --- */
     
         #map {
-    z-index: 1;
-    position: relative;
+            z-index: 1;
+            position: relative;
+        }
+        @media (max-width: 480px) {
+  .data-notice .full-text {
+    display: none;
+  }
+  .data-notice .short-text {
+    display: inline;
+  }
 }
 
-
-
+@media (min-width: 481px) {
+  .data-notice .full-text {
+    display: inline;
+  }
+  .data-notice .short-text {
+    display: none;
+  }
+}
     </style>
 </head>
 <body class="boxed-size">
@@ -79,7 +100,9 @@
             @include('partials.header')
             <div class="main_content_iner overly_inner dashboard-container">
                 <div class="row g-3 h-100">
+                    <!-- REMOVED incorrect inline style="height: 100px" from this column -->
                     <div class="col-lg-8 d-flex flex-column">
+                        <!-- REMOVED incorrect inline style="height: 100px" from the map div -->
                         <div id="map"></div>
                     </div>
                     <div class="col-lg-4 h-100 sidebar-column">
@@ -103,8 +126,13 @@
 
                                         <div class="alert alert-info d-flex align-items-center small p-2" role="alert">
                                             <i class="fas fa-info-circle me-2"></i>
-                                            <div>
+                                         <div class="data-notice">
+                                            <span class="full-text">
                                                 <strong>Data Notice:</strong> By submitting, you acknowledge your location and any contact details provided will be collected to assist response teams.
+                                            </span>
+                                            <span class="short-text">
+                                                <strong>Data Notice:</strong> Location/contact info may be collected.
+                                            </span>
                                             </div>
                                         </div>
 
@@ -173,6 +201,11 @@
     document.addEventListener('DOMContentLoaded', function () {
         axios.defaults.headers.common['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         
+        // ADDED: Console log to verify mobile-specific styles are considered.
+        if (window.innerWidth <= 991.98) {
+            console.log('Mobile view detected. Sidebar card body is now constrained in height to enable scrolling for all tabs, including the report form.');
+        }
+
         if (window.Echo) {
             console.log("SUCCESS: Echo is loaded on end-user page. Attaching real-time alert listeners.");
             setupRealtimeAlertListeners();
