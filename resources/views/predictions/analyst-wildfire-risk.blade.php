@@ -62,8 +62,23 @@
             border: 1px solid var(--bs-border-color);
         }
 
-        /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
-        @media (max-width: 991.98px) {
+        /* START: SIDEBAR Z-INDEX FIX */
+        @media (min-width: 1200px) {
+            /*
+             This rule targets desktop resolutions where the sidebar expands on hover.
+             The Leaflet map contains elements (map panes, controls) that create a complex
+             stacking context. To ensure the hovered sidebar menu appears *above* the map,
+             we must give the `.sidebar-area` a `z-index` that is higher than the map's components.
+             The `!important` flag is used to override any conflicting styles from the base theme.
+            */
+            .sidebar-area {
+                z-index: 1035 !important;
+            }
+        }
+        /* END: SIDEBAR Z-INDEX FIX */
+
+        /* START: TABLET/MOBILE SIDEBAR RESPONSIVENESS FIX */
+        @media (max-width: 1199.98px) {
             .sidebar-area {
                 position: static !important;
                 width: 100% !important;
@@ -117,7 +132,7 @@
                 border-top: 1px solid var(--bs-border-color) !important;
             }
         }
-        /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
+        /* END: TABLET/MOBILE SIDEBAR RESPONSIVENESS FIX */
     </style>
 </head>
 <body class="boxed-size">
@@ -530,12 +545,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const body = document.body;
 
         if (burgerMenu && body) {
-            if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
+            // Updated Breakpoint: from 992 to 1200
+            if (window.innerWidth < 1200 && !body.classList.contains('sidebar-close')) {
                 body.classList.add('sidebar-close');
             }
 
             burgerMenu.addEventListener('click', function(event) {
-                if (window.innerWidth < 992) {
+                // Updated Breakpoint: from 992 to 1200
+                if (window.innerWidth < 1200) {
                     event.preventDefault();
                     event.stopPropagation();
                     body.classList.toggle('sidebar-close');

@@ -26,30 +26,113 @@
     #map { width: 100%; height: 100%; min-height: 500px; background-color: var(--bs-tertiary-bg); }
     .map-wrapper { position: relative; height: 100%; overflow: hidden; }
 
-    /* START: Draggable Map Overlay Panel Styles */
+    /* START: Generic Map Overlay & Widget Styles */
     .map-overlay {
-        position: absolute;
-        z-index: 1000;
-        width: 280px;
-        max-height: calc(80vh - 4rem);
         background-color: var(--bs-dark-bg-subtle);
         border: 1px solid var(--bs-border-color-translucent);
         border-radius: var(--bs-card-border-radius);
         display: flex;
         flex-direction: column;
+        box-shadow: var(--bs-box-shadow-sm);
     }
-    .map-overlay .card-header {
+    .map-overlay hr { margin-top: 1rem; margin-bottom: 1rem; }
+    .collapse-icon { transition: transform 0.3s ease-in-out; }
+    .collapse-icon.fa-chevron-up { transform: rotate(180deg); }
+    #map-overlay-widgets {
+        position: absolute;
+        top: 1rem;
+        right: 1rem; /* MOVED from left to right */
+        z-index: 1001;
+        display: flex;
+        gap: 0.75rem;
+        flex-direction: column; /* ADDED to stack vertically */
+        align-items: flex-end; /* ADDED to align to the right */
+    }
+    .map-widget-container {
         cursor: grab;
+    }
+    .map-widget-container:active {
+        cursor: grabbing;
+    }
+    .map-widget-toggle {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: var(--bs-box-shadow);
+    }
+    .map-widget-panel {
+        display: none; /* Hidden by default */
+        cursor: default;
+    }
+    .map-widget-panel .card-header {
+        cursor: pointer;
         background-color: var(--bs-tertiary-bg);
     }
-    .map-overlay .card-header:active { cursor: grabbing; }
-    .map-overlay .card-header .btn { color: var(--bs-body-color); }
-    .map-overlay .card-body { overflow-y: auto; }
-    .config-panel { top: 1rem; right: 5rem; }
-    .legend-panel { top: 21rem; right: 5rem; }
-    .map-overlay .form-check-label { font-size: 0.9rem; }
-    .map-overlay hr { margin-top: 1rem; margin-bottom: 1rem; }
-    /* END: Draggable Map Overlay Panel Styles */
+    /* END: Generic Map Overlay & Widget Styles */
+    
+    /* START: Map Tools Panel Specifics */
+    #map-tools-panel {
+        width: 300px;
+        min-width: 260px;
+        max-width: 500px;
+        height: auto;
+        max-height: calc(80vh - 2rem);
+        resize: both;
+        overflow: hidden;
+    }
+    #map-tools-panel .card-body-wrapper {
+        overflow-y: auto;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    #map-tools-panel .nav-tabs { border-bottom: 1px solid var(--bs-border-color-translucent); }
+    #map-tools-panel .nav-link {
+        border-top: none; border-left: none; border-right: none;
+        padding: 0.75rem 0.5rem; color: var(--bs-nav-link-color);
+    }
+    #map-tools-panel .nav-link.active {
+        background-color: rgba(var(--bs-emphasis-color-rgb), 0.05);
+        border-color: var(--bs-primary);
+    }
+    #tools-tabs-content { flex-grow: 1; overflow-y: auto; }
+    .legend-control { padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x); font: 14px/16px Arial, Helvetica, sans-serif; color: var(--bs-body-color); line-height: 20px; }
+    .legend-control h4 { margin: 8px 0 5px; color: var(--bs-emphasis-color); font-size: 15px; border-bottom: 1px solid var(--bs-border-color-translucent); padding-bottom: 4px; }
+    .legend-control h4:first-child { margin-top: 0; }
+    .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
+    .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border-radius: 3px; }
+    /* END: Map Tools Panel Specifics */
+
+    /* START: Routing Panel Specifics */
+    #routing-panel {
+        width: 320px;
+        max-height: calc(80vh - 2rem);
+    }
+    #routing-panel .card-body {
+        overflow-y: auto;
+    }
+    /* END: Routing Panel Specifics */
+
+    /* START: Previous Reports Container Styling */
+    #previous-transcripts-container {
+        max-height: 400px;  /* The list will not exceed this height */
+        overflow-y: auto;   /* Enable vertical scrolling only if content exceeds max-height */
+        border: 1px solid var(--bs-border-color-translucent);
+        border-radius: var(--bs-border-radius);
+        padding: 0.5rem;
+        background-color: rgba(var(--bs-tertiary-bg-rgb), 0.5); /* A subtle background to distinguish it */
+    }
+    /* Style for the master collapse button icon to make it rotate */
+    [data-bs-target="#previous-reports-collapsible-area"] .fa-chevron-up {
+        transition: transform 0.35s ease-in-out;
+    }
+    [data-bs-target="#previous-reports-collapsible-area"].collapsed .fa-chevron-up {
+        transform: rotate(180deg);
+    }
+    /* END: Previous Reports Container Styling */
 
     .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
     .sidebar-wrapper .tab-content { flex-grow: 1; overflow-y: auto; }
@@ -67,8 +150,6 @@
     .custom-popup .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
     .custom-popup .detail-label { color: #b0b0b0; font-size: 0.8rem; flex-shrink: 0; margin-right: 5px; }
     .custom-popup .detail-value { color: #f0f0f0; font-weight: bold; font-size: 0.85rem; text-align: right; word-wrap: break-word; flex-grow: 1; }
-    .collapse-icon { transition: transform 0.3s ease-in-out; }
-    .collapse-icon.fa-chevron-up { transform: rotate(180deg); }
     .fire-incident-icon { text-align: center; text-shadow: 0px 0px 3px #000; cursor: pointer; }
     .fire-incident-icon-high { color: #dc3545; }
     .fire-incident-icon-medium { color: #fd7e14; }
@@ -87,23 +168,6 @@
     .fire-cluster-medium { width: 35px; height: 35px; line-height: 31px; }
     .fire-cluster-large { width: 40px; height: 40px; line-height: 36px; }
     
-    .legend-control {
-        padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
-        font: 14px/16px Arial, Helvetica, sans-serif;
-        color: var(--bs-body-color);
-        line-height: 20px;
-    }
-    .legend-control h4 {
-        margin: 8px 0 5px;
-        color: var(--bs-emphasis-color);
-        font-size: 15px;
-        border-bottom: 1px solid var(--bs-border-color-translucent);
-        padding-bottom: 4px;
-    }
-    .legend-control h4:first-child { margin-top: 0; }
-    .legend-control .legend-item { display: flex; align-items: center; margin-bottom: 2px; }
-    .legend-control i { width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border-radius: 3px; }
-
     /* START: FULLSCREEN BUTTON CSS */
     .leaflet-control-fullscreen a { background-color: #2b3035 !important; width: 34px; height: 34px; line-height: 34px; text-align: center; font-size: 1.2em; color: #f8f9fa; display: block; cursor: pointer; border-radius: 4px; }
     .leaflet-control-fullscreen a:hover { background-color: #343a40 !important; color: #fff; }
@@ -147,15 +211,66 @@
     .suggestion-icon { font-size: 1.25rem; color: var(--bs-success); margin-top: 0.25rem; }
     .suggestion-item-tts { display: flex; justify-content: space-between; align-items: center; }
     #map-column, #right-sidebar-column { transition: flex 0.3s ease-in-out, width 0.3s ease-in-out, padding 0.3s ease-in-out, border 0.3s ease-in-out; }
-    #right-sidebar-toggle { position: absolute; top: 1rem; right: 1rem; z-index: 1001; display: none; }
+    #right-sidebar-toggle {
+        position: absolute;
+        top: 10rem; /* MOVED DOWN to avoid overlap with map widgets */
+        right: 1rem;
+        z-index: 1001;
+        display: none;
+    }
     #right-sidebar-toggle i { transition: transform 0.3s ease-in-out; }
     .wildfire-dashboard-container.right-sidebar-collapsed #right-sidebar-column { flex: 0 0 0; width: 0; overflow: hidden; border: none !important; padding: 0 !important; }
     .wildfire-dashboard-container.right-sidebar-collapsed #map-column { flex: 0 0 100%; max-width: 100%; }
-    @media (max-width: 991.98px) { .wildfire-dashboard-container { height: auto; flex-direction: column; } #map { min-height: 65vh; height: 65vh; } #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; border-left: 0; } .sidebar-wrapper { height: auto; } .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } .custom-popup .popup-body { flex-direction: column; } #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } .config-panel, .legend-panel { display: none; } }
+    
+    /* START: ROUTE MARKER FIX */
+    .highlight-marker-fire, .highlight-marker-station {
+        background-color: rgba(220, 53, 69, 0.8);
+        border: 2px solid #fff;
+        border-radius: 50%;
+        box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: pulse-danger 1.5s infinite;
+    }
+    .highlight-marker-station {
+        background-color: rgba(13, 110, 253, 0.8);
+        box-shadow: 0 0 15px 5px rgba(13, 110, 253, 0.7);
+        animation: pulse-primary 1.5s infinite;
+    }
+    @keyframes pulse-danger { 0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(220, 53, 69, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); } }
+    @keyframes pulse-primary { 0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(13, 110, 253, 0); } 100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0); } }
+    .highlight-marker-fire i, .highlight-marker-station i { color: #fff; font-size: 16px; text-shadow: 0 0 3px #000; }
+    /* END: ROUTE MARKER FIX */
+
+    /* The original mobile layout rules are combined with the fix below */
     @media (min-width: 992px) { #right-sidebar-toggle { display: block; } }
 
-    /* START: MOBILE SIDEBAR RESPONSIVENESS FIX */
-    @media (max-width: 991.98px) {
+    /* START: SIDEBAR Z-INDEX FIX */
+    @media (min-width: 1200px) {
+        .sidebar-area {
+            z-index: 1035 !important;
+        }
+    }
+    /* END: SIDEBAR Z-INDEX FIX */
+
+    /* START: TABLET/MOBILE RESPONSIVENESS FIX */
+    @media (max-width: 1199.98px) {
+        /* General mobile layout */
+        .wildfire-dashboard-container { height: auto; flex-direction: column; } 
+        #map { min-height: 65vh; height: 65vh; } 
+        #right-sidebar-column { height: auto; border-top: 1px solid var(--bs-border-color) !important; border-left: 0; } 
+        .sidebar-wrapper { height: auto; } 
+        .custom-popup .leaflet-popup-content-wrapper { min-width: 280px; max-width: calc(100vw - 40px); } 
+        .custom-popup .popup-body { flex-direction: column; } 
+        #sidebar-tabs .nav-link { padding: 0.5rem 0.25rem; font-size: 0.85rem; } 
+
+        /* Hide map overlays on smaller screens */
+        #map-overlay-widgets {
+            display: none;
+        }
+        
+        /* Main sidebar vertical collapse */
         .sidebar-area {
             position: static !important;
             width: 100% !important;
@@ -163,20 +278,22 @@
             left: auto !important;
             top: auto !important;
             z-index: auto !important;
-            transition: max-height 0.35s ease-in-out;
-            background-color: var(--bs-body-bg); /* Ensure it has a solid background */
+            transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, border-width 0.35s ease-in-out;
+            background-color: var(--bs-body-bg);
         }
         
         body.sidebar-close .sidebar-area {
             max-height: 0;
-            overflow: hidden; /* Hide content and prevent scrollbars */
-            border-bottom-width: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-width: 0;
         }
 
         body:not(.sidebar-close) .sidebar-area {
-            max-height: 75vh; /* Allow sidebar to take up to 75% of the viewport height */
-            overflow-y: auto; /* Add scrollbar if content is taller than max-height */
-            border-bottom: 1px solid var(--bs-border-color); /* Visual separator */
+            max-height: 75vh;
+            overflow-y: auto;
+            border-bottom: 1px solid var(--bs-border-color);
         }
 
         .main-content {
@@ -199,7 +316,7 @@
             z-index: 1025; 
         }
     }
-    /* END: MOBILE SIDEBAR RESPONSIVENESS FIX */
+    /* END: TABLET/MOBILE RESPONSIVENESS FIX */
 </style>
 </head>
 <body class="boxed-size">
@@ -368,72 +485,118 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 
-                <div class="map-overlay config-panel card shadow-sm">
-                    <div class="card-header p-0" id="configHeading">
-                        <h6 class="mb-0">
-                            <button class="btn btn-link w-100 text-start text-decoration-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#configCollapse" aria-expanded="true" aria-controls="configCollapse">
-                                <i class="fas fa-cogs fa-fw me-2"></i> Map Configuration <i class="fas fa-chevron-down float-end collapse-icon"></i>
-                            </button>
-                        </h6>
-                    </div>
-                    <div id="configCollapse" class="collapse show" aria-labelledby="configHeading">
-                        <div class="card-body p-3">
-                            <h5 class="mb-3">Map Layers</h5>
-                            <div class="mb-4">
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div>
-                                <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div>
+                <!-- START: Draggable Map Widgets Container -->
+                <div id="map-overlay-widgets">
+                    <!-- Map Tools Widget -->
+                    <div class="map-widget-container" id="map-tools-widget-container">
+                        <button class="btn btn-dark btn-lg rounded-circle map-widget-toggle" id="map-tools-widget-toggle" title="Open Map Tools">
+                            <i class="fas fa-layer-group"></i>
+                        </button>
+                        <div class="map-overlay card map-widget-panel" id="map-tools-panel">
+                            <div class="card-header p-3" id="map-tools-header">
+                                <i class="fas fa-layer-group me-2"></i> Map Tools
+                                <i class="fas fa-chevron-down float-end collapse-icon"></i>
                             </div>
-                            <hr>
-                            <h5 class="mb-3 mt-4">Base Maps</h5>
-                            <div id="basemap-selector-container">
-                                <!-- This container is populated by JavaScript -->
+                            <div class="card-body-wrapper">
+                                <ul class="nav nav-tabs nav-fill p-0" id="tools-tabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-tab-pane" type="button" role="tab" aria-controls="config-tab-pane" aria-selected="true" title="Configuration">
+                                            <i class="fas fa-cogs fa-fw"></i><span class="d-none d-md-inline ms-1">Config</span>
+                                        </button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link" id="legend-tab" data-bs-toggle="tab" data-bs-target="#legend-tab-pane" type="button" role="tab" aria-controls="legend-tab-pane" aria-selected="false" title="Legend">
+                                            <i class="fas fa-list fa-fw"></i><span class="d-none d-md-inline ms-1">Legend</span>
+                                        </button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="tools-tabs-content">
+                                    <div class="tab-pane fade show active p-3" id="config-tab-pane" role="tabpanel">
+                                        <h5 class="mb-3">Map Layers</h5>
+                                        <div class="mb-4">
+                                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="modis-fires-toggle" checked><label class="form-check-label" for="modis-fires-toggle">MODIS Hotspots (24h)</label></div>
+                                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-hydrants-toggle" checked><label class="form-check-label" for="fire-hydrants-toggle">Fire Hydrants</label></div>
+                                            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" role="switch" id="fire-stations-toggle" checked><label class="form-check-label" for="fire-stations-toggle">Fire Stations</label></div>
+                                        </div>
+                                        <hr>
+                                        <h5 class="mb-3 mt-4">Base Maps</h5>
+                                        <div id="basemap-selector-container"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="legend-tab-pane" role="tabpanel">
+                                        <div class="legend-control">
+                                            <h4>Hotspot Confidence</h4>
+                                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-high"></i> High (≥ 80%)</div>
+                                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-medium"></i> Medium (50-79%)</div>
+                                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-low"></i> Low (< 50%)</div>
+                                            <h4 class="mt-3">Hydrant Density</h4>
+                                            <div class="legend-item"><i style="background:rgba(2, 117, 216, 0.85)"></i> 1–25</div>
+                                            <div class="legend-item"><i style="background:rgba(13, 202, 240, 0.85)"></i> 26–100</div>
+                                            <div class="legend-item"><i style="background:rgba(13, 110, 253, 0.9)"></i> 101+</div>
+                                            <h4 class="mt-3">Station Density</h4>
+                                            <div class="legend-item"><i style="background:rgba(40, 167, 69, 0.9)"></i> 1–5</div>
+                                            <div class="legend-item"><i style="background:rgba(253, 126, 20, 0.9)"></i> 6–15</div>
+                                            <div class="legend-item"><i style="background:rgba(220, 53, 69, 0.9)"></i> 16+</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="map-overlay legend-panel card shadow-sm">
-                    <div class="card-header p-0" id="legendHeading">
-                        <h6 class="mb-0">
-                            <button class="btn btn-link w-100 text-start text-decoration-none p-3" type="button" data-bs-toggle="collapse" data-bs-target="#legendCollapse" aria-expanded="true" aria-controls="legendCollapse">
-                                <i class="fas fa-list fa-fw me-2"></i> Legend <i class="fas fa-chevron-down float-end collapse-icon"></i>
-                            </button>
-                        </h6>
-                    </div>
-                    <div id="legendCollapse" class="collapse show" aria-labelledby="legendHeading">
-                        <div class="card-body legend-control">
-                            <h4>Hotspot Confidence</h4>
-                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-high"></i> High (≥ 80%)</div>
-                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-medium"></i> Medium (50-79%)</div>
-                            <div class="legend-item"><i class="fas fa-fire-alt fire-incident-icon-low"></i> Low (< 50%)</div>
-                            
-                            <h4 class="mt-3">Hydrant Density</h4>
-                            <div class="legend-item"><i style="background:rgba(2, 117, 216, 0.85)"></i> 1–25</div>
-                            <div class="legend-item"><i style="background:rgba(13, 202, 240, 0.85)"></i> 26–100</div>
-                            <div class="legend-item"><i style="background:rgba(13, 110, 253, 0.9)"></i> 101+</div>
-                            
-                            <h4 class="mt-3">Station Density</h4>
-                            <div class="legend-item"><i style="background:rgba(40, 167, 69, 0.9)"></i> 1–5</div>
-                            <div class="legend-item"><i style="background:rgba(253, 126, 20, 0.9)"></i> 6–15</div>
-                            <div class="legend-item"><i style="background:rgba(220, 53, 69, 0.9)"></i> 16+</div>
+                    <!-- Routing Widget -->
+                    <div class="map-widget-container" id="routing-widget-container">
+                        <button class="btn btn-dark btn-lg rounded-circle map-widget-toggle" id="routing-widget-toggle" title="Open Routing Tool">
+                            <i class="fas fa-route"></i>
+                        </button>
+                        <div class="map-overlay card map-widget-panel" id="routing-panel">
+                            <div class="card-header p-3" id="routing-panel-header">
+                                <i class="fas fa-route fa-fw me-2"></i> Fire Response Routing
+                                <i class="fas fa-chevron-down float-end collapse-icon"></i>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="card bg-body-tertiary mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Instructions</h6>
+                                        <p class="card-text small mb-1"><strong>1. Select Fire:</strong> Click a fire icon <i class="fas fa-fire-alt text-danger"></i> on the map.</p>
+                                        <p class="card-text small mb-0"><strong>2. Calculate:</strong> Click the button below.</p>
+                                    </div>
+                                </div>
+                                <div class="mb-3 p-2 rounded" id="selected-fire-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No fire selected.</p></div>
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
+                                    <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
+                                </div>
+                                <hr>
+                                <div id="route-details-container" class="mt-2">
+                                    <div id="route-summary" class="d-none">
+                                        <h6 class="text-white-50 mb-2">Route Summary</h6>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Responding From: <strong id="route-station-name" class="text-end"></strong></li>
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Distance: <span id="route-distance" class="badge text-bg-info fs-6"></span></li>
+                                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Estimated Time: <span id="route-duration" class="badge text-bg-info fs-6"></span></li>
+                                        </ul>
+                                    </div>
+                                    <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                <!-- END: Draggable Map Widgets Container -->
+
             </div>
         </div>
         
-        <div  class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
-            <div  class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
-                <div  class="card-header p-2">
-                    <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
+        <div class="col-lg-4 col-md-12 border-start" id="right-sidebar-column">
+            <div class="sidebar-wrapper card h-100 rounded-0 border-0 bg-body">
+                <div class="card-header p-2">
+                     <ul class="nav nav-pills nav-fill" id="sidebar-tabs" role="tablist">
                         <li class="nav-item" role="presentation"><button class="nav-link active" id="chat-tab-btn" data-bs-toggle="pill" data-bs-target="#chat-content" type="button" role="tab" aria-controls="chat-content" aria-selected="true"><i class="fas fa-comments me-1"></i> Ask Artemis</button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link position-relative" id="notifications-tab-btn" data-bs-toggle="pill" data-bs-target="#notifications-content" type="button" role="tab" aria-controls="notifications-content" aria-selected="false"><i class="fas fa-bell me-1"></i> Notifications<span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span></button></li>
                         <li class="nav-item" role="presentation"><button class="nav-link" id="live-report-tab-btn" data-bs-toggle="pill" data-bs-target="#live-report-content" type="button" role="tab" aria-controls="live-report-content" aria-selected="false"><i class="fas fa-microphone-alt me-1"></i> Live Report</button></li>
-                        <li class="nav-item" role="presentation"><button class="nav-link" id="route-tab-btn" data-bs-toggle="pill" data-bs-target="#route-content" type="button" role="tab" aria-controls="route-content" aria-selected="false"><i class="fas fa-route me-1"></i> Route</button></li>
                     </ul>
                 </div>
-                <div  class="card-body d-flex flex-column p-0">
+                <div class="card-body d-flex flex-column p-0">
                     <div class="tab-content h-100">
                         <div class="tab-pane fade show active p-3" id="chat-content" role="tabpanel">
                             <div class="chat-container">
@@ -452,38 +615,22 @@
                                 <div id="report-placeholder" class="text-center text-muted mt-5"><i class="fas fa-wind fa-3x mb-3"></i><p>Awaiting field report...</p></div>
                                 <div id="report-error" class="alert alert-danger d-none" role="alert"></div>
                             </div>
+                            <!-- START: Modified Previous Reports Section -->
                             <div class="px-3 pb-3 mt-4">
                                 <hr>
-                                <h5 class="mb-3 mt-4 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
-                                <div id="previous-transcripts-container" style="max-height: 400px; overflow-y: auto;"><p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p></div>
-                            </div>
-                        </div>
-                        <div style="margin-top:-550px;" class="tab-pane fade p-3" id="route-content" role="tabpanel" aria-labelledby="route-tab-btn">
-                            <h5 class="mb-3"><i class="fas fa-route me-2"></i>Fire Response Routing</h5>
-                            <div class="card bg-body-tertiary mb-3">
-                                <div class="card-body">
-                                    <h6 class="card-title">Instructions</h6>
-                                    <p class="card-text small mb-1"><strong>1. Select Fire:</strong> Click a fire icon <i class="fas fa-fire-alt text-danger"></i> on the map.</p>
-                                    <p class="card-text small mb-0"><strong>2. Calculate:</strong> Click the button below to find the route.</p>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0 text-white-50"><i class="fas fa-history me-2"></i>Previous Reports</h5>
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#previous-reports-collapsible-area" aria-expanded="true" aria-controls="previous-reports-collapsible-area" title="Toggle Report History">
+                                        <i class="fas fa-chevron-up"></i>
+                                    </button>
+                                </div>
+                                <div class="collapse show" id="previous-reports-collapsible-area">
+                                    <div id="previous-transcripts-container">
+                                        <p id="previous-transcripts-loading" class="text-muted text-center p-4"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading history...</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="mb-3 p-2 rounded" id="selected-fire-info" style="background-color: rgba(var(--bs-primary-rgb), 0.1);"><p class="text-center text-muted mb-0">No fire selected.</p></div>
-                            <div style="margin-top:-650px;" class="d-grid gap-2">
-                                <button class="btn btn-primary" id="calculate-route-btn" disabled><span class="spinner-border spinner-border-sm d-none me-2" role="status" aria-hidden="true"></span><i class="fas fa-calculator me-2 icon"></i> Calculate Route</button>
-                                <button class="btn btn-outline-danger" id="clear-route-btn" style="display: none;"><i class="fas fa-times me-2"></i> Clear Route & Selection</button>
-                            </div>
-                            <hr>
-                            <div style="height:10px;" id="route-details-container" class="mt-2 flex-grow-1 overflow-auto">
-                                <div id="route-summary" class="d-none">
-                                    <h6 class="text-white-50 mb-2">Route Summary</h6>
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Responding From: <strong id="route-station-name" class="text-end"></strong></li>
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Distance: <span id="route-distance" class="badge text-bg-info fs-6"></span></li>
-                                        <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0">Estimated Time: <span id="route-duration" class="badge text-bg-info fs-6"></span></li>
-                                    </ul>
-                                </div>
-                                <p id="route-placeholder" class="text-muted text-center mt-4">Route information will appear here.</p>
-                            </div>
+                            <!-- END: Modified Previous Reports Section -->
                         </div>
                     </div>
                 </div>
@@ -501,14 +648,11 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let map;
-        let fireHydrantsLayer, fireStationsLayer, searchResultsLayer, modisFiresLayer;
-        let selectedFireFeature = null, selectedFireMarker = null, routeLayer = null;
+        let fireHydrantsLayer, fireStationsLayer, searchResultsLayer, modisFiresLayer, activeRouteHighlightLayer;
+        let selectedFireFeature = null, selectedFireMarker = null;
 
         const initFullScreenControl = () => {
-            if (!map) {
-                console.error("Map object not available for FullScreenControl initialization.");
-                return;
-            }
+            if (!map) return;
             const FullScreenControl = L.Control.extend({
                 options: { position: 'bottomright' },
                 onAdd: function(map) {
@@ -525,23 +669,15 @@
                     const icon = this._container.querySelector('i');
                     body.classList.toggle('map-fullscreen-active');
                     const isFullscreen = body.classList.contains('map-fullscreen-active');
-                    if (isFullscreen) {
-                        icon.className = 'fas fa-compress';
-                        this._container.querySelector('a').title = 'Exit Fullscreen View';
-                    } else {
-                        icon.className = 'fas fa-expand';
-                        this._container.querySelector('a').title = 'Toggle Fullscreen View';
-                    }
-                    setTimeout(() => {
-                        if (this._map) this._map.invalidateSize({ pan: true });
-                    }, 300);
+                    icon.className = isFullscreen ? 'fas fa-compress' : 'fas fa-expand';
+                    this._container.querySelector('a').title = isFullscreen ? 'Exit Fullscreen View' : 'Toggle Fullscreen View';
+                    setTimeout(() => this._map.invalidateSize({ pan: true }), 300);
                 }
             });
             new FullScreenControl().addTo(map);
         };
         
         const initMap = () => {
-            console.log('Map initialization started.');
             const streets = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' });
             const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles © <a href="https://www.esri.com/">Esri</a>' });
             const topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { attribution: 'Map data: © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: © <a href="https://opentopomap.org">OpenTopoMap</a>' });
@@ -563,28 +699,76 @@
             fireStationsLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const count = cluster.getChildCount(); let c = ' station-cluster-small'; if (count > 5) c = ' station-cluster-medium'; if (count > 15) c = ' station-cluster-large'; return L.divIcon({ html: `<div><span>${count}</span></div>`, className: 'cluster-icon' + c, iconSize: L.point(40, 40) }); }, spiderfyOnMaxZoom: true, maxClusterRadius: 60, showCoverageOnHover: true, zoomToBoundsOnClick: true }).addTo(map);
             searchResultsLayer = L.geoJson(null, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: feature.properties.hasOwnProperty('fire_hydrant_type') ? "#0dcaf0" : "#fd7e14", color: "#fff", weight: 2, opacity: 1, fillOpacity: 0.9 }), onEachFeature: (f, l) => l.bindPopup(f.properties.hasOwnProperty('fire_hydrant_type') ? formatHydrantPopupContent(f.properties) : formatStationPopupContent(f.properties), { className: 'custom-popup' }) }).addTo(map);
             modisFiresLayer = L.markerClusterGroup({ iconCreateFunction: function(cluster) { const c = cluster.getChildCount(); let s = ' fire-cluster-small'; if (c > 100) s = ' fire-cluster-medium'; if (c > 500) s = ' fire-cluster-large'; return L.divIcon({ html: `<div><span>${c}</span></div>`, className: 'cluster-icon' + s, iconSize: L.point(40, 40) }); }, maxClusterRadius: 60, spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true }).addTo(map);
+            activeRouteHighlightLayer = L.featureGroup().addTo(map);
             const loadDataForBounds = async (bounds) => { const bbox = bounds.toBBoxString(); if (document.getElementById('fire-hydrants-toggle').checked) { try { const r = await fetch(`/api/fire_hydrants?bbox=${bbox}&limit=5000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireHydrantsLayer.clearLayers(); const hydrantsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 8, fillColor: "#0dcaf0", color: "#0275d8", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatHydrantPopupContent(f.properties), { className: 'custom-popup' }) }); fireHydrantsLayer.addLayer(hydrantsGeoJson); } catch (e) { console.error("Could not fetch fire hydrants:", e); } } if (document.getElementById('fire-stations-toggle').checked) { try { const r = await fetch(`/api/fire_stations?bbox=${bbox}&limit=1000`); if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`); const d = await r.json(); fireStationsLayer.clearLayers(); const stationsGeoJson = L.geoJson(d, { pointToLayer: (feature, latlng) => L.circleMarker(latlng, { radius: 9, fillColor: "#fd7e14", color: "#d9534f", weight: 2, opacity: 1, fillOpacity: 0.8 }), onEachFeature: (f, l) => l.bindPopup(formatStationPopupContent(f.properties), { className: 'custom-popup' }) }); fireStationsLayer.addLayer(stationsGeoJson); } catch (e) { console.error("Could not fetch fire stations:", e); } } };
             const loadDataForDrawnRect = async (bounds) => { const bbox = bounds.toBBoxString(); searchResultsLayer.clearLayers(); const p = L.popup().setLatLng(bounds.getCenter()).setContent('Searching...').openOn(map); try { const [hr, sr] = await Promise.all([fetch(`/api/fire_hydrants?bbox=${bbox}`), fetch(`/api/fire_stations?bbox=${bbox}`)]); const h = await hr.json(); const s = await sr.json(); searchResultsLayer.addData(h); searchResultsLayer.addData(s); map.closePopup(p); const c = (h.features?.length || 0) + (s.features?.length || 0); L.popup().setLatLng(bounds.getCenter()).setContent(`Found ${c} assets.`).openOn(map); map.fitBounds(searchResultsLayer.getBounds().pad(0.1)); } catch (e) { console.error("Error during area search:", e); map.closePopup(p); L.popup().setLatLng(bounds.getCenter()).setContent('Error searching.').openOn(map); } };
-            const loadModisFires = async () => { if (!document.getElementById('modis-fires-toggle').checked) { modisFiresLayer.clearLayers(); return; } try { const response = await fetch('/api/fire-incidents'); if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); const geoJsonData = await response.json(); modisFiresLayer.clearLayers(); const fireMarkers = L.geoJson(geoJsonData, { pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); }, onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routeTabBtn = document.getElementById('route-tab-btn'); if (routeTabBtn) new bootstrap.Tab(routeTabBtn).show(); }); } }); modisFiresLayer.addLayer(fireMarkers); } catch (e) { console.error("Could not fetch MODIS fire incidents:", e); } };
+            
+            const loadModisFires = async () => {
+                if (!document.getElementById('modis-fires-toggle').checked) {
+                    modisFiresLayer.clearLayers();
+                    return;
+                }
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    const mockGeoJsonData = { 'type': 'FeatureCollection', 'features': [ { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-87.6298, 41.8781] }, 'properties': { 'latitude': 41.8781, 'longitude': -87.6298, 'brightness': 330.5, 'confidence': 75, 'frp': 25.3, 'acq_date': today, 'acq_time': '0430', 'satellite': 'MODIS (Mock)', 'daynight': 'D' } }, { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-88.0000, 42.0000] }, 'properties': { 'latitude': 42.0000, 'longitude': -88.0000, 'brightness': 365.1, 'confidence': 95, 'frp': 70.8, 'acq_date': today, 'acq_time': '1515', 'satellite': 'MODIS (Mock)', 'daynight': 'N' } }, { 'type': 'Feature', 'geometry': { 'type': 'Point', 'coordinates': [-87.9, 41.95] }, 'properties': { 'latitude': 41.95, 'longitude': -87.9, 'brightness': 320.0, 'confidence': 45, 'frp': 15.0, 'acq_date': today, 'acq_time': '1600', 'satellite': 'MODIS (Mock)', 'daynight': 'N' } } ] };
+                    modisFiresLayer.clearLayers();
+                    const fireMarkers = L.geoJson(mockGeoJsonData, {
+                        pointToLayer: function (feature, latlng) { const confidence = feature.properties.confidence; let iconClass = 'fire-incident-icon-low'; if (confidence >= 80) iconClass = 'fire-incident-icon-high'; else if (confidence >= 50) iconClass = 'fire-incident-icon-medium'; const fireIcon = L.divIcon({ html: '<i class="fas fa-fire-alt fa-2x"></i>', className: `fire-incident-icon ${iconClass}`, iconSize: [24, 24] }); return L.marker(latlng, { icon: fireIcon }); },
+                        onEachFeature: (feature, layer) => { layer.bindPopup(formatFireIncidentPopupContent(feature.properties), { className: 'custom-popup', minWidth: 320 }); layer.on('click', (e) => { if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); selectedFireFeature = feature; selectedFireMarker = layer; L.DomUtil.addClass(layer.getElement(), 'fire-incident-icon-selected'); const infoDiv = document.getElementById('selected-fire-info'); if (infoDiv) { const coords = `${parseFloat(feature.geometry.coordinates[1]).toFixed(4)}, ${parseFloat(feature.geometry.coordinates[0]).toFixed(4)}`; infoDiv.innerHTML = `<p class="text-primary mb-0 text-center fw-bold">Selected Fire:<br><small class="fw-normal">${coords}</small></p>`; } document.getElementById('calculate-route-btn').disabled = false; const routingPanel = document.getElementById('routing-panel'); if (routingPanel.style.display === 'none') { document.getElementById('routing-widget-toggle').click(); } }); }
+                    });
+                    modisFiresLayer.addLayer(fireMarkers);
+                } catch (e) {
+                    console.error("Could not process mock MODIS fire incidents:", e);
+                }
+            };
             
             document.getElementById('fire-hydrants-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireHydrantsLayer.clearLayers(); });
             document.getElementById('fire-stations-toggle').addEventListener('change', e => { if (e.target.checked) loadDataForBounds(map.getBounds()); else fireStationsLayer.clearLayers(); });
             document.getElementById('modis-fires-toggle').addEventListener('change', loadModisFires);
-            
             map.on('moveend', () => loadDataForBounds(map.getBounds()));
             const drawnItems = new L.FeatureGroup(); map.addLayer(drawnItems);
             const drawControl = new L.Control.Draw({ draw: { polygon: false, polyline: false, circle: false, marker: false, circlemarker: false, rectangle: { shapeOptions: { color: '#007bff' }, showArea: false } }, edit: { featureGroup: drawnItems } });
             map.addControl(drawControl);
             map.on(L.Draw.Event.CREATED, (e) => loadDataForDrawnRect(e.layer.getBounds()));
-            
-            new Draggabilly(document.querySelector('.config-panel'), { handle: '.card-header', containment: '.map-wrapper' });
-            new Draggabilly(document.querySelector('.legend-panel'), { handle: '.card-header', containment: '.map-wrapper' });
-            
+
             loadDataForBounds(map.getBounds());
             loadModisFires();
             initFullScreenControl(); 
-            console.log('Map initialization finished.');
+            initMapOverlays();
         };
+
+        const initMapOverlays = () => {
+            const setupWidget = (containerId, toggleId, panelId, headerId) => {
+                const container = document.getElementById(containerId);
+                const toggleBtn = document.getElementById(toggleId);
+                const panel = document.getElementById(panelId);
+                const header = document.getElementById(headerId);
+
+                if (!container || !toggleBtn || !panel || !header) {
+                    console.error(`Initialization failed for widget: ${containerId}`);
+                    return;
+                }
+                
+                new Draggabilly(container);
+
+                const openPanel = () => {
+                    toggleBtn.style.display = 'none';
+                    panel.style.display = 'flex';
+                };
+
+                const closePanel = () => {
+                    panel.style.display = 'none';
+                    toggleBtn.style.display = 'flex';
+                };
+
+                toggleBtn.addEventListener('click', openPanel);
+                header.addEventListener('click', closePanel);
+            };
+
+            setupWidget('map-tools-widget-container', 'map-tools-widget-toggle', 'map-tools-panel', 'map-tools-header');
+            setupWidget('routing-widget-container', 'routing-widget-toggle', 'routing-panel', 'routing-panel-header');
+        };
+
         const initSidebarToggles = () => {
             const rightSidebarToggle = document.getElementById('right-sidebar-toggle');
             const dashboardContainer = document.querySelector('.wildfire-dashboard-container');
@@ -594,264 +778,252 @@
                     document.body.classList.remove('map-fullscreen-active');
                     const isCollapsed = dashboardContainer.classList.contains('right-sidebar-collapsed');
                     const icon = rightSidebarToggle.querySelector('i');
-                    if(isCollapsed) {
-                        icon.className = 'fas fa-chevron-left';
-                        rightSidebarToggle.title = 'Show Sidebar';
-                    } else {
-                        icon.className = 'fas fa-chevron-right';
-                        rightSidebarToggle.title = 'Hide Sidebar';
-                    }
-                    setTimeout(() => {
-                        if(map) map.invalidateSize();
-                    }, 300);
+                    icon.className = isCollapsed ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+                    rightSidebarToggle.title = isCollapsed ? 'Show Sidebar' : 'Hide Sidebar';
+                    setTimeout(() => { if(map) map.invalidateSize(); }, 300);
                 });
-            } else {
-                console.error('One or more elements for right sidebar toggle are missing.');
             }
         };
         const initChat = () => { const chatInput = document.getElementById('chat-input'); const sendBtn = document.getElementById('send-chat-btn'); const messageContainer = document.getElementById('chat-messages'); const renderMessage = (text, sender) => { let html; const sanitizedText = text.replace(/</g, "<").replace(/>/g, ">"); if (sender === 'user') { html = `<div class="mb-3 text-end"><div class="p-3 rounded mt-1 bg-primary-subtle d-inline-block">${sanitizedText}</div></div>`; } else if (sender === 'ai-typing') { html = `<div class="mb-3 text-start" id="ai-typing-indicator"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Typing...</div></div>`; } else { html = `<div class="mb-3 text-start"><small class="text-body-secondary">Artemis AI Assistant</small><div class="p-3 rounded mt-1 bg-body-secondary d-inline-block">${sanitizedText}</div></div>`; } messageContainer.innerHTML += html; messageContainer.scrollTop = messageContainer.scrollHeight; }; const sendMessage = async () => { const messageText = chatInput.value.trim(); if (!messageText) return; renderMessage(messageText, 'user'); chatInput.value = ''; chatInput.disabled = true; sendBtn.disabled = true; renderMessage('', 'ai-typing'); try { const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') }, body: JSON.stringify({ message: messageText }) }); const typingIndicator = document.getElementById('ai-typing-indicator'); if (typingIndicator) typingIndicator.remove(); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || 'The server returned an error.'); } const data = await response.json(); renderMessage(data.reply, 'ai'); } catch (error) { console.error('Chat Error:', error); const typingIndicator = document.getElementById('ai-typing-indicator'); if (typingIndicator) typingIndicator.remove(); renderMessage(`Sorry, I ran into a problem: ${error.message}`, 'ai'); } finally { chatInput.disabled = false; sendBtn.disabled = false; chatInput.focus(); } }; sendBtn.addEventListener('click', sendMessage); chatInput.addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); }); };
-        const initGeneralUI = () => { document.querySelectorAll('.card-header button[data-bs-toggle="collapse"]').forEach(b => b.addEventListener('click', function() { const i = this.querySelector('.collapse-icon'); if (i) { i.classList.toggle('fa-chevron-down'); i.classList.toggle('fa-chevron-up'); } })); };
         const loadAndRenderReportHistory = async () => { try { const response = await fetch('/reports/history', { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content') } }); if (!response.ok) throw new Error(`Server responded with status: ${response.status}`); const reports = await response.json(); renderPreviousTranscriptsAccordion(reports); renderNotificationsFromReports(reports); } catch (error) { console.error('Failed to load report history:', error); const errorHtml = `<div class="alert alert-warning text-center">Could not load report history.</div>`; const transcriptContainer = document.getElementById('previous-transcripts-container'); if (transcriptContainer) transcriptContainer.innerHTML = errorHtml; } };
         
         const renderPreviousTranscriptsAccordion = (reports) => {
             const container = document.getElementById('previous-transcripts-container');
-            if (!container) {
-                console.error("Critical Error: #previous-transcripts-container not found in DOM.");
-                return;
-            }
+            if (!container) return;
             const loadingIndicator = document.getElementById('previous-transcripts-loading');
             if (loadingIndicator) loadingIndicator.style.display = 'none';
-
             if (!reports || reports.length === 0) {
                 container.innerHTML = '<p class="text-muted text-center p-4">No previous reports found.</p>';
                 return;
             }
-            
             let html = '<div class="accordion" id="previousReportsAccordion">';
-            
-            reports.forEach((report, index) => {
-                console.log(`--- Processing Report #${index + 1} (ID: ${report.id}) ---`);
+            reports.forEach((report) => {
                 const reportDate = new Date(report.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
-                
-                let rawActions = report.ai_suggested_actions;
-                console.log(`Report ${report.id} -> raw ai_suggested_actions:`, rawActions);
-                console.log(`Report ${report.id} -> typeof rawActions:`, typeof rawActions);
-
-                let suggestionsList = [];
-
-                // Step 1: Ensure we have an object/array to work with, not a string.
-                if (typeof rawActions === 'string' && rawActions.trim().startsWith('{')) {
-                    try {
-                        rawActions = JSON.parse(rawActions);
-                        console.log(`Report ${report.id} -> Parsed from string to object:`, rawActions);
-                    } catch (e) {
-                        console.error(`Report ${report.id} -> Failed to parse JSON string.`, { error: e, data: report.ai_suggested_actions });
-                        rawActions = null;
-                    }
-                }
-
-                // Step 2: Normalize the different possible data structures into a consistent array.
-                if (rawActions && typeof rawActions === 'object') {
-                    if (Array.isArray(rawActions)) {
-                        suggestionsList = rawActions;
-                        console.log(`Report ${report.id} -> Normalized as an array.`);
-                    } else if (rawActions.suggestions && Array.isArray(rawActions.suggestions)) {
-                        suggestionsList = rawActions.suggestions;
-                        console.log(`Report ${report.id} -> Normalized from 'suggestions' key.`);
-                    } else if (rawActions.suggestion) {
-                        suggestionsList = [rawActions];
-                        console.log(`Report ${report.id} -> Normalized from a single object.`);
-                    }
-                } else {
-                    console.log(`Report ${report.id} -> rawActions is not a processable object.`);
-                }
-                
-                console.log(`Report ${report.id} -> Final suggestionsList:`, suggestionsList);
-
+                let rawActions = report.ai_suggested_actions; let suggestionsList = [];
+                if (typeof rawActions === 'string' && rawActions.trim().startsWith('{')) { try { rawActions = JSON.parse(rawActions); } catch (e) { rawActions = null; } }
+                if (rawActions && typeof rawActions === 'object') { if (Array.isArray(rawActions)) { suggestionsList = rawActions; } else if (rawActions.suggestions && Array.isArray(rawActions.suggestions)) { suggestionsList = rawActions.suggestions; } else if (rawActions.suggestion) { suggestionsList = [rawActions]; } }
                 let suggestionsHtml = '';
-                if (suggestionsList && suggestionsList.length > 0) {
-                    suggestionsHtml = '<ul class="list-group list-group-flush">';
-                    suggestionsList.forEach((s, s_index) => {
-                        if (s && typeof s === 'object' && s.suggestion) {
-                            const iconClass = s.icon || 'fas fa-lightbulb';
-                            const suggestionText = s.suggestion;
-                            // Using standard string concatenation for maximum safety
-                            suggestionsHtml += '<li class="list-group-item bg-transparent border-secondary"><i class="' + iconClass + ' me-2 text-success"></i> ' + suggestionText + '</li>';
-                        } else {
-                            console.warn(`Report ${report.id} -> Skipping invalid suggestion item at index ${s_index}:`, s);
-                        }
-                    });
-                    suggestionsHtml += '</ul>';
-                } else {
-                    suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>';
-                }
-                
-                console.log(`Report ${report.id} -> Generated HTML for suggestions:`, suggestionsHtml);
-
+                if (suggestionsList && suggestionsList.length > 0) { suggestionsHtml = '<ul class="list-group list-group-flush">'; suggestionsList.forEach((s) => { if (s && typeof s === 'object' && s.suggestion) { const iconClass = s.icon || 'fas fa-lightbulb'; suggestionsHtml += `<li class="list-group-item bg-transparent border-secondary"><i class="${iconClass} me-2 text-success"></i> ${s.suggestion}</li>`; } }); suggestionsHtml += '</ul>';
+                } else { suggestionsHtml = '<p class="text-muted mb-0">No suggestions were generated for this report.</p>'; }
                 const exportUrl = `/report/${report.id}/export`;
-                const exportButtonHtml = `
-                    <div class="mt-4 text-end">
-                        <a href="${exportUrl}" class="btn btn-sm btn-outline-success">
-                            <i class="fas fa-file-pdf me-2"></i>Export as PDF
-                        </a>
-                    </div>
-                `;
-
-                html += `
-                    <div class="accordion-item bg-dark border-secondary mb-2">
-                        <h2 class="accordion-header" id="heading-history-${report.id}">
-                            <button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">
-                                Report from ${reportDate}
-                            </button>
-                        </h2>
-                        <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
-                            <div class="accordion-body">
-                                <h6 class="text-white-50">Transcript</h6>
-                                <p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p>
-                                <h6 class="text-white-50">AI Suggested Actions</h6>
-                                ${suggestionsHtml}
-                                ${exportButtonHtml}
+                const exportButtonHtml = `<div class="mt-4 text-end"><a href="${exportUrl}" class="btn btn-sm btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export as PDF</a></div>`;
+                
+                html += `<div class="accordion-item bg-dark border-secondary mb-2" id="report-accordion-item-${report.id}">
+                            <h2 class="accordion-header d-flex align-items-center" id="heading-history-${report.id}">
+                                <button class="accordion-button collapsed bg-body-tertiary flex-grow-1" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-history-${report.id}" aria-expanded="false" aria-controls="collapse-history-${report.id}">Report from ${reportDate}</button>
+                                <button class="btn btn-sm btn-outline-danger ms-2 me-2 delete-report-btn" data-id="${report.id}" title="Delete Report"><i class="fas fa-trash-alt"></i></button>
+                            </h2>
+                            <div id="collapse-history-${report.id}" class="accordion-collapse collapse" aria-labelledby="heading-history-${report.id}" data-bs-parent="#previousReportsAccordion">
+                                <div class="accordion-body"><h6 class="text-white-50">Transcript</h6><p class="mb-4 fst-italic">"${report.transcript || 'Transcript not available.'}"</p><h6 class="text-white-50">AI Suggested Actions</h6>${suggestionsHtml}${exportButtonHtml}</div>
                             </div>
-                        </div>
-                    </div>`;
+                         </div>`;
             });
             html += '</div>';
             container.innerHTML = html;
         };
 
-        const renderNotificationsFromReports = (reports) => { const list = document.getElementById('notifications-list'); const placeholder = document.getElementById('notifications-placeholder'); if (reports && reports.length > 0) { placeholder.classList.add('d-none'); let html = ''; reports.forEach(report => { const timeAgo = new Date(report.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }); const transcript = report.transcript || 'Transcript not available.'; html += `<div class="list-group-item list-group-item-action p-3"><div class="d-flex w-100 justify-content-between"><h6 class="mb-1 text-info"><i class="fas fa-file-alt me-2"></i>Field Report Logged</h6><small class="text-body-secondary">${timeAgo}</small></div><p class="mb-1 small fst-italic">"${transcript.substring(0, 150)}${transcript.length > 150 ? '...' : ''}"</p></div>`; }); list.innerHTML = html; } else { placeholder.classList.remove('d-none'); list.innerHTML = ''; list.appendChild(placeholder); } };
-        const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { console.error("Microphone Access Error:", err); showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); loadAndRenderReportHistory(); } catch (err) { console.error('Error processing report:', err); showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Field Report'; recordButton.disabled = false; } };
+        const renderNotificationsFromReports = (reports) => { 
+            const list = document.getElementById('notifications-list');
+            const placeholder = document.getElementById('notifications-placeholder');
+            if (reports && reports.length > 0) {
+                placeholder.classList.add('d-none');
+                let html = '';
+                reports.forEach(report => {
+                    const timeAgo = new Date(report.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+                    const transcript = report.transcript || 'Transcript not available.';
+                    html += `<div class="list-group-item list-group-item-action p-3" id="notification-report-${report.id}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1 text-info"><i class="fas fa-file-alt me-2"></i>Field Report Logged</h6>
+                                    <div>
+                                        <small class="text-body-secondary me-2">${timeAgo}</small>
+                                        <button type="button" class="btn-close btn-close-white delete-notification-btn" aria-label="Delete Notification" title="Delete Report" data-id="${report.id}"></button>
+                                    </div>
+                                </div>
+                                <p class="mb-1 small fst-italic">"${transcript.substring(0, 150)}${transcript.length > 150 ? '...' : ''}"</p>
+                            </div>`;
+                });
+                list.innerHTML = html;
+            } else {
+                placeholder.classList.remove('d-none');
+                list.innerHTML = '';
+                list.appendChild(placeholder);
+            }
+        };
+        const initLiveReport = () => { const recordButton = document.getElementById('record-button'); if (!recordButton) return; const recordIcon = recordButton.querySelector('i'); const recordingStatus = document.getElementById('recording-status'); const resultsContainer = document.getElementById('ai-analysis-results'); const placeholder = document.getElementById('report-placeholder'); const errorContainer = document.getElementById('report-error'); let mediaRecorder; let audioChunks = []; let isRecording = false; const setupAudio = async () => { if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { const stream = await navigator.mediaDevices.getUserMedia({ audio: true }); mediaRecorder = new MediaRecorder(stream); mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data)); mediaRecorder.addEventListener("stop", async () => { const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType }); audioChunks = []; await sendAudioToServer(audioBlob); }); } catch (err) { showError("Microphone access denied. Please enable it in browser settings."); recordButton.disabled = true; } } else { showError("Audio recording not supported."); recordButton.disabled = true; } }; recordButton.addEventListener('click', () => { if (!mediaRecorder) return; if (!isRecording) { mediaRecorder.start(); isRecording = true; recordButton.classList.add('is-recording'); recordIcon.className = 'fas fa-stop'; recordingStatus.textContent = 'Listening... (Tap to stop)'; placeholder?.classList.add('d-none'); errorContainer?.classList.add('d-none'); if (resultsContainer) resultsContainer.innerHTML = ''; } else { mediaRecorder.stop(); isRecording = false; recordButton.classList.remove('is-recording'); recordIcon.className = 'fas fa-sync-alt fa-spin'; recordingStatus.textContent = 'Analyzing Report...'; recordButton.disabled = true; } }); const sendAudioToServer = async (audioBlob) => { const formData = new FormData(); formData.append('audio', audioBlob, 'report.webm'); try { const response = await fetch('/api/process-report', { method: 'POST', headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'), 'Accept': 'application/json' }, body: formData }); if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.error || `Server error: ${response.status}`); } const data = await response.json(); displayResults(data); loadAndRenderReportHistory(); } catch (err) { showError(`Failed to process report: ${err.message}`); } finally { recordIcon.className = 'fas fa-microphone'; recordingStatus.textContent = 'Tap to Start Field Report'; recordButton.disabled = false; } };
         
         const displayResults = (data) => {
-            const resultsContainer = document.getElementById('ai-analysis-results');
-            let entityHtml = '';
-            if (data.entities?.length) {
-                data.entities.forEach(entity => {
-                    let c = 'entity-tag-other';
-                    const cat = entity.category.toLowerCase();
-                    if (cat.includes('location')) c = 'entity-tag-location';
-                    else if (cat.includes('resource') || cat.includes('equipment')) c = 'entity-tag-resource';
-                    else if (cat.includes('hazard') || cat.includes('skill')) c = 'entity-tag-hazard';
-                    entityHtml += `<span class="entity-tag ${c}">${entity.text}</span> `;
-                });
-            }
-            
-            let suggestionHtml = '';
-            let suggestionsList = [];
-            const rawSuggestions = data.suggestions;
-
-            if (rawSuggestions && typeof rawSuggestions === 'object') {
-                if (Array.isArray(rawSuggestions)) {
-                    suggestionsList = rawSuggestions;
-                } else if (rawSuggestions.suggestions && Array.isArray(rawSuggestions.suggestions)) {
-                    suggestionsList = rawSuggestions.suggestions;
-                } else if (rawSuggestions.suggestion) {
-                    suggestionsList = [rawSuggestions];
-                }
-            }
-            
-            if (suggestionsList.length > 0) {
-                suggestionsList.forEach(s => {
-                    if (s && typeof s === 'object' && s.suggestion) {
-                        const suggestionText = s.suggestion;
-                        const iconClass = s.icon || 'fas fa-lightbulb';
-                        suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${iconClass} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`;
-                    }
-                });
-            }
-
-            let exportButtonHtml = '';
-            if (data.report_id) {
-                const exportUrl = `/report/${data.report_id}/export`;
-                exportButtonHtml = `<div class="text-end mt-4"><a href="${exportUrl}" class="btn btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export Report as PDF</a></div>`;
-            }
-
-            const resultsHtml = `
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div>
-                    <div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div>
-                </div>
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div>
-                    <div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div>
-                </div>
-                <div class="card ai-analysis-card mb-3">
-                    <div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div>
-                    <div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div>
-                </div>
-                <div class="accordion" id="transcriptAccordion">
-                    <div class="accordion-item bg-transparent border-secondary">
-                        <h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2>
-                        <div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div>
-                    </div>
-                </div>
-                ${exportButtonHtml}
-            `;
-
+            const resultsContainer = document.getElementById('ai-analysis-results'); let entityHtml = '';
+            if (data.entities?.length) { data.entities.forEach(entity => { let c = 'entity-tag-other'; const cat = entity.category.toLowerCase(); if (cat.includes('location')) c = 'entity-tag-location'; else if (cat.includes('resource') || cat.includes('equipment')) c = 'entity-tag-resource'; else if (cat.includes('hazard') || cat.includes('skill')) c = 'entity-tag-hazard'; entityHtml += `<span class="entity-tag ${c}">${entity.text}</span> `; }); }
+            let suggestionHtml = ''; let suggestionsList = []; const rawSuggestions = data.suggestions;
+            if (rawSuggestions && typeof rawSuggestions === 'object') { if (Array.isArray(rawSuggestions)) { suggestionsList = rawSuggestions; } else if (rawSuggestions.suggestions && Array.isArray(rawSuggestions.suggestions)) { suggestionsList = rawSuggestions.suggestions; } else if (rawSuggestions.suggestion) { suggestionsList = [rawSuggestions]; } }
+            if (suggestionsList.length > 0) { suggestionsList.forEach(s => { if (s && typeof s === 'object' && s.suggestion) { const suggestionText = s.suggestion; const iconClass = s.icon || 'fas fa-lightbulb'; suggestionHtml += `<li class="suggestion-item-tts px-3"><div class="d-flex align-items-start gap-3"><i class="${iconClass} suggestion-icon"></i><div><strong>${suggestionText}</strong></div></div><button class="btn btn-sm btn-outline-secondary tts-button" data-text="${suggestionText}" aria-label="Read suggestion aloud"><i class="fas fa-volume-up"></i></button></li>`; } }); }
+            let exportButtonHtml = ''; if (data.report_id) { const exportUrl = `/report/${data.report_id}/export`; exportButtonHtml = `<div class="text-end mt-4"><a href="${exportUrl}" class="btn btn-outline-success"><i class="fas fa-file-pdf me-2"></i>Export Report as PDF</a></div>`; }
+            const resultsHtml = ` <div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-brain me-2"></i>AI Summary</div><div class="card-body"><p class="card-text">${data.summary || 'No summary.'}</p></div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tags me-2"></i>Key Entities</div><div class="card-body">${entityHtml.trim() || '<span class="text-muted">No entities detected.</span>'}</div></div><div class="card ai-analysis-card mb-3"><div class="card-header"><i class="fas fa-tasks me-2"></i>AI-Suggested Actions</div><div class="card-body p-0"><ul class="list-unstyled mb-0">${suggestionHtml.trim() || '<li class="p-3 text-muted">No suggestions.</li>'}</ul></div></div><div class="accordion" id="transcriptAccordion"><div class="accordion-item bg-transparent border-secondary"><h2 class="accordion-header"><button class="accordion-button collapsed bg-body-tertiary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne"><i class="fas fa-file-alt me-2"></i>View Full Transcript</button></h2><div id="collapseOne" class="accordion-collapse collapse" data-bs-parent="#transcriptAccordion"><div class="accordion-body">${data.transcript || 'Transcript unavailable.'}</div></div></div></div>${exportButtonHtml} `;
             if (resultsContainer) resultsContainer.innerHTML = resultsHtml;
         };
 
-        const showError = (message) => { 
-            const errorContainer = document.getElementById('report-error');
-            const placeholder = document.getElementById('report-placeholder');
-            const resultsContainer = document.getElementById('ai-analysis-results');
-            if (errorContainer) { 
-                errorContainer.textContent = message; 
-                errorContainer.classList.remove('d-none'); 
-            } 
-            if (placeholder) placeholder.classList.add('d-none'); 
-            if (resultsContainer) resultsContainer.innerHTML = ''; 
-        }; 
+        const showError = (message) => { const e = document.getElementById('report-error'); const p = document.getElementById('report-placeholder'); const r = document.getElementById('ai-analysis-results'); if (e) { e.textContent = message; e.classList.remove('d-none'); } if (p) p.classList.add('d-none'); if (r) r.innerHTML = ''; }; 
         setupAudio(); 
     };
-        const initNotificationSystem = () => { const badge = document.getElementById('notification-badge'); if(badge) badge.classList.add('d-none'); };
-        const initTextToSpeech = () => { if (!('speechSynthesis' in window)) { console.warn('Speech Synthesis not supported.'); return; } document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
-        const initRouting = () => { const calculateBtn = document.getElementById('calculate-route-btn'); const clearBtn = document.getElementById('clear-route-btn'); const toggleLoadingState = (isLoading) => { const spinner = calculateBtn.querySelector('.spinner-border'); const icon = calculateBtn.querySelector('.icon'); calculateBtn.disabled = isLoading; if(isLoading) { spinner.classList.remove('d-none'); icon.classList.add('d-none'); } else { calculateBtn.disabled = (selectedFireFeature === null); spinner.classList.add('d-none'); icon.classList.remove('d-none'); } }; const clearRoute = () => { if (routeLayer) map.removeLayer(routeLayer); if (selectedFireMarker) L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); routeLayer = null; selectedFireFeature = null; selectedFireMarker = null; document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`; calculateBtn.disabled = true; clearBtn.style.display = 'none'; document.getElementById('route-summary').classList.add('d-none'); document.getElementById('route-placeholder').classList.remove('d-none'); document.getElementById('route-placeholder').textContent = 'Route information will appear here.'; map.closePopup(); }; calculateBtn.addEventListener('click', async () => { if (!selectedFireFeature) return; toggleLoadingState(true); const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]); const bbox = map.getBounds().toBBoxString(); try { const response = await fetch(`/api/fire_stations?bbox=${bbox}&limit=2000`); if (!response.ok) throw new Error('Could not fetch fire stations.'); const stationsData = await response.json(); if (!stationsData.features || stationsData.features.length === 0) { throw new Error('No fire stations found in the current map view. Please pan or zoom out.'); } let closestStation = null; let minDistance = Infinity; const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c;}; stationsData.features.forEach(stationFeature => { const stationCoords = L.latLng(stationFeature.geometry.coordinates[1], stationFeature.geometry.coordinates[0]); const distance = getDistance(fireCoords.lat, fireCoords.lng, stationCoords.lat, stationCoords.lng); if (distance < minDistance) { minDistance = distance; closestStation = stationFeature; } }); if (!closestStation) throw new Error('Could not determine closest station.'); const stationCoords = closestStation.geometry.coordinates; const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`; const osrmResponse = await fetch(osrmUrl); if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`); const routeData = await osrmResponse.json(); if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.'); const route = routeData.routes[0]; if (routeLayer) map.removeLayer(routeLayer); routeLayer = L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(map); map.fitBounds(routeLayer.getBounds().pad(0.2)); document.getElementById('route-station-name').textContent = closestStation.properties.name || 'Unnamed Station'; document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`; document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`; document.getElementById('route-summary').classList.remove('d-none'); document.getElementById('route-placeholder').classList.add('d-none'); clearBtn.style.display = 'block'; } catch (error) { console.error('Routing error:', error); alert(`Could not calculate route: ${error.message}`); document.getElementById('route-placeholder').textContent = `Error: ${error.message}`; } finally { toggleLoadingState(false); } }); clearBtn.addEventListener('click', clearRoute); };
-        const initSidebarFix = () => { const sidebarTabs = document.querySelectorAll('#sidebar-tabs button[data-bs-toggle="pill"]'); sidebarTabs.forEach(tab => { tab.addEventListener('shown.bs.tab', () => { if (window.App && typeof window.App.updateSidebarScroll === 'function') { try { window.App.updateSidebarScroll(); } catch (e) { console.warn("Could not update sidebar scroll.", e); } } }); }); };
-
-        /**
-         * FIX: Initializes the mobile sidebar toggle functionality.
-         * This overrides the theme's default slide-in behavior for a top-down reveal on mobile.
-         */
-        const initMobileSidebarToggle = () => {
-            const burgerMenu = document.getElementById('header-burger-menu');
-            const body = document.body;
-
-            if (burgerMenu && body) {
-                // On initial load, if on mobile, ensure the sidebar is in a closed state.
-                if (window.innerWidth < 992 && !body.classList.contains('sidebar-close')) {
-                    body.classList.add('sidebar-close');
+        
+        const deleteReport = async (reportId) => {
+            if (!confirm('Are you sure you want to delete this report? This action is permanent.')) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/reports/${reportId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'include',
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to delete the report.');
                 }
-
-                burgerMenu.addEventListener('click', function(event) {
-                    // This custom logic should ONLY apply on mobile viewports.
-                    if (window.innerWidth < 992) {
-                        // Stop the original theme's JavaScript from executing its conflicting slide-in logic.
-                        event.preventDefault();
-                        event.stopPropagation();
-                        
-                        // Manually toggle the class on the body. Our custom CSS handles the animation.
-                        body.classList.toggle('sidebar-close');
-                    }
-                    // On desktop viewports (>= 992px), this listener does nothing, allowing the
-                    // theme's default JavaScript to manage the sidebar as intended.
-                }, true); // Using the "capture" phase ensures this listener runs before the theme's default.
+                const notificationElement = document.getElementById(`notification-report-${reportId}`);
+                if (notificationElement) {
+                    notificationElement.remove();
+                }
+                const accordionItem = document.getElementById(`report-accordion-item-${reportId}`);
+                if (accordionItem) {
+                    accordionItem.remove();
+                }
+            } catch (error) {
+                console.error('Deletion failed:', error);
+                alert(`Error: ${error.message}`);
             }
         };
 
+        const initNotificationDeletion = () => {
+            const notificationsList = document.getElementById('notifications-list');
+            if (!notificationsList) return;
+            notificationsList.addEventListener('click', (event) => {
+                const deleteButton = event.target.closest('.delete-notification-btn');
+                if (deleteButton) {
+                    const reportId = deleteButton.dataset.id;
+                    if (reportId) {
+                        deleteReport(reportId);
+                    }
+                }
+            });
+        };
+        
+        const initPreviousReportDeletion = () => {
+            const reportsContainer = document.getElementById('previous-transcripts-container');
+            if (!reportsContainer) return;
+            reportsContainer.addEventListener('click', (event) => {
+                const deleteButton = event.target.closest('.delete-report-btn');
+                if (deleteButton) {
+                    const reportId = deleteButton.dataset.id;
+                    if (reportId) {
+                        deleteReport(reportId);
+                    }
+                }
+            });
+        };
+
+        const initTextToSpeech = () => { if (!('speechSynthesis' in window)) return; document.body.addEventListener('click', (event) => { const ttsButton = event.target.closest('.tts-button'); if (ttsButton) { const textToSpeak = ttsButton.dataset.text; if (textToSpeak) { window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(textToSpeak); utterance.pitch = 1; utterance.rate = 0.9; window.speechSynthesis.speak(utterance); } } }); };
+        
+        const initRouting = () => {
+            const calculateBtn = document.getElementById('calculate-route-btn');
+            const clearBtn = document.getElementById('clear-route-btn');
+            const toggleLoadingState = (isLoading) => {
+                const spinner = calculateBtn.querySelector('.spinner-border');
+                const icon = calculateBtn.querySelector('.icon');
+                calculateBtn.disabled = isLoading;
+                spinner.classList.toggle('d-none', !isLoading);
+                icon.classList.toggle('d-none', isLoading);
+            };
+
+            const clearRoute = () => {
+                activeRouteHighlightLayer.clearLayers();
+                if (selectedFireMarker) { L.DomUtil.removeClass(selectedFireMarker.getElement(), 'fire-incident-icon-selected'); }
+                selectedFireFeature = null; selectedFireMarker = null;
+                document.getElementById('selected-fire-info').innerHTML = `<p class="text-center text-muted mb-0">No fire selected.</p>`;
+                calculateBtn.disabled = true;
+                clearBtn.style.display = 'none';
+                document.getElementById('route-summary').classList.add('d-none');
+                document.getElementById('route-placeholder').classList.remove('d-none').textContent = 'Route information will appear here.';
+                map.closePopup();
+            };
+
+            calculateBtn.addEventListener('click', async () => {
+                if (!selectedFireFeature) return;
+                toggleLoadingState(true);
+                activeRouteHighlightLayer.clearLayers();
+                const fireCoords = L.latLng(selectedFireFeature.geometry.coordinates[1], selectedFireFeature.geometry.coordinates[0]);
+
+                try {
+                    const stationMarkers = fireStationsLayer.getLayers();
+                    if (stationMarkers.length === 0) throw new Error('No fire stations are loaded on the map.');
+                    let closestStationFeature = null, minDistance = Infinity;
+                    const getDistance = (lat1, lon1, lat2, lon2) => { const R=6371;const dLat=(lat2-lat1)*(Math.PI/180);const dLon=(lon2-lon1)*(Math.PI/180);const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*(Math.PI/180))*Math.cos(lat2*(Math.PI/180))*Math.sin(dLon/2)*Math.sin(dLon/2);const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));return R*c; };
+                    stationMarkers.forEach(stationMarker => {
+                        const stationLatLng = stationMarker.getLatLng();
+                        const distance = getDistance(fireCoords.lat, fireCoords.lng, stationLatLng.lat, stationLatLng.lng);
+                        if (distance < minDistance) { minDistance = distance; closestStationFeature = stationMarker.feature; }
+                    });
+                    if (!closestStationFeature) throw new Error('Could not determine closest station.');
+
+                    const stationCoords = closestStationFeature.geometry.coordinates;
+                    const stationLatLng = L.latLng(stationCoords[1], stationCoords[0]);
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${stationCoords[0]},${stationCoords[1]};${fireCoords.lng},${fireCoords.lat}?overview=full&geometries=geojson`;
+                    
+                    const osrmResponse = await fetch(osrmUrl);
+                    if (!osrmResponse.ok) throw new Error(`Routing service failed: ${osrmResponse.statusText}`);
+                    const routeData = await osrmResponse.json();
+                    if (!routeData.routes || routeData.routes.length === 0) throw new Error('No route could be found.');
+
+                    const route = routeData.routes[0];
+                    const fireHighlightIcon = L.divIcon({ className: 'highlight-marker-fire', html: '<i class="fas fa-fire-alt"></i>', iconSize: [28, 28], iconAnchor: [14, 14] });
+                    const stationHighlightIcon = L.divIcon({ className: 'highlight-marker-station', html: '<i class="fas fa-building"></i>', iconSize: [28, 28], iconAnchor: [14, 14] });
+                    
+                    L.marker(fireCoords, { icon: fireHighlightIcon, zIndexOffset: 1000 }).addTo(activeRouteHighlightLayer);
+                    L.marker(stationLatLng, { icon: stationHighlightIcon, zIndexOffset: 1000 }).addTo(activeRouteHighlightLayer);
+                    L.geoJson(route.geometry, { style: { color: '#0dcaf0', weight: 6, opacity: 0.8 } }).addTo(activeRouteHighlightLayer);
+                    map.fitBounds(activeRouteHighlightLayer.getBounds(), { padding: [50, 50], maxZoom: 16 });
+                    document.getElementById('route-station-name').textContent = closestStationFeature.properties.name || 'Unnamed Station';
+                    document.getElementById('route-distance').textContent = `${(route.distance / 1000).toFixed(1)} km`;
+                    document.getElementById('route-duration').textContent = `${Math.round(route.duration / 60)} mins`;
+                    document.getElementById('route-summary').classList.remove('d-none');
+                    document.getElementById('route-placeholder').classList.add('d-none');
+                    clearBtn.style.display = 'block';
+                } catch (error) {
+                    const placeholder = document.getElementById('route-placeholder');
+                    placeholder.textContent = `Error: ${error.message}`;
+                    placeholder.classList.remove('d-none');
+                    document.getElementById('route-summary').classList.add('d-none');
+                } finally {
+                    toggleLoadingState(false);
+                }
+            });
+            clearBtn.addEventListener('click', clearRoute);
+        };
+
+        const initSidebarFix = () => { document.querySelectorAll('#sidebar-tabs button[data-bs-toggle="pill"]').forEach(tab => { tab.addEventListener('shown.bs.tab', () => { if (window.App && typeof window.App.updateSidebarScroll === 'function') { try { window.App.updateSidebarScroll(); } catch (e) { console.warn("Could not update sidebar scroll.", e); } } }); }); };
+        const initMobileSidebarToggle = () => {
+            const burgerMenu = document.getElementById('header-burger-menu');
+            const body = document.body;
+            if (burgerMenu && body) {
+                if (window.innerWidth < 1200 && !body.classList.contains('sidebar-close')) { body.classList.add('sidebar-close'); }
+                burgerMenu.addEventListener('click', function(event) { if (window.innerWidth < 1200) { event.preventDefault(); event.stopPropagation(); body.classList.toggle('sidebar-close'); } }, true);
+            }
+        };
 
         // --- INITIALIZE ALL SYSTEMS ---
         setTimeout(initMap, 250);
         initChat();
-        initGeneralUI();
         initLiveReport();
-        initNotificationSystem();
+        initNotificationDeletion(); 
+        initPreviousReportDeletion(); 
         initTextToSpeech();
         loadAndRenderReportHistory();
         initRouting();
         initSidebarFix();
         initSidebarToggles();
-        initMobileSidebarToggle(); // Initialize the mobile sidebar fix.
     });
 </script>
 </body>
