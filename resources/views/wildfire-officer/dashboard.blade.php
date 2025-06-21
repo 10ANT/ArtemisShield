@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,16 +33,61 @@
         #map-wrapper, #map, #cesium-container { position: absolute; top:0; left:0; height: 100%; width: 100%; margin: 0; padding: 0; }
         #cesium-container { z-index: 0; }
         #map { z-index: 1; background: transparent; }
-        #layers-sidebar { position: absolute; top: 15px; left: 15px; width: var(--legend-width); min-width: 220px; max-width: 500px; z-index: 1010; background-color: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: .5rem; max-height: calc(100vh - 100px); display: flex; flex-direction: column; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); resize: both; overflow: auto; }
+        
+        /* FIXED: Hardcoded dark theme for Layers & Legend panel */
+        #layers-sidebar { 
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            width: var(--legend-width); 
+            min-width: 220px; 
+            max-width: 500px; 
+            z-index: 1010; 
+            background-color: #212529; /* Hardcoded dark background */
+            color: #dee2e6; /* Hardcoded light text */
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Hardcoded light border */
+            border-radius: .5rem; 
+            max-height: calc(100vh - 100px); 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); 
+            resize: both; 
+            overflow: auto; 
+        }
         #layers-sidebar-header { cursor: move; flex-shrink: 0; }
         #layers-sidebar-content { overflow-y: auto; flex-grow: 1; transition: all 0.2s ease-out; max-height: 500px; }
         #layers-sidebar.collapsed #layers-sidebar-content { max-height: 0; padding-top: 0 !important; padding-bottom: 0 !important; opacity: 0; }
         #layers-sidebar.collapsed { max-height: 40px; }
+        /* Ensure text within the legend is readable */
+        #layers-sidebar .form-check-label, #layers-sidebar .legend-item, #layers-sidebar h6, #layers-sidebar .form-label {
+            color: #dee2e6;
+        }
 
         .legend-item { display: flex; align-items: center; font-size: 0.9rem; }
         .legend-icon { width: 30px; margin-right: 10px; text-align: center; }
         .cesium-viewer-bottom { display: none !important; }
-        #map-controls { position: absolute; top: 10px; right: 10px; z-index: 1001; display: flex; flex-direction: column; gap: 5px; }
+        
+        #map-controls { 
+            position: absolute; 
+            top: 75px; 
+            right: 10px; 
+            z-index: 1001; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 5px;
+            background: rgba(181, 200, 230, 0.3); /* Use specific RGBA for dark frosted glass */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: .5rem;
+            padding: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #map-controls .btn.active {
+             background-color: var(--bs-primary);
+             border-color: var(--bs-primary);
+        }
+
         .leaflet-routing-container { display: none !important; }
         #recent-fires .card:hover { background-color: var(--bs-body-tertiary); cursor: pointer; }
         .frp-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; border: 1px solid #666;}
@@ -56,7 +101,7 @@
         #goes-preview img { width: 300px; height: 300px; }
         #goes-preview p { color: white; margin: 5px 0 0 0; font-size: 0.8em; text-align: center; }
         #goes-fire-temp-btn.active, #toggle-contained-btn.active { background-color: var(--bs-primary); border-color: var(--bs-primary); }
-        #create-alert-btn.active { background-color: var(--bs-warning); border-color: var(--bs-warning); color: #000; }
+        #create-alert-btn.active, #measure-distance-btn.active { background-color: var(--bs-warning); border-color: var(--bs-warning); color: #000; }
         .map-container.goes-preview-active { cursor: crosshair; }
         #zoomed-goes-modal .modal-dialog { max-width: 90vw; }
         #zoomed-goes-modal .modal-content { background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border: 1px solid #555; }
@@ -66,8 +111,33 @@
         #magnifier-loupe { width: 200px; height: 200px; position: absolute; border: 3px solid #fff; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); pointer-events: none; display: none; background-repeat: no-repeat; }
         #image-analysis-loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
         
-        #timeline-container { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); width: 70%; max-width: 800px; z-index: 1001; background: rgba(var(--bs-body-bg-rgb), 0.85); backdrop-filter: blur(4px); border: 1px solid var(--bs-border-color); border-radius: .5rem; padding: 10px 20px; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); display: flex; align-items: center; gap: 15px; }
-        #timeline-label { font-size: 0.9em; font-weight: bold; white-space: nowrap; min-width: 100px; text-align: center; color: var(--bs-body-color); }
+        /* FIXED: Hardcoded dark theme for Timeline slider */
+        #timeline-container { 
+            position: absolute; 
+            bottom: 10px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 70%; 
+            max-width: 800px; 
+            z-index: 1001; 
+            background: rgba(33, 37, 41, 0.85); /* Hardcoded dark frosted glass */
+            backdrop-filter: blur(4px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Hardcoded light border */
+            border-radius: .5rem; 
+            padding: 10px 20px; 
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.2); 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+        }
+        #timeline-label { 
+            font-size: 0.9em; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            min-width: 100px; 
+            text-align: center; 
+            color: #dee2e6; /* Hardcoded light text */
+        }
         #timeline-slider { flex-grow: 1; }
         
         .sidebar-wrapper { height: 100%; display: flex; flex-direction: column; }
@@ -114,8 +184,30 @@
         .search-result-card .result-details { font-size: 0.8em; color: var(--bs-secondary-color); }
         .spinner-border { position: absolute; right: 10px; top: 50%; margin-top: -0.5rem; }
 
-        .analysis-card { border-left-width: 5px; }
+        .analysis-card { border-left-width: 5px; cursor: pointer; }
+        .analysis-card:hover { background-color: var(--bs-tertiary-bg); }
         .analysis-card .spinner-border { width: 1rem; height: 1rem; }
+        
+        @media (max-width: 991.98px) {
+            .wildfire-dashboard-container {
+                flex-direction: column;
+                height: 100%;
+            }
+            .map-column {
+                height: 60vh;
+            }
+            .right-sidebar-column {
+                width: 100% !important;
+                height: 40vh;
+                min-height: 300px;
+                border-left: none;
+                border-top: 2px solid var(--bs-border-color);
+                resize: none;
+            }
+            #map-controls {
+                top: 10px;
+            }
+        }
 
     </style>
 </head>
@@ -143,8 +235,9 @@
                             </div>
                         </div>
                         <div id="map-controls">
-                            <button id="toggle-3d-btn" class="btn btn-secondary" title="Toggle 3D View"><i class="fas fa-cube"></i> 3D</button>
+                            <button id="toggle-3d-btn" class="btn btn-secondary" title="Toggle 3D View"><i class="fas fa-cube"></i></button>
                             <button id="expand-map-btn" class="btn btn-secondary" title="Toggle Fullscreen Map"><i class="fas fa-expand-arrows-alt"></i></button>
+                            <button id="measure-distance-btn" class="btn btn-secondary" title="Measure Distance"><i class="fas fa-ruler"></i></button>
                             <button id="get-weather-btn" class="btn btn-secondary" title="Get Weather for a Point"><i class="fas fa-cloud-sun-rain"></i></button>
                             <button id="goes-fire-temp-btn" class="btn btn-secondary" title="Toggle GOES Fire Temp Preview"><i class="fas fa-fire-alt"></i></button>
                             <button id="toggle-contained-btn" class="btn btn-secondary" title="Hide Contained & Out Fires"><i class="fas fa-shield-alt"></i></button>
@@ -300,7 +393,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Analysis in progress. Results will appear below as they are completed. Green means no fire detected, Red means potential fire found.</p>
+                    <p>Analysis in progress. Results will appear below as they are completed. Green means no fire detected, Red means potential fire found. Click a card to navigate to that sector.</p>
                     <div id="analysis-results-grid" class="row g-3">
                         <!-- Results will be injected here -->
                     </div>
@@ -359,7 +452,7 @@
         const VISION_PREDICTION_KEY = 'e88a49568d634bdc8ebedcb798b18f29';
 
         let agentHandler;
-        let map, fireDetailsModal, weatherMarkerDrawer, drawnItems;
+        let map, fireDetailsModal, weatherMarkerDrawer, drawnItems, measureTool;
         const fireLayerGroups = { 'VIIRS': L.layerGroup(), 'MODIS': L.layerGroup() };
         const fireDataCache = { 'VIIRS': [], 'MODIS': [] };
         let officialPerimetersLayer, stateBoundariesLayer, droughtLayer, weatherPrecipLayer, weatherTempLayer, staticWeatherWindLayer, animatedWindLayer, goesLayer, weatherPointMarker, predictedSpreadLayer, lastOfficialFireLayer;
@@ -394,10 +487,13 @@
                     { type: "function", function: { name: "measureDistance", description: "Measures the straight-line distance in kilometers between two named points on the map.", parameters: { type: "object", properties: { from: { type: "string", description: "The starting point (can be a fire name or place)." }, to: { type: "string", description: "The ending point (can be a fire name or place)." } }, required: ["from", "to"] } }, executor: this.measureDistance },
                     { type: "function", function: { name: "toggleLayer", description: "Toggles a map data layer on or off. layerName can be 'wind', 'drought', 'satellite', 'perimeters', etc.", parameters: { type: "object", properties: { layerName: { type: "string", description: "The name of the layer to toggle." }, state: { type: "string", enum: ["on", "off"], description: "The desired state." } }, required: ["layerName", "state"] } }, executor: this.toggleLayer },
                     { type: "function", function: { name: "getFireDetails", description: "Retrieves detailed data for a specific official fire, such as its size and discovery date.", parameters: { type: "object", properties: { fireName: { type: "string", description: "The name of the fire to get details for." } }, required: ["fireName"] } }, executor: this.getFireDetails },
-                    { type: "function", function: { name: "planRoute", description: "Draws and saves an evacuation or logistics route between two points.", parameters: { type: "object", properties: { start: { type: "string" }, end: { type: "string" }, name: {type: "string"} }, required: ["start", "end", "name"] } }, executor: this.planRoute }
+                    { type: "function", function: { name: "planRoute", description: "Draws and saves an evacuation or logistics route between two points.", parameters: { type: "object", properties: { start: { type: "string" }, end: { type: "string" }, name: {type: "string"} }, required: ["start", "end", "name"] } }, executor: this.planRoute },
+                    { type: "function", function: { name: "analyzeAllGoesSectors", description: "Initiates a comprehensive AI analysis of all available GOES satellite sectors for potential fire hotspots. This is an automated, long-running process, and results will appear in a modal window." }, executor: this.analyzeAllGoesSectors },
+                    { type: "function", function: { name: "setAlertRadius", description: "Draws a circular alert radius on the map centered at a specific location with a given size to notify the community.", parameters: { type: "object", properties: { location: { type: "string", description: "The center point of the alert (e.g., a city name, address, or fire name)." }, radius: { type: "number", description: "The radius of the alert circle in kilometers." } }, required: ["location", "radius"] } }, executor: this.setAlertRadius },
+                    { type: "function", function: { name: "deleteAlert", description: "Deletes a specific community alert from the map using its message content as an identifier.", parameters: { type: "object", properties: { alertMessage: { type: "string", description: "A key phrase from the alert message to identify which alert to delete." } }, required: ["alertMessage"] } }, executor: this.deleteAlert }
                 ];
                 document.getElementById('reset-chat-btn').addEventListener('click', () => this.resetConversation());
-                console.log("AgentHandler initialized with enhanced toolset.");
+                console.log("AgentHandler initialized with final toolset.");
             }
             async resetConversation() {
                 console.log("Resetting conversation...");
@@ -473,7 +569,7 @@
                     return { error: `Tool executor for ${funcCall.name} not found.` };
                 }
                 try {
-                    const args = JSON.parse(funcCall.arguments);
+                    const args = funcCall.arguments ? JSON.parse(funcCall.arguments) : {};
                     const result = await tool.executor.call(this, args);
                     console.log(`Tool ${funcCall.name} executed successfully with result:`, result);
                     return result;
@@ -570,6 +666,67 @@
                 }).addTo(map);
                 return { success: true, message: `Okay, planning a route from ${startResult.name} to ${endResult.name} and saving it as "${name}".`};
             }
+            async analyzeAllGoesSectors() {
+                console.log("[AI Tool] Triggering full GOES sector analysis.");
+                analyzeAllGoesSectors(); 
+                return { success: true, message: "I've started the comprehensive analysis of all GOES sectors. The results will appear in a modal window shortly." };
+            }
+            async setAlertRadius({ location, radius }) {
+                console.log(`[AI Tool] Setting alert for "${location}" with a ${radius}km radius.`);
+                const locationResult = await findFirstLocation(location);
+                if (!locationResult) {
+                    return { success: false, message: `I'm sorry, I could not find a location named "${location}".` };
+                }
+                const centerPoint = locationResult.bbox.getCenter();
+                const radiusMeters = radius * 1000;
+                
+                const alertData = { 
+                    latitude: centerPoint.lat, 
+                    longitude: centerPoint.lng, 
+                    radius: radiusMeters, 
+                    message: `AI-generated alert for ${locationResult.name}.` 
+                };
+                
+                try {
+                    const response = await axios.post("{{ route('api.alerts.store') }}", alertData);
+                    console.log("[AI Tool] AI-generated alert saved successfully via API. Proactively adding to map.");
+                    addAlertToMap(response.data);
+                    
+                    map.fitBounds(L.circle(centerPoint, {radius: radiusMeters}).getBounds().pad(0.2));
+                    return { success: true, message: `Action complete. A ${radius}km alert for ${locationResult.name} was successfully created and is now visible on the map.` };
+                } catch (error) {
+                    console.error("[AI Tool] Error saving AI-generated alert:", error.response?.data);
+                    return { success: false, message: "I found the location, but failed to save the alert to the server." };
+                }
+            }
+            async deleteAlert({ alertMessage }) {
+                console.log(`[AI Tool] Attempting to delete alert with message containing: "${alertMessage}"`);
+                const lowerCaseMessage = alertMessage.toLowerCase();
+                let foundAlertId = null;
+
+                for (const alertId in activeAlerts) {
+                    const layer = activeAlerts[alertId];
+                    if (layer.alertMessage && layer.alertMessage.toLowerCase().includes(lowerCaseMessage)) {
+                        foundAlertId = layer.alertId;
+                        break;
+                    }
+                }
+
+                if (foundAlertId) {
+                    console.log(`[AI Tool] Found alert with ID ${foundAlertId}. Triggering API deletion.`);
+                    try {
+                        await axios.delete(`/api/alerts/${foundAlertId}`);
+                        removeAlertFromMap(foundAlertId);
+                        return { success: true, message: `The alert regarding "${alertMessage}" has been deleted.` };
+                    } catch (error) {
+                        console.error(`[AI Tool] API Error deleting alert ${foundAlertId}:`, error);
+                        return { success: false, message: "I found the alert, but there was an error trying to delete it from the server." };
+                    }
+                }
+
+                console.warn(`[AI Tool] Could not find an alert matching "${alertMessage}".`);
+                return { success: false, message: `I could not find an active alert with the message "${alertMessage}". Please be more specific.` };
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -645,21 +802,45 @@
         }
 
         function initializeMap() {
-            console.log("Initializing Leaflet map.");
+            console.log("Initializing Leaflet map with additional layers.");
+            
             const streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' });
-            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri' });
+            const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community' });
+            const openstreetmap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' });
+            const dark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '© CARTO' });
+            
+            const baseLayers = {
+                "Streets": streets,
+                "Satellite": satellite,
+                "OpenStreetMap": openstreetmap,
+                "Dark Mode": dark
+            };
+            
             map = L.map('map', { center: [39.8283, -98.5795], zoom: 5, layers: [streets] });
-            map.createPane('goesPreviewPane').style.zIndex = 450; map.createPane('goesLayerPane').style.zIndex = 250;
-            L.control.layers({ "Streets": streets, "Satellite": satellite }, null, { position: 'topright' }).addTo(map);
+            
+            map.createPane('goesPreviewPane').style.zIndex = 450; 
+            map.createPane('goesLayerPane').style.zIndex = 250;
+            
+            L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
             L.control.scale({ imperial: false }).addTo(map);
+            
             drawnItems = new L.FeatureGroup().addTo(map);
-            new L.Control.Draw({ position: 'topleft', edit: { featureGroup: drawnItems }, draw: { polyline: true, polygon: true, circle: false, rectangle: true, marker: { tooltip: { start: 'Click map to place start/end point for routing.' } } } }).addTo(map);
+            new L.Control.Draw({ position: 'topleft', edit: { featureGroup: drawnItems }, draw: { polyline: false, polygon: true, circle: false, rectangle: true, marker: { tooltip: { start: 'Click map to place start/end point for routing.' } } } }).addTo(map);
+            
+            measureTool = new L.Draw.Polyline(map, {
+                shapeOptions: { color: '#0dcaf0', weight: 4, opacity: 0.7 },
+                showLength: true,
+                metric: true,
+                tooltip: { start: 'Click to start measuring distance.' }
+            });
+
             officialPerimetersLayer = L.layerGroup(); 
             stateBoundariesLayer = L.layerGroup(); 
             droughtLayer = L.layerGroup(); 
             savedRoutesLayer = L.layerGroup().addTo(map);
             communityAlertsLayer = L.layerGroup().addTo(map);
             predictedSpreadLayer = L.layerGroup().addTo(map); 
+            
             weatherPrecipLayer = L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
             weatherTempLayer = L.tileLayer(`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
             staticWeatherWindLayer = L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=${OWM_API_KEY}`);
@@ -700,6 +881,30 @@
                 loadOfficialPerimeters();
             }
         }
+        
+        function setActiveDrawTool(toolToActivate) {
+            const tools = [measureTool, alertDrawer, weatherMarkerDrawer];
+            const buttons = [
+                document.getElementById('measure-distance-btn'),
+                document.getElementById('create-alert-btn'),
+                document.getElementById('get-weather-btn')
+            ];
+
+            tools.forEach((tool, index) => {
+                if (tool === toolToActivate) {
+                    if (tool.enabled()) {
+                        tool.disable();
+                        buttons[index].classList.remove('active');
+                    } else {
+                        tool.enable();
+                        buttons[index].classList.add('active');
+                    }
+                } else {
+                    tool.disable();
+                    buttons[index].classList.remove('active');
+                }
+            });
+        }
 
         function setupEventListeners() {
             console.log("Setting up global event listeners.");
@@ -734,22 +939,37 @@
                 document.body.classList.toggle('fullscreen'); 
                 setTimeout(() => { map.invalidateSize({ pan: true }); }, 310); 
             });
-            document.getElementById('get-weather-btn').addEventListener('click', () => weatherMarkerDrawer.enable());
+            document.getElementById('get-weather-btn').addEventListener('click', () => setActiveDrawTool(weatherMarkerDrawer));
+            document.getElementById('measure-distance-btn').addEventListener('click', () => setActiveDrawTool(measureTool));
+            document.getElementById('create-alert-btn').addEventListener('click', () => setActiveDrawTool(alertDrawer));
+
             document.getElementById('goes-fire-temp-btn').addEventListener('click', toggleGoesPreview);
             map.on(L.Draw.Event.CREATED, (event) => {
                 console.log(`Leaflet Draw CREATED event fired for layer type: ${event.layerType}`);
-                if (alertDrawer && alertDrawer.enabled()) {
+                
+                if (alertDrawer.enabled()) {
+                    setActiveDrawTool(alertDrawer); 
                     const layer = event.layer;
                     const latlng = layer.getLatLng();
                     const radius = layer.getRadius();
-                    console.log("Alert drawing created.", {lat: latlng.lat, lng: latlng.lng, radius});
                     document.getElementById('alert-lat').value = latlng.lat;
                     document.getElementById('alert-lng').value = latlng.lng;
                     document.getElementById('alert-radius').value = radius;
                     alertModal.show();
-                    toggleAlertCreation();
                 } else if (weatherMarkerDrawer.enabled()) { 
-                    getAndShowWeatherForPoint(event.layer.getLatLng()); weatherMarkerDrawer.disable(); return; 
+                    setActiveDrawTool(weatherMarkerDrawer);
+                    getAndShowWeatherForPoint(event.layer.getLatLng());
+                } else if (measureTool.enabled()) {
+                    setActiveDrawTool(measureTool);
+                    const layer = event.layer;
+                    const latlngs = layer.getLatLngs();
+                    let totalDistance = 0;
+                    for (let i = 0; i < latlngs.length - 1; i++) {
+                        totalDistance += latlngs[i].distanceTo(latlngs[i+1]);
+                    }
+                    const distanceKm = (totalDistance / 1000).toFixed(2);
+                    layer.bindPopup(`<b>Total Distance:</b><br>${distanceKm} km`).openPopup();
+                    drawnItems.addLayer(layer);
                 } else if (event.layerType === 'marker') {
                     if (!startMarker) { startMarker = event.layer.addTo(map).setIcon(L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })).bindPopup('Start Point').openPopup(); }
                     else if (!endMarker) { endMarker = event.layer.addTo(map).setIcon(L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] })).bindPopup('End Point').openPopup(); }
@@ -778,7 +998,6 @@
             document.getElementById('send-chat-btn').addEventListener('click', sendMessage);
             document.getElementById('chat-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } });
             document.getElementById('alert-form').addEventListener('submit', saveAlert);
-            document.getElementById('create-alert-btn').addEventListener('click', toggleAlertCreation);
             
             document.getElementById('analyze-image-btn').addEventListener('click', analyzeGoesImageForFire);
             const zoomedModalEl = document.getElementById('zoomed-goes-modal');
@@ -867,7 +1086,7 @@
                             const bounds = layer.getBounds();
                             if (bounds.isValid()) {
                                 const center = bounds.getCenter();
-                                layer.fireProperties = props; // Attach properties to the layer itself for the revert function
+                                layer.fireProperties = props; 
                                 const dot = L.circleMarker(center, { radius, fillColor: color, color: '#fff', weight: 1.5, opacity: 1, fillOpacity: 0.8 }).on('click', () => showOfficialFireModal(props, layer));
                                 officialPerimetersLayer.addLayer(dot);
                                 layer.setStyle({ color, weight: 2, opacity: 0.6, fillOpacity: 0.15 }).on('click', () => showOfficialFireModal(props, layer));
@@ -1014,8 +1233,8 @@
 
         function drawDetectionBoxes(predictions) {
 
-            const HORIZONTAL_OFFSET = 15; // Nudge left/right. E.g., 2 moves it 2px to the right.
-            const VERTICAL_OFFSET = 15;   // Nudge up/down. E.g., -1 moves it 1px up.
+            const HORIZONTAL_OFFSET = 15;
+            const VERTICAL_OFFSET = 15;
             const img = document.getElementById('zoomed-goes-image');
             const canvas = document.getElementById('detection-canvas');
             const resultText = document.getElementById('analysis-result-text');
@@ -1030,9 +1249,6 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // === THE FIX IS HERE ===
-            // 1. Lower the probability threshold to 0.61
-            // 2. Make the tagName check more flexible
             const fireDetections = predictions.filter(p => 
                 p.tagName.toLowerCase().includes('fire') && p.probability > 0.61
             );
@@ -1082,7 +1298,6 @@
             const predictions = await analyzeGoesImageForFire(imageUrl);
 
             if (predictions) {
-                // === THE FIX IS HERE (for batch analysis) ===
                 const fireDetections = predictions.filter(p => 
                     p.tagName.toLowerCase().includes('fire') && p.probability > 0.61
                 );
@@ -1124,7 +1339,7 @@
             sectorEntries.forEach(([code, sector]) => {
                 const cardHtml = `
                     <div class="col-md-6 col-lg-4">
-                        <div class="card analysis-card border-secondary" id="analysis-card-${code}">
+                        <div class="card analysis-card border-secondary" id="analysis-card-${code}" data-sector-code="${code}">
                             <div class="card-body d-flex align-items-center">
                                 <div class="me-3 status-icon">
                                     <i class="fas fa-hourglass-start text-secondary fa-lg"></i>
@@ -1137,6 +1352,18 @@
                         </div>
                     </div>`;
                 grid.insertAdjacentHTML('beforeend', cardHtml);
+            });
+            
+            grid.addEventListener('click', (event) => {
+                const card = event.target.closest('.analysis-card');
+                if (card) {
+                    const sectorCode = card.dataset.sectorCode;
+                    if (sectorCode && NOAA_SECTORS[sectorCode]) {
+                        console.log(`Navigating to GOES sector: ${sectorCode}`);
+                        map.fitBounds(NOAA_SECTORS[sectorCode].bounds);
+                        analysisResultsModal.hide();
+                    }
+                }
             });
 
             const promises = sectorEntries.map(([code, sector]) => () => 
@@ -1388,7 +1615,6 @@
                 color: '#0dcaf0', weight: 2, fillColor: '#0dcaf0', fillOpacity: 0.4
             });
 
-            // === NEW "REVERT" BUTTON LOGIC ===
             const popupContent = `
                 <div class="text-center">
                     <h6 class="mb-1"><i class="fas fa-brain me-1"></i> AI Spread Suggestion</h6>
@@ -1410,7 +1636,6 @@
             fireDetailsModal.hide();
         }
 
-        // === NEW HELPER AND BUTTON FUNCTIONS ===
         function findOfficialFireLayer(globalId) {
             let foundLayer = null;
             officialPerimetersLayer.eachLayer(layer => {
@@ -1425,7 +1650,7 @@
             predictedSpreadLayer.clearLayers();
             if (lastOfficialFireLayer) {
                 map.fitBounds(lastOfficialFireLayer.getBounds());
-                lastOfficialFireLayer.openPopup(); // Or re-open the modal if you prefer
+                lastOfficialFireLayer.openPopup(); 
             }
         }
 
@@ -1445,7 +1670,7 @@
         }
 
         function showOfficialFireModal(props, layer) {
-            lastOfficialFireLayer = layer; // Store the layer that was clicked
+            lastOfficialFireLayer = layer;
             document.getElementById('fire-details-modal-title').innerHTML = `<i class="fas fa-certificate text-danger me-2"></i> Official Incident`;
             
             const propertiesJson = escapeHTML(JSON.stringify(props));
@@ -1596,25 +1821,24 @@
             setupAlertPusherListener();
         }
 
-        function toggleAlertCreation() {
-            const btn = document.getElementById('create-alert-btn');
-            if (alertDrawer.enabled()) { alertDrawer.disable(); btn.classList.remove('active'); console.log("Alert creation mode disabled."); } 
-            else { if (weatherMarkerDrawer.enabled()) weatherMarkerDrawer.disable(); alertDrawer.enable(); btn.classList.add('active'); console.log("Alert creation mode enabled."); }
-        }
-
         async function saveAlert(event) {
             event.preventDefault();
-            const btn = event.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Broadcasting...`;
+            const btn = event.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Broadcasting...`;
             const formData = { latitude: document.getElementById('alert-lat').value, longitude: document.getElementById('alert-lng').value, radius: document.getElementById('alert-radius').value, message: document.getElementById('alert-message').value };
             try {
                 const response = await axios.post("{{ route('api.alerts.store') }}", formData);
-                console.log("Alert saved successfully via API. Response:", response.data);
-                addAlertToMap(response.data);
-                alertModal.hide(); document.getElementById('alert-form').reset();
+                console.log("Alert saved successfully via API. Proactively adding to map.", response.data);
+                addAlertToMap(response.data); 
+                alertModal.hide();
+                document.getElementById('alert-form').reset();
             } catch (error) {
-                console.error("Error saving alert:", error.response?.data); alert("Failed to save alert. " + (error.response?.data?.message || 'Check console for details.'));
+                console.error("Error saving alert:", error.response?.data);
+                alert("Failed to save alert. " + (error.response?.data?.message || 'Check console for details.'));
             } finally {
-                btn.disabled = false; btn.innerHTML = `Save and Broadcast Alert`;
+                btn.disabled = false;
+                btn.innerHTML = `Save and Broadcast Alert`;
             }
         }
 
@@ -1624,7 +1848,7 @@
             console.log(`Requesting deletion for alert ID: ${alertId}`);
             axios.delete(`/api/alerts/${alertId}`)
                 .then(() => {
-                    console.log(`Successfully requested deletion for alert ${alertId}. Removing locally for immediate feedback.`);
+                    console.log(`Successfully requested deletion for alert ${alertId}. Other clients will update via Pusher.`);
                     removeAlertFromMap(alertId);
                 })
                 .catch(error => {
@@ -1641,10 +1865,15 @@
 
         function addAlertToMap(alert) {
             if (activeAlerts[alert.id]) { communityAlertsLayer.removeLayer(activeAlerts[alert.id]); }
-            console.log(`Adding alert ${alert.id} to map.`);
+            console.log(`Adding alert ${alert.id} to map with message: "${alert.message}"`);
             const circle = L.circle([alert.latitude, alert.longitude], { radius: alert.radius, color: '#ffc107', fillColor: '#ffc107', fillOpacity: 0.3 }).addTo(communityAlertsLayer);
-            const popupContent = `<div><b>Community Alert:</b><br>${escapeHTML(alert.message)}<br><small>Radius: ${alert.radius.toFixed(0)}m</small><hr class="my-1"><button class="btn btn-sm btn-danger w-100" onclick="deleteAlert(${alert.id})"><i class="fas fa-trash me-1"></i>Delete Alert</button></div>`;
-            circle.bindPopup(popupContent); activeAlerts[alert.id] = circle;
+            
+            circle.alertId = alert.id;
+            circle.alertMessage = alert.message;
+
+            const popupContent = `<div><b>Community Alert:</b><br>${escapeHTML(alert.message)}<br><small>Radius: ${(alert.radius/1000).toFixed(1)}km</small><hr class="my-1"><button class="btn btn-sm btn-danger w-100" onclick="deleteAlert(${alert.id})"><i class="fas fa-trash me-1"></i>Delete Alert</button></div>`;
+            circle.bindPopup(popupContent); 
+            activeAlerts[alert.id] = circle;
         }
 
         function removeAlertFromMap(alertId) {
@@ -1662,8 +1891,14 @@
                 window.Echo = new Echo({ broadcaster: 'pusher', key: "{{ config('broadcasting.connections.pusher.key') }}", cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}", forceTLS: true });
                 console.log("Setting up public-alerts channel listener on Pusher.");
                 window.Echo.channel('public-alerts')
-                    .listen('AlertCreated', (e) => { console.log('Pusher Event: AlertCreated received.', e); addAlertToMap(e.alert); })
-                    .listen('AlertDeleted', (e) => { console.log('Pusher Event: AlertDeleted received.', e); removeAlertFromMap(e.alertId); });
+                    .listen('AlertCreated', (e) => { 
+                        console.log('Pusher Event: AlertCreated received.', e); 
+                        addAlertToMap(e.alert); 
+                    })
+                    .listen('AlertDeleted', (e) => { 
+                        console.log('Pusher Event: AlertDeleted received.', e); 
+                        removeAlertFromMap(e.alertId); 
+                    });
             } catch(e) { console.error("Pusher/Echo initialization failed. Real-time alerts will not function. Check that pusher.min.js and echo.js are loaded.", e); }
         }
 
