@@ -21,7 +21,10 @@
 
 
 
-**Important Notice:** Make an account to be assigned resident role.
+**Notice:**  Autonomous agents and live AI features are currently disabled in this public demo to manage costs. If you need to test these features, please contact us to have them enabled.
+
+
+
 ---
 
 ## 📝 Table of Contents
