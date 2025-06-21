@@ -300,7 +300,7 @@
                                         </div>
                                     </div>
                                     <a href="/notification" class="dropdown-item text-center text-primary d-block view-all fw-medium rounded-bottom-3">
-                                        <span>See All Notifications</span>
+                                        <span>wSee All Notifications</span>
                                     </a>
                                 </div>
                             </div>

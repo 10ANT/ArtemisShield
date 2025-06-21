@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,  
             FireStationsTableSeeder::class,
             UserSeeder::class,
+            //UserSeederlocal::class,
 
         ]);
     }

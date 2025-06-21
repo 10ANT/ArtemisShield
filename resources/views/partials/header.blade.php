@@ -1,7 +1,6 @@
 <header
     class="header-area bg-white mb-4 rounded-bottom-15"
     id="header-area"
-    
 >
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 
@@ -16,31 +15,28 @@
                             class="header-burger-menu bg-transparent p-0 border-0"
                             id="header-burger-menu"
                         >
-                            <span
-                                class="material-symbols-outlined"
-                                >menu</span
-                            >
+                            <span class="material-symbols-outlined">menu</span>
                         </button>
                     </li>
                     <li>
-                        <form
-                            class="src-form position-relative"
-                        >
-                            <input
-                                type="text"
-                                class="form-control"
-                                placeholder="Search here....."
-                            />
-                            <button
-                                type="submit"
-                                class="src-btn position-absolute top-50 end-0 translate-middle-y bg-transparent p-0 border-0"
-                            >
-                                <span
-                                    class="material-symbols-outlined"
-                                    >search</span
+                        <!-- === DISABLED SEARCH FEATURE === -->
+                        <div id="disabled-search-wrapper" style="cursor: pointer;">
+                             <form class="src-form position-relative" onsubmit="return false;">
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    placeholder="Search is currently disabled"
+                                    disabled
+                                />
+                                <button
+                                    type="submit"
+                                    class="src-btn position-absolute top-50 end-0 translate-middle-y bg-transparent p-0 border-0"
+                                    disabled
                                 >
-                            </button>
-                        </form>
+                                    <span class="material-symbols-outlined">search</span>
+                                </button>
+                            </form>
+                        </div>
                     </li>
                     <li>
                         <div
@@ -65,7 +61,7 @@
                                     class="notification-menu d-flex flex-wrap justify-content-between gap-4"
                                 >
                                     
-                                        href=""
+                                        <a href=""
                                         target="_blank"
                                         class="dropdown-item p-0 text-center"
                                     >
@@ -112,14 +108,11 @@
                         </div>
                     </li>
                     <li class="header-right-item">
-                        <div
-                            class="dropdown notifications language"
-                        >
+                        <!-- === DISABLED LANGUAGE FEATURE === -->
+                        <div class="dropdown notifications language" id="disabled-language-wrapper" style="cursor: pointer;">
                             <button
                                 class="btn btn-secondary dropdown-toggle border-0 p-0 position-relative"
                                 type="button"
-                                data-bs-toggle="dropdown"
-                                aria-expanded="false"
                             >
                                 <span
                                     class="material-symbols-outlined"
@@ -129,73 +122,7 @@
                             <div
                                 class="dropdown-menu dropdown-lg p-0 border-0 dropdown-menu-end"
                             >
-                                <span
-                                    class="fw-semibold fs-15 text-secondary title"
-                                    >Choose Language</span
-                                >
-                                <div
-                                    class="max-h-275"
-                                    data-simplebar
-                                >
-                                  
-                                    <div
-                                        class="notification-menu"
-                                    >
-                                        
-                                            href="javascript:void(0);"
-                                            class="dropdown-item"
-                                        >
-                                            <div
-                                                class="d-flex align-items-center"
-                                            >
-                                             
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div
-                                        class="notification-menu"
-                                    >
-                                        
-                                            href="javascript:void(0);"
-                                            class="dropdown-item"
-                                        >
-                                            <div
-                                                class="d-flex align-items-center"
-                                            >
-                                              
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div
-                                        class="notification-menu"
-                                    >
-                                        
-                                            href="javascript:void(0);"
-                                            class="dropdown-item"
-                                        >
-                                            <div
-                                                class="d-flex align-items-center"
-                                            >
-                                            
-                                            </div>
-                                        </a>
-                                    </div>
-                                    <div
-                                        class="notification-menu mb-0"
-                                    >
-                                        
-                                            href="javascript:void(0);"
-                                            class="dropdown-item"
-                                        >
-                                            <div
-                                                class="d-flex align-items-center"
-                                            >
-                                           
-                                
-                                            </div>
-                                        </a>
-                                    </div>
-                                </div>
+                                <!-- Dropdown content remains but will not be shown -->
                             </div>
                         </div>
                     </li>
@@ -254,7 +181,7 @@
                                         class="notification-menu unseen"
                                     >
                                         
-                                            href="/notification"
+                                            <a href="/notification"
                                             class="dropdown-item"
                                         >
                                             <div
@@ -292,11 +219,11 @@
                                  
                                 </div>
                                 
-                                    href="/notification"
+                                    <a href=""
                                     class="dropdown-item text-center text-primary d-block view-all fw-medium rounded-bottom-3"
                                 >
-                                    <span
-                                        >See All Notifications
+                                    <span>
+                                        
                                     </span>
                                 </a>
                             </div>
@@ -420,3 +347,34 @@
         </div>
     </div>
 </header>
+
+<!-- === SCRIPT TO HANDLE DISABLED FEATURES === -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // This check prevents the same event listeners from being added multiple times
+    // if the header is ever loaded dynamically.
+    if (!window.headerFeatureDisablerAttached) {
+        console.log("Attaching feature disabler script to header.");
+
+        const disabledSearchWrapper = document.getElementById('disabled-search-wrapper');
+        if (disabledSearchWrapper) {
+            disabledSearchWrapper.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('The search feature is currently disabled.');
+                console.log('User clicked on the disabled search feature.');
+            });
+        }
+
+        const disabledLanguageWrapper = document.getElementById('disabled-language-wrapper');
+        if (disabledLanguageWrapper) {
+            disabledLanguageWrapper.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('The language selection feature is currently disabled.');
+                console.log('User clicked on the disabled language feature.');
+            });
+        }
+
+        window.headerFeatureDisablerAttached = true;
+    }
+});
+</script>

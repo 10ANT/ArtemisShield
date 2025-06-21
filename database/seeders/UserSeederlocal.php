@@ -8,7 +8,7 @@ use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 
-class UserSeeder extends Seeder
+class UserSeederlocal extends Seeder
 {
     public function run()
     {
@@ -25,13 +25,13 @@ class UserSeeder extends Seeder
             [
                 'name' => 'John Officer',
                 'email' => 'officer@artemis.com',
-                'password' => Hash::make('passwords10#'),
+                'password' => Hash::make('password'),
                 'role_id' => $officerRole->id
             ],
             [
                 'name' => 'Maria Rodriguez',
                 'email' => 'officer2@artemis.com',
-                'password' => Hash::make('passwory'),
+                'password' => Hash::make('password'),
                 'role_id' => $officerRole->id
             ],
             
@@ -39,19 +39,19 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Mark Thompson',
                 'email' => 'firefighter@artemis.com',
-                'password' => Hash::make('passworu'),
+                'password' => Hash::make('password'),
                 'role_id' => $firefighterRole->id
             ],
             [
                 'name' => 'Sarah Williams',
                 'email' => 'firefighter2@artemis.com',
-                'password' => Hash::make('password77'),
+                'password' => Hash::make('password'),
                 'role_id' => $firefighterRole->id
             ],
             [
                 'name' => 'Robert Clarke',
                 'email' => 'firefighter3@artemis.com',
-                'password' => Hash::make('passwordt'),
+                'password' => Hash::make('password'),
                 'role_id' => $firefighterRole->id
             ],
             
@@ -59,19 +59,19 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Dr. Lisa Brown',
                 'email' => 'ambulance@artemis.com',
-                'password' => Hash::make('passwurd'),
+                'password' => Hash::make('password'),
                 'role_id' => $ambulanceRole->id
             ],
             [
                 'name' => 'Michael Davis',
                 'email' => 'ambulance2@artemis.com',
-                'password' => Hash::make('pass4word'),
+                'password' => Hash::make('password'),
                 'role_id' => $ambulanceRole->id
             ],
             [
                 'name' => 'Nurse Janet Smith',
                 'email' => 'ambulance3@artemis.com',
-                'password' => Hash::make('passw5ord'),
+                'password' => Hash::make('password'),
                 'role_id' => $ambulanceRole->id
             ],
             
@@ -79,19 +79,19 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Jane Resident',
                 'email' => 'resident@artemis.com',
-                'password' => Hash::make('password123art-*'),
+                'password' => Hash::make('password'),
                 'role_id' => $residentRole->id
             ],
             [
                 'name' => 'David Johnson',
                 'email' => 'resident2@artemis.com',
-                'password' => Hash::make('pass5word'),
+                'password' => Hash::make('password'),
                 'role_id' => $residentRole->id
             ],
             [
                 'name' => 'Patricia Miller',
                 'email' => 'resident3@artemis.com',
-                'password' => Hash::make('pas557452sword'),
+                'password' => Hash::make('password'),
                 'role_id' => $residentRole->id
             ]
         ];

@@ -63,7 +63,7 @@
 
 <div class="offcanvas offcanvas-end bg-white" data-bs-scroll="true" data-bs-backdrop="true" tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" style="box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;">
     <div class="offcanvas-header bg-body-bg py-3 px-4">
-        <h5 class="offcanvas-title fs-18" id="offcanvasScrollingLabel">Theme Settings</h5>
+        <h5 class="offcanvas-title fs-18" id="offcanvasScrollingLabel">Change your View</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body p-4">
